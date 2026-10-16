@@ -174,3 +174,4 @@ def test_vercel_entrypoint_uses_the_production_domain_and_backend_secrets(monkey
     config = json.loads((root / "vercel.json").read_text())
     assert "uv pip install -r deployment/requirements-vercel.txt" in config["installCommand"]
     assert config["functions"]["app.py"]["maxDuration"] < 150
+    assert len(config["functions"]["app.py"]["excludeFiles"]) <= 256

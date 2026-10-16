@@ -4,7 +4,7 @@
   "installCommand": "npm ci && uv pip install -r deployment/requirements-vercel.txt",
   "buildCommand": "npm run build && python scripts/assemble_render_model.py",
   "regions": ["bom1"],
-  "functions": { "app.py": { "maxDuration": 120, "excludeFiles": "{.git/**,.github/**,.venv*/**,**/node_modules/**,node_modules/**,api/**,ml/**,data/**,artifacts/**,output/**,firmware/**,apps/mobile/**,apps/edge_api/tests/**,apps/web/src/**,scripts/**,docs/**,supabase/**,deployment/model-parts/**,deployment/private/**,deployment/runtime/**,deployment/logs/**}" } },
+  "functions": { "app.py": { "maxDuration": 120, "excludeFiles": "{.git,.github,.venv*,**/node_modules,node_modules,api,ml,data,artifacts,output,firmware,apps/{mobile,edge_api/tests,web/src},scripts,docs,supabase,deployment/{model-parts,private,runtime,logs}}/**" } },
   "headers": [{ "source": "/(.*)", "headers": [
     { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests" },
     { "key": "X-Frame-Options", "value": "DENY" },
