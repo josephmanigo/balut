@@ -1,0 +1,56 @@
+{
+  "scope": "Known-answer software tests, not independent accuracy evidence",
+  "examples": [
+    {
+      "file": {
+        "path": "egg-grade/day_16.jpg",
+        "sha256": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff"
+      },
+      "expected_prediction": "DAY_16",
+      "expected_scores": [
+        0.938539981842041,
+        0.8283926248550415,
+        -1.0295727252960205
+      ],
+      "source_label": "Fertile-Day-16",
+      "source_dataset": "age",
+      "source_sha256": "3740d1b3dfe3422262f788e5d31f11c23271cc7d642f1ba1aca7e6a849be0504",
+      "partition": "validation",
+      "adaptation": "EXIF orientation applied, RGB JPEG quality 95"
+    },
+    {
+      "file": {
+        "path": "egg-grade/day_18.jpg",
+        "sha256": "da56d543f8cd22b38dee4ac8eb0d0d18be292694b1edff168868c393f521b812"
+      },
+      "expected_prediction": "DAY_18",
+      "expected_scores": [
+        0.6463992595672607,
+        0.7780296802520752,
+        -0.8435229063034058
+      ],
+      "source_label": "Fertile-Day-18",
+      "source_dataset": "age",
+      "source_sha256": "5251d664e10036223fade84c3c09fdcf92404a1abfb58b3cf471a9fd0f55a139",
+      "partition": "validation",
+      "adaptation": "EXIF orientation applied, RGB JPEG quality 95"
+    },
+    {
+      "file": {
+        "path": "egg-grade/reject.jpg",
+        "sha256": "3bd212711d4312a2e6d02d9866c178fd0e23e17fff5f178be155f33a4ae537e6"
+      },
+      "expected_prediction": "REJECT",
+      "expected_scores": [
+        -1.271195888519287,
+        -1.3276021480560303,
+        1.3033897876739502
+      ],
+      "source_label": "Reject",
+      "source_dataset": "pat",
+      "source_sha256": "951ed0fc7387344d6def0d8e5b53f6f8cc17111c24c1d3830edef2d51e4482d3",
+      "partition": "validation",
+      "adaptation": "EXIF orientation applied, RGB JPEG quality 95"
+    }
+  ]
+}

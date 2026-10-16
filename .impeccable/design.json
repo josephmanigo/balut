@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T21:46:33.4000297Z",
+  "title": "Design System: Balut Evidence Workbench",
+  "extensions": {
+    "typographyMeta": {
+      "workspace-heading": {
+        "displayName": "Workspace heading",
+        "purpose": "Production page headings; the incumbent Georgia identity remains."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "purpose": "Production button background and text color changes.",
+        "name": "control-state",
+        "value": "160ms"
+      },
+      {
+        "purpose": "Upload background and border changes; disabled with reduced motion.",
+        "name": "upload-state",
+        "value": "150ms"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "workspace-compact",
+        "value": "1000px"
+      },
+      {
+        "name": "workspace-stack",
+        "value": "700px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "refersTo": "workspace-button",
+      "css": ".ds-primary { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; border:1px solid var(--ink,#15221d); border-radius:4px; background:var(--ink,#15221d); color:var(--paper,#f7f4ec); font:600 14px Aptos,\"Segoe UI\",Arial,sans-serif; cursor:pointer; transition:background-color 160ms,color 160ms; } .ds-primary:hover:not(:disabled) { background:#304b3f; } .ds-primary:focus-visible { outline:3px solid #245864; outline-offset:4px; } .ds-primary:disabled { opacity:.55; cursor:not-allowed; } @media(prefers-reduced-motion:reduce) { .ds-primary { transition:none; } }",
+      "name": "Workspace primary action",
+      "html": "<button class=\"ds-primary\">Analyze egg</button>",
+      "kind": "button",
+      "description": "The next action in the production login and upload workflow."
+    },
+    {
+      "name": "Workspace secondary action",
+      "css": ".ds-outline { min-height:44px; padding:0 18px; border:1px solid var(--rule,#cfc8ba); border-radius:4px; background:transparent; color:var(--ink,#15221d); font:600 14px Aptos,\"Segoe UI\",Arial,sans-serif; cursor:pointer; transition:background-color 160ms,color 160ms; } .ds-outline:hover:not(:disabled) { background:var(--paper-deep,#eee8dc); } .ds-outline:focus-visible { outline:3px solid #245864; outline-offset:4px; } .ds-outline:disabled { opacity:.55; cursor:not-allowed; } @media(prefers-reduced-motion:reduce) { .ds-outline { transition:none; } }",
+      "kind": "button",
+      "description": "Change an image or refresh records.",
+      "html": "<button class=\"ds-outline\">Choose another image</button>"
+    },
+    {
+      "name": "Workspace quiet action",
+      "css": ".ds-quiet { min-height:44px; padding:0 10px; border:0; border-radius:4px; background:transparent; color:var(--muted,#64706a); font:600 14px Aptos,\"Segoe UI\",Arial,sans-serif; cursor:pointer; transition:background-color 160ms,color 160ms; } .ds-quiet:hover:not(:disabled) { background:var(--paper-deep,#eee8dc); color:var(--ink,#15221d); } .ds-quiet:focus-visible { outline:3px solid #245864; outline-offset:4px; } .ds-quiet:disabled { opacity:.55; cursor:not-allowed; } @media(prefers-reduced-motion:reduce) { .ds-quiet { transition:none; } }",
+      "kind": "button",
+      "description": "Language and account actions remain secondary.",
+      "html": "<button class=\"ds-quiet\">Filipino</button>"
+    },
+    {
+      "name": "Login field",
+      "css": ".ds-label { display:block; margin-bottom:9px; color:var(--ink,#15221d); font:600 13px Aptos,\"Segoe UI\",Arial,sans-serif; } .ds-input { min-height:51px; max-width:100%; border:1px solid #a9b0a8; border-radius:4px; padding:12px 14px; background:#fdfbf6; color:var(--ink,#15221d); font:16px Aptos,\"Segoe UI\",Arial,sans-serif; caret-color:var(--teal,#245864); } .ds-input:focus-visible { outline:3px solid #245864; outline-offset:4px; }",
+      "kind": "input",
+      "description": "A persistent visible label and generous input area.",
+      "html": "<label class=\"ds-label\" for=\"ds-username\">Username</label><input class=\"ds-input\" id=\"ds-username\" autocomplete=\"username\" value=\"operator\">"
+    },
+    {
+      "name": "Workspace navigation",
+      "css": ".ds-nav { display:flex; gap:26px; min-height:46px; } .ds-nav button { border:0; border-bottom:2px solid transparent; padding:0 4px; background:transparent; color:var(--muted,#64706a); font:14px Aptos,\"Segoe UI\",Arial,sans-serif; cursor:pointer; } .ds-nav button[aria-current] { border-color:var(--amber,#d77f22); color:var(--ink,#15221d); font-weight:650; } .ds-nav button:hover { color:var(--ink,#15221d); } .ds-nav button:focus-visible { outline:3px solid #245864; outline-offset:4px; }",
+      "kind": "nav",
+      "description": "Two essential destinations with an amber active rule.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Workspace\"><button aria-current=\"page\">Analyze</button><button>History</button></nav>"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Daylight Vendor Instrument",
+    "overview": "This is a refinement of the established paper, ink, amber, Georgia, and sans-serif identity. It makes one image, one action, and one result easy to follow. Thin rules, quiet controls, short instructions, and progressive detail replace the simulator's dense operational shell. The source-built candling symbol is decorative; the image preview shows the user's selected file.",
+    "keyCharacteristics": [
+      "Paper, ink, amber, Georgia, and sans-serif identity.",
+      "One image, one action, and one result.",
+      "Thin rules, quiet controls, short instructions, and progressive detail."
+    ],
+    "rules": [
+      {
+        "section": "components",
+        "name": "The Next-Action Rule",
+        "body": "Show one clear next action. Keep supplementary image tips and saved-record metadata behind native disclosures. Account setup uses brief hints beside the relevant field."
+      },
+      {
+        "section": "components",
+        "name": "The Compact-Authority Rule",
+        "body": "Keep research status next to the result and the appearance-only limitation visible in the workspace footer. Compact wording must preserve the factual boundary."
+      }
+    ],
+    "dos": [
+      "Do preserve the paper/ink/amber identity, short instructions, restrained serif hierarchy, and flat ruled surfaces.",
+      "Do keep the next action obvious and supplementary details collapsed until needed.",
+      "Do keep Analyze and History as the essential production destinations and move mobile focus to a newly returned result."
+    ],
+    "donts": [
+      "Don't reintroduce the simulator's navigation, dense gate ledgers, or square-only controls into production by following the historical sections below.",
+      "Don't turn an appearance estimate, polished login, UI review, or local software check into a food-safety, security-audit, or physical-readiness claim."
+    ]
+  }
+}

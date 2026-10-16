@@ -1,0 +1,8 @@
+# Provision in a dedicated virtual environment; these heavy packages are not
+# required for the local API or dataset-contract tests.
+torch
+torchvision
+pillow
+onnx
+onnxruntime
+numpy

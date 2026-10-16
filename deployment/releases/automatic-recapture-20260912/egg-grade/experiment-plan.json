@@ -1,0 +1,121 @@
+{
+  "candidate_limit": 48,
+  "fusions": [
+    [
+      "dinov2_vits14"
+    ],
+    [
+      "dinov2_vits14",
+      "convnext_tiny"
+    ],
+    [
+      "dinov2_vits14",
+      "efficientnet_b0"
+    ]
+  ],
+  "grid": [
+    {
+      "kind": "logistic",
+      "C": 0.1,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "logistic",
+      "C": 1.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "logistic",
+      "C": 10.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "logistic",
+      "C": 100.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 0.1,
+      "gamma": "scale",
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 0.1,
+      "gamma": 0.1,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 0.1,
+      "gamma": 1.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 0.1,
+      "gamma": 10.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 1.0,
+      "gamma": "scale",
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 1.0,
+      "gamma": 0.1,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 1.0,
+      "gamma": 1.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 1.0,
+      "gamma": 10.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 10.0,
+      "gamma": "scale",
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 10.0,
+      "gamma": 0.1,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 10.0,
+      "gamma": 1.0,
+      "class_weight": "balanced"
+    },
+    {
+      "kind": "rbf_ovr",
+      "C": 10.0,
+      "gamma": 10.0,
+      "class_weight": "balanced"
+    }
+  ],
+  "selection": "validation macro F1, balanced accuracy, accuracy; stable first candidate tie break",
+  "historical_test_policy": "Never accessed in search. One evaluation after selection, gate settings, and hashes are locked.",
+  "manifest_sha256": "4a472bed8fa26e10d350997850a11d9e467763496d3129d910987ddd3f35615b",
+  "gate_policy": "Per-class raw-score margin above all validation mistakes; at least five correctly accepted validation samples; no certainty guarantee",
+  "limitations": [
+    "Day labels come from a species-unverified public source; chronological age is not independently confirmed.",
+    "Reject examples come from a different public dataset than age examples. Source appearance is confounded with Reject and may inflate mixed-source results.",
+    "No physical egg/session identities are available. Public image grouping cannot establish independent eggs.",
+    "Reject retains the original source label; other Pat labels are excluded and are not relabelled as Reject or assigned an age.",
+    "All predictions require human review; no physical sorting, food-safety decision, or automatic operational grading is authorized."
+  ]
+}

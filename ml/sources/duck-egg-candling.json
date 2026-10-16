@@ -1,0 +1,12 @@
+{
+  "name": "Duck Egg Candling - Team DevIn / ryleanthony-gabotero",
+  "url": "https://universe.roboflow.com/ryleanthony-gabotero/duck-egg-candling/dataset/2",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "verified_on": "2026-09-12",
+  "species": "duck, according to publisher title and description; not independently verified",
+  "source_classes": ["abnormal", "fertile", "infertile"],
+  "source_images_reported": 581,
+  "export_images_reported": 1395,
+  "label_limitations": "No documented incubation days, physical egg IDs, or biological outcome confirmation. Some preview images have multiple labels; exclude ambiguous single-label classification inputs. Abnormal is not automatically REJECT_SUSPECT. Augmented exports do not represent independent eggs."
+}

@@ -1,0 +1,22 @@
+{
+  "name": "balut-aiot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fail-closed Balut AIoT research prototype and simulator",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @balut/web",
+    "build": "npm run build --workspace @balut/web",
+    "test": "npm run test --workspace @balut/web",
+    "typecheck": "npm run typecheck --workspace @balut/web",
+    "verify": "npm run typecheck && npm run test && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "jsdom": "27.0.1"
+  }
+}

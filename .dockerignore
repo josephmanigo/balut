@@ -1,0 +1,16 @@
+.git
+**/node_modules
+**/dist
+**/__pycache__
+.venv*
+deployment/private
+deployment/runtime
+deployment/backups
+deployment/logs
+runtime
+artifacts
+output
+data
+firmware
+apps/mobile
+.env*

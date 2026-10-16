@@ -1,0 +1,55 @@
+{
+  "passed": false,
+  "onnx_sha256": "21becfa01438ce8fc89dd232eee6c3b1a029e8938ce81a60df0de9386c0651bd",
+  "test_images_compared": 172,
+  "maximum_score_error": 0.008813858032226562,
+  "selective_decisions_identical": true,
+  "onnx_selective": {
+    "images": 172,
+    "classified": 97,
+    "correct_classified": 95,
+    "wrong_classified": 2,
+    "recapture_requested": 75,
+    "coverage": 0.563953488372093,
+    "accepted_accuracy": 0.979381443298969,
+    "correct_of_all_inputs": 0.5523255813953488,
+    "recapture_reasons": {
+      "IMAGE_TOO_BLURRY": 65,
+      "UNFAMILIAR_APPEARANCE": 5,
+      "AMBIGUOUS_APPEARANCE": 11,
+      "IMAGE_TOO_SMALL": 5
+    },
+    "by_true_class": {
+      "DAY_16": {
+        "images": 15,
+        "classified": 10,
+        "correct_classified": 8
+      },
+      "DAY_18": {
+        "images": 20,
+        "classified": 13,
+        "correct_classified": 13
+      },
+      "REJECT": {
+        "images": 137,
+        "classified": 74,
+        "correct_classified": 74
+      }
+    },
+    "by_prediction": {
+      "DAY_16": {
+        "classified": 8,
+        "correct": 8
+      },
+      "DAY_18": {
+        "classified": 15,
+        "correct": 13
+      },
+      "REJECT": {
+        "classified": 74,
+        "correct": 74
+      }
+    }
+  },
+  "embedding_maximum_error": 0.00038160383701324463
+}

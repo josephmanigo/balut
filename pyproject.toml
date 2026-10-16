@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "balut-aiot-edge"
+version = "0.1.0"
+description = "Local-first Balut AIoT edge API and research tooling"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "httpx>=0.27,<1",
+  "pydantic>=2.9,<3",
+  "python-multipart>=0.0.12,<1",
+  "Pillow>=12.3,<13",
+  "uvicorn[standard]>=0.32,<1"
+]
+
+[project.optional-dependencies]
+serving = ["numpy>=2.5,<3", "onnxruntime>=1.30,<2"]
+dev = [
+  "pytest>=9.1,<10",
+  "pytest-cov>=6,<7"
+]
+
+[project.scripts]
+balut-ml = "balut_ml.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["apps/edge_api/balut_api", "ml/balut_ml"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["apps/edge_api", "ml"]
+testpaths = ["apps/edge_api/tests", "ml/tests"]

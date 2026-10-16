@@ -1,0 +1,12 @@
+{
+  "name": "Pat - Balut Eggs Project, version 8",
+  "url": "https://universe.roboflow.com/pat-bteu2/balut-eggs-project-unfertilized-fertilized-and-reject-tgibj/dataset/8",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "verified_on": "2026-09-12",
+  "species": "balut/duck-labelled public source; no independent species verification",
+  "source_classes": ["Fertilized", "Reject", "Unfertilized"],
+  "source_images_reported": 648,
+  "export_images_reported": 1556,
+  "label_limitations": "Source-specific auxiliary classification only. Reject has no published biological confirmation procedure and is not automatically rotten or the operational REJECT_SUSPECT class. Fertilized and Unfertilized retain original meanings; neither is mapped to Day 16/18. Age, physical egg IDs, and outcome ground truth are unavailable. Multi-egg frames require source-labelled bounding-box crops; preserve image families across splits."
+}

@@ -1,0 +1,133 @@
+{
+  "backbones": [
+    "dinov2_vits14",
+    "efficientnet_b0"
+  ],
+  "hyperparameters": {
+    "kind": "logistic",
+    "C": 100.0,
+    "class_weight": "balanced"
+  },
+  "head": {
+    "kind": "logistic",
+    "feature_dim": 1664,
+    "outputs": 3
+  },
+  "validation": {
+    "image_count": 368,
+    "accuracy": 0.9809782608695652,
+    "correct": 361,
+    "balanced_accuracy": 0.875,
+    "macro_f1": 0.8702702702702703,
+    "confusion_matrix": [
+      [
+        14,
+        2,
+        0
+      ],
+      [
+        5,
+        15,
+        0
+      ],
+      [
+        0,
+        0,
+        332
+      ]
+    ],
+    "per_class": {
+      "DAY_16": {
+        "precision": 0.7368421052631579,
+        "recall": 0.875,
+        "f1-score": 0.8,
+        "support": 16.0
+      },
+      "DAY_18": {
+        "precision": 0.8823529411764706,
+        "recall": 0.75,
+        "f1-score": 0.8108108108108109,
+        "support": 20.0
+      },
+      "REJECT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 332.0
+      },
+      "accuracy": 0.9809782608695652,
+      "macro avg": {
+        "precision": 0.8730650154798761,
+        "recall": 0.875,
+        "f1-score": 0.8702702702702703,
+        "support": 368.0
+      },
+      "weighted avg": {
+        "precision": 0.9821644905101629,
+        "recall": 0.9809782608695652,
+        "f1-score": 0.9810223266745005,
+        "support": 368.0
+      }
+    }
+  },
+  "manifest_sha256": "4a472bed8fa26e10d350997850a11d9e467763496d3129d910987ddd3f35615b",
+  "gate_policy_sha256": "257b90006a55edc374dd5b737cd2408af1453283ce9aad3c6bb460cf30a3b917",
+  "development_data_sha256": "bb19da539e9c2d4de98fb062c77e653bb1edb98d4666f89de96da39d7bc82a28",
+  "baseline_validation": {
+    "image_count": 368,
+    "accuracy": 0.9809782608695652,
+    "correct": 361,
+    "balanced_accuracy": 0.8583333333333334,
+    "macro_f1": 0.8617283950617284,
+    "confusion_matrix": [
+      [
+        10,
+        6,
+        0
+      ],
+      [
+        1,
+        19,
+        0
+      ],
+      [
+        0,
+        0,
+        332
+      ]
+    ],
+    "per_class": {
+      "DAY_16": {
+        "precision": 0.9090909090909091,
+        "recall": 0.625,
+        "f1-score": 0.7407407407407407,
+        "support": 16.0
+      },
+      "DAY_18": {
+        "precision": 0.76,
+        "recall": 0.95,
+        "f1-score": 0.8444444444444444,
+        "support": 20.0
+      },
+      "REJECT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 332.0
+      },
+      "accuracy": 0.9809782608695652,
+      "macro avg": {
+        "precision": 0.8896969696969697,
+        "recall": 0.8583333333333334,
+        "f1-score": 0.8617283950617284,
+        "support": 368.0
+      },
+      "weighted avg": {
+        "precision": 0.98300395256917,
+        "recall": 0.9809782608695652,
+        "f1-score": 0.9802737520128825,
+        "support": 368.0
+      }
+    }
+  }
+}

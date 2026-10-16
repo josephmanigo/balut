@@ -1,0 +1,41 @@
+{
+  "scope": "Software smoke test using existing validation fixtures; not an independent accuracy evaluation",
+  "samples": [
+    {
+      "file": "01-age16-18.jpg",
+      "model_id": "age16-18",
+      "expected_model_output": "Fertile-Day-16",
+      "sha256": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff",
+      "provenance": {
+        "source_url": "https://universe.roboflow.com/thesis-mwxui/egg-candling-bdezy/dataset/6",
+        "source_sha256": "3740d1b3dfe3422262f788e5d31f11c23271cc7d642f1ba1aca7e6a849be0504",
+        "adaptation": "EXIF orientation applied and RGB JPEG quality 95",
+        "partition": "validation"
+      }
+    },
+    {
+      "file": "02-pat-status.jpg",
+      "model_id": "pat-status",
+      "expected_model_output": "Fertilized",
+      "sha256": "06612b6ca88ac8936f297be8505b1f6255d1c5972dfb001eb8478d787fa3b640",
+      "provenance": {
+        "source_url": "https://universe.roboflow.com/pat-bteu2/balut-eggs-project-unfertilized-fertilized-and-reject-tgibj/dataset/8",
+        "source_sha256": "8eabcadf756bfd5ab5b99917dd0f9228efa045f8a35fc24c1d88c0abd5478423",
+        "adaptation": "EXIF orientation applied and RGB JPEG quality 95",
+        "partition": "validation"
+      }
+    },
+    {
+      "file": "03-duck-status.jpg",
+      "model_id": "duck-status",
+      "expected_model_output": "infertile",
+      "sha256": "d23e8aa314bff481ec317916ced1f5f79af85a34126b472278a3da5b28f65821",
+      "provenance": {
+        "source_url": "https://universe.roboflow.com/ryleanthony-gabotero/duck-egg-candling/dataset/2",
+        "source_sha256": "b33aad245a1c157f49a4b64fb7139645e39248287a309e4fa672b54dd46e7913",
+        "adaptation": "EXIF orientation applied and RGB JPEG quality 95",
+        "partition": "validation"
+      }
+    }
+  ]
+}

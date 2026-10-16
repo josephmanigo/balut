@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.vercel/
+.env*
+*.tsbuildinfo
+*.log
+deployment/private/
+deployment/runtime/
+deployment/backups/
+deployment/logs/
+runtime/
+artifacts/
+output/
+*.db
+*.pem

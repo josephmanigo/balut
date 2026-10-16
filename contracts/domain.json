@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://balut.local/contracts/domain.json",
+  "title": "Balut AIoT shared domain constants",
+  "schemaVersion": "1.0.0",
+  "inspectionOutcomes": [
+    "DAY_16_LIKE",
+    "DAY_18_LIKE",
+    "REJECT_SUSPECT",
+    "REVIEW_RECAPTURE"
+  ],
+  "inspectionStates": [
+    "CREATED",
+    "CAPTURING",
+    "EVALUATING",
+    "COMPLETED",
+    "SAFE_STOPPED",
+    "UPLOAD_PENDING",
+    "REVIEW_REQUIRED"
+  ],
+  "humanDispositions": [
+    "CONFIRMED_DAY_16",
+    "CONFIRMED_DAY_18",
+    "CONFIRMED_REJECT_SUSPECT",
+    "RECAPTURE_REQUIRED",
+    "UNRESOLVED"
+  ],
+  "machineFlags": [
+    "IMAGE_TOO_DARK",
+    "IMAGE_SATURATED",
+    "IMAGE_BLURRED",
+    "EGG_NOT_FOUND",
+    "INCOMPLETE_ROTATION",
+    "VIEW_DISAGREEMENT",
+    "LOW_CONFIDENCE",
+    "AGE_APPEARANCE_MISMATCH",
+    "DEVICE_FAULT",
+    "MODEL_REJECT_SUSPECT"
+  ],
+  "bannedClaims": [
+    "SAFE TO EAT",
+    "ROTTEN CONFIRMED",
+    "PATHOGEN-FREE",
+    "SALMONELLA-FREE"
+  ]
+}
+

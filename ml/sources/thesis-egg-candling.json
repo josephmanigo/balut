@@ -1,0 +1,11 @@
+{
+  "name": "THESIS - Egg Candling, version 6",
+  "url": "https://universe.roboflow.com/thesis-mwxui/egg-candling-bdezy/dataset/6",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "verified_on": "2026-09-12",
+  "species": "unknown; do not describe results as duck performance",
+  "selected_source_classes": ["Fertile-Day-16", "Fertile-Day-18"],
+  "export_images_reported": 1425,
+  "label_limitations": "Object-detection annotations require box audit and crop extraction before classification. Species, unique egg identity, timestamps, and outcome ground truth are undocumented. Source day names are not independently verified incubation ages. Version 6 has no listed augmentation."
+}

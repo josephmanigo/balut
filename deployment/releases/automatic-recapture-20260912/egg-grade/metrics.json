@@ -1,0 +1,220 @@
+{
+  "validation_raw": {
+    "image_count": 368,
+    "accuracy": 0.9809782608695652,
+    "correct": 361,
+    "balanced_accuracy": 0.875,
+    "macro_f1": 0.8702702702702703,
+    "confusion_matrix": [
+      [
+        14,
+        2,
+        0
+      ],
+      [
+        5,
+        15,
+        0
+      ],
+      [
+        0,
+        0,
+        332
+      ]
+    ],
+    "per_class": {
+      "DAY_16": {
+        "precision": 0.7368421052631579,
+        "recall": 0.875,
+        "f1-score": 0.8,
+        "support": 16.0
+      },
+      "DAY_18": {
+        "precision": 0.8823529411764706,
+        "recall": 0.75,
+        "f1-score": 0.8108108108108109,
+        "support": 20.0
+      },
+      "REJECT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 332.0
+      },
+      "accuracy": 0.9809782608695652,
+      "macro avg": {
+        "precision": 0.8730650154798761,
+        "recall": 0.875,
+        "f1-score": 0.8702702702702703,
+        "support": 368.0
+      },
+      "weighted avg": {
+        "precision": 0.9821644905101629,
+        "recall": 0.9809782608695652,
+        "f1-score": 0.9810223266745005,
+        "support": 368.0
+      }
+    }
+  },
+  "test_raw": {
+    "image_count": 172,
+    "accuracy": 0.9651162790697675,
+    "correct": 166,
+    "balanced_accuracy": 0.8833333333333333,
+    "macro_f1": 0.8833333333333333,
+    "confusion_matrix": [
+      [
+        12,
+        3,
+        0
+      ],
+      [
+        3,
+        17,
+        0
+      ],
+      [
+        0,
+        0,
+        137
+      ]
+    ],
+    "per_class": {
+      "DAY_16": {
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1-score": 0.8,
+        "support": 15.0
+      },
+      "DAY_18": {
+        "precision": 0.85,
+        "recall": 0.85,
+        "f1-score": 0.85,
+        "support": 20.0
+      },
+      "REJECT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 137.0
+      },
+      "accuracy": 0.9651162790697675,
+      "macro avg": {
+        "precision": 0.8833333333333333,
+        "recall": 0.8833333333333333,
+        "f1-score": 0.8833333333333333,
+        "support": 172.0
+      },
+      "weighted avg": {
+        "precision": 0.9651162790697675,
+        "recall": 0.9651162790697675,
+        "f1-score": 0.9651162790697675,
+        "support": 172.0
+      }
+    }
+  },
+  "validation_selective": {
+    "images": 368,
+    "classified": 211,
+    "correct_classified": 211,
+    "wrong_classified": 0,
+    "recapture_requested": 157,
+    "coverage": 0.5733695652173914,
+    "accepted_accuracy": 1.0,
+    "correct_of_all_inputs": 0.5733695652173914,
+    "recapture_reasons": {
+      "AMBIGUOUS_APPEARANCE": 22,
+      "UNFAMILIAR_APPEARANCE": 7,
+      "IMAGE_TOO_BLURRY": 136,
+      "IMAGE_TOO_SMALL": 18
+    },
+    "by_true_class": {
+      "DAY_16": {
+        "images": 16,
+        "classified": 7,
+        "correct_classified": 7
+      },
+      "DAY_18": {
+        "images": 20,
+        "classified": 7,
+        "correct_classified": 7
+      },
+      "REJECT": {
+        "images": 332,
+        "classified": 197,
+        "correct_classified": 197
+      }
+    },
+    "by_prediction": {
+      "DAY_16": {
+        "classified": 7,
+        "correct": 7
+      },
+      "DAY_18": {
+        "classified": 7,
+        "correct": 7
+      },
+      "REJECT": {
+        "classified": 197,
+        "correct": 197
+      }
+    }
+  },
+  "test_selective": {
+    "images": 172,
+    "classified": 97,
+    "correct_classified": 95,
+    "wrong_classified": 2,
+    "recapture_requested": 75,
+    "coverage": 0.563953488372093,
+    "accepted_accuracy": 0.979381443298969,
+    "correct_of_all_inputs": 0.5523255813953488,
+    "recapture_reasons": {
+      "IMAGE_TOO_BLURRY": 65,
+      "UNFAMILIAR_APPEARANCE": 5,
+      "AMBIGUOUS_APPEARANCE": 11,
+      "IMAGE_TOO_SMALL": 5
+    },
+    "by_true_class": {
+      "DAY_16": {
+        "images": 15,
+        "classified": 10,
+        "correct_classified": 8
+      },
+      "DAY_18": {
+        "images": 20,
+        "classified": 13,
+        "correct_classified": 13
+      },
+      "REJECT": {
+        "images": 137,
+        "classified": 74,
+        "correct_classified": 74
+      }
+    },
+    "by_prediction": {
+      "DAY_16": {
+        "classified": 8,
+        "correct": 8
+      },
+      "DAY_18": {
+        "classified": 15,
+        "correct": 13
+      },
+      "REJECT": {
+        "classified": 74,
+        "correct": 74
+      }
+    }
+  },
+  "selection_lock_sha256": "3d7d5a4cb6b819de8fe28f4ca44872fc73249eb2e4f1375082ea8cfdebfce62e",
+  "test_interpretation": "Previously inspected historical public holdout; not independent candler/egg validation",
+  "limitations": [
+    "Day labels come from a species-unverified public source; chronological age is not independently confirmed.",
+    "Reject examples come from a different public dataset than age examples. Source appearance is confounded with Reject and may inflate mixed-source results.",
+    "No physical egg/session identities are available. Public image grouping cannot establish independent eggs.",
+    "Reject retains the original source label; other Pat labels are excluded and are not relabelled as Reject or assigned an age.",
+    "No mandatory human review in image analysis. Uncertain inputs request another image; physical sorting and food-safety authority remain unavailable.",
+    "Recapture thresholds were fitted to development data; accepted predictions can still be wrong. Coverage must be reported with accuracy."
+  ]
+}
