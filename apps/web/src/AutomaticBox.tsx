@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Check, LoaderCircle, Pause, Play, Radio, Settings2 } from "lucide-react";
 import { boxRequest } from "./api";
 import type { BoxStatus } from "./api";
+import { UsbCameraConnect } from "./UsbCameraConnect";
 
 const states: Record<string, [string, string, string, string]> = {
   not_connected: ["Connect your box.", "Ikonekta ang kahon.", "Set up the camera once. Then place an egg.", "I-setup ang camera. Ilagay ang itlog pagkatapos."],
@@ -91,6 +92,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
       <div ref={livePanel} className="box-live" role="status" aria-live="polite" aria-atomic="true">
         <h2>{unreachable ? t("Connection interrupted.", "Naputol ang koneksyon.") : copy[locale === "en" ? 0 : 1]}</h2>
         <p>{unreachable ? t("Check the Balut server. Reconnecting automatically.", "Suriin ang Balut server. Kokonekta muli.") : copy[locale === "en" ? 2 : 3]}</p>
+        {status?.cloudCapture && <UsbCameraConnect locale={locale} />}
         {status?.state === "analyzing" && <LoaderCircle className="spin" size={24} />}
         {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? t("Unclassified · adjust the view and replace the egg.", "Walang klasipikasyon · ayusin ang kuha at ilagay muli.") : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p><time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
       </div>
@@ -98,7 +100,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     {notice && <p className="inline-error" role="alert">{notice}</p>}
     <details className="box-settings" open={!status?.calibrated}>
       <summary><Settings2 size={17} />{t("Box setup", "Setup ng kahon")}</summary>
-      {status?.cloudCapture ? <p>{t("On the laptop connected to the box, open Connect Cloud Box.cmd and keep it running. Wait for the camera view here.", "Sa laptop na konektado sa kahon, buksan ang Connect Cloud Box.cmd at panatilihing tumatakbo. Hintayin ang kuha ng camera rito.")}</p> : <form onSubmit={event => { event.preventDefault(); void change("connect", { cameraUrl: address }); }}>
+      {!status?.cloudCapture && <form onSubmit={event => { event.preventDefault(); void change("connect", { cameraUrl: address }); }}>
         <label htmlFor="box-address">{t("Camera address", "Address ng camera")}</label>
         <div className="box-address-row"><input id="box-address" type="url" required value={address} disabled={busy} placeholder="http://192.168.1.50" autoComplete="off" onChange={event => setAddress(event.target.value)} /><button className="outline-button" disabled={busy || !address.trim()}>{busy ? t("Please wait…", "Sandali…") : t("Connect camera", "Ikonekta ang camera")}</button></div>
         <p>{t("Use the camera address provided during box setup.", "Gamitin ang address ng camera na ibinigay sa setup ng kahon.")}</p>

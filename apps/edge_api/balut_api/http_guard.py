@@ -39,7 +39,7 @@ class HttpGuard:
                     (b"x-request-id", request_id.encode()), (b"x-content-type-options", b"nosniff"),
                     (b"cache-control", b"no-store"), (b"referrer-policy", b"no-referrer"),
                     (b"x-frame-options", b"DENY"),
-                    (b"permissions-policy", b"camera=(), microphone=(), geolocation=()"),
+                    (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), serial=(self)"),
                     (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"),
                 ])
                 if self.settings.cloud_origin:
@@ -57,7 +57,7 @@ class HttpGuard:
                         return await reject(400, "Use the configured cloud address")
                     cloud_routes = {"/", "/health", "/ready", "/api/v1/models", "/api/v1/model-predictions",
                                     "/api/v1/auth/session", "/api/v1/auth/login", "/api/v1/auth/logout",
-                                    "/api/v1/box/status", "/api/v1/box/connect", "/api/v1/box/reference",
+                                    "/api/v1/box/status", "/api/v1/box/connect", "/api/v1/box/reference", "/api/v1/box/frame",
                                     "/api/v1/box/enabled", "/api/v1/device/box/frame"}
                     if request.url.path not in cloud_routes and not request.url.path.startswith("/assets/") and not re.fullmatch(r"/api/v1/model-predictions/records/[a-z0-9-]{1,80}", request.url.path):
                         return await reject(404, "Route unavailable")

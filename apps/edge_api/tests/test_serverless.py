@@ -155,6 +155,39 @@ def test_failed_evidence_upload_rolls_back_frame_and_shared_lease_blocks_other_i
     with pytest.raises(ValueError): render_origin(ORIGIN + ".evil.example")
 
 
+def test_browser_usb_frames_require_session_origin_and_valid_images_and_reset_calibration(tmp_path, shared, provider, monkeypatch):
+    provider["account"] = {"username": "classroom", "password_hash": "not-used-by-this-test"}
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    application = create_app(settings_for(tmp_path, cloud_origin=ORIGIN, serverless=True, supabase_url=URL, supabase_secret_key=SECRET))
+    headers = {"Origin": ORIGIN, "X-Balut-Origin": "local", "Content-Type": "image/jpeg",
+               "X-Balut-Camera-Session": "b342cc3c-1654-48bc-97a7-66e413f945a8", "Idempotency-Key": "browser-frame-001"}
+    with TestClient(application, base_url=ORIGIN) as client:
+        assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).status_code == 401
+        client.cookies.set(COOKIE_NAME, application.state.browser_sessions.issue("classroom"))
+        assert client.post("/api/v1/box/frame", headers={**headers, "Origin": "https://other.example"}, content=camera_frame()).status_code == 403
+        assert client.post("/api/v1/box/frame", headers={**headers, "X-Balut-Origin": ""}, content=camera_frame()).status_code == 403
+        assert client.post("/api/v1/box/frame", headers={**headers, "X-Balut-Camera-Session": "bad"}, content=camera_frame()).status_code == 400
+        assert client.post("/api/v1/box/frame", headers={**headers, "Content-Type": "text/plain"}, content=camera_frame()).status_code == 400
+        assert client.post("/api/v1/box/frame?anything=1", headers=headers, content=camera_frame()).status_code == 400
+        assert client.post("/api/v1/box/frame", headers=headers, content=b"not-jpeg").status_code == 422
+        assert client.post("/api/v1/box/frame", headers=headers, content=b"x" * (128 * 1024 + 1)).status_code == 413
+        for index in range(3):
+            now[0] += 1
+            headers["Idempotency-Key"] = f"browser-frame-{index:03}"
+            assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).json()["accepted"]
+        assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).json()["repeated"]
+        status = client.post("/api/v1/box/reference", headers={"Origin": ORIGIN, "X-Balut-Origin": "local"}, json={"emptyConfirmed": True}).json()
+        assert status["connected"] and status["calibrated"]
+        now[0] += 1
+        headers.update({"Idempotency-Key": "new-browser-frame", "X-Balut-Camera-Session": "aeae26c7-3d4b-41bd-9db2-2eec3a3fb3a7"})
+        assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).status_code == 200
+        assert not client.get("/api/v1/box/status", headers={"X-Balut-Origin": "local"}).json()["calibrated"]
+        assert client.post("/api/v1/device/box/frame", headers=headers, content=camera_frame()).status_code == 401
+        client.post("/api/v1/auth/logout", headers={"Origin": ORIGIN, "X-Balut-Origin": "local"})
+        assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).status_code == 401
+
+
 def test_vercel_entrypoint_uses_the_production_domain_and_backend_secrets(monkeypatch):
     root = Path(__file__).resolve().parents[3]
     for name in ("BALUT_ENV", "BALUT_ALLOW_SIMULATOR", "BALUT_CORS_ORIGINS", "BALUT_DATABASE_PATH", "BALUT_EVIDENCE_PATH"):

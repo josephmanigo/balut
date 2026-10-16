@@ -5,19 +5,34 @@ import { AutomaticBox } from "./AutomaticBox";
 import { boxRequest } from "./api";
 import type { BoxStatus, SourcePrediction } from "./api";
 
-vi.mock("./api", () => ({ boxRequest: vi.fn() }));
+vi.mock("./api", () => ({ boxRequest: vi.fn(), uploadBoxFrame: vi.fn() }));
 const blank: BoxStatus = { cameraUrl: "", enabled: false, calibrated: false, connected: false, state: "not_connected", error: null, preview: null, result: null };
 const prediction: SourcePrediction = { predictionId: "auto-test", modelId: "egg-grade", sourcePrediction: "DAY_16", analysisOutcome: "CLASSIFIED", recaptureRequested: false, recaptureReasons: [], operationalOutcome: "NOT_AUTHORIZED", operationalUseAuthorized: false, reviewRequired: false, createdAt: "2026-10-14T10:00:00Z" };
 
 describe("automatic camera capture", () => {
   beforeEach(() => vi.resetAllMocks());
-  it("shows the cloud connector instructions and requires a connected camera before calibration", async () => {
+  it("offers USB capture and requires a connected camera before calibration", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", state: "offline" });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByText(/open Connect Cloud Box.cmd/)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Connect USB camera" })).toBeDisabled();
+    expect(screen.getByText(/Use Chrome or Edge on a computer/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Camera address")).not.toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("checkbox"));
     expect(screen.getByRole("button", { name: "Save empty view & start" })).toBeDisabled();
+  });
+  it("opens the browser's USB picker only after the operator clicks Connect", async () => {
+    const requestPort = vi.fn().mockRejectedValue(new DOMException("Cancelled", "NotFoundError"));
+    Object.defineProperty(navigator, "serial", { value: { requestPort, getPorts: async () => [], addEventListener: vi.fn(), removeEventListener: vi.fn() }, configurable: true });
+    try {
+      vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767" });
+      render(<AutomaticBox locale="en" onSaved={() => {}} />);
+      const button = await screen.findByRole("button", { name: "Connect USB camera" });
+      expect(requestPort).not.toHaveBeenCalled();
+      await userEvent.setup().click(button);
+      expect(requestPort).toHaveBeenCalledOnce();
+      expect(await screen.findByRole("button", { name: "Connect USB camera" })).toBeEnabled();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    } finally { Object.defineProperty(navigator, "serial", { value: undefined, configurable: true }); }
   });
   it("requires an empty-box confirmation before starting and keeps capture automatic", async () => {
     const user = userEvent.setup();

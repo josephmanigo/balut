@@ -217,6 +217,9 @@
 .box-address-row { display: flex; gap: 12px; }
 .box-address-row input { flex: 1; min-width: 0; background: #fffdf8; border: 1px solid var(--rule); padding: 13px; color: var(--ink); border-radius: 4px; font: inherit; }
 .box-settings p { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 12px; }
+.usb-camera-connect { max-width: 650px; margin-top: 24px; }
+.usb-camera-connect > p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 12px 0; }
+.usb-camera-connect .inline-error { color: var(--red); }
 .box-reference { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 24px; }
 .box-reference label { display: flex; gap: 10px; align-items: center; min-height: 44px; font-size: 14px; }
 .box-reference input { width: 19px; height: 19px; accent-color: var(--ink); }

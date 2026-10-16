@@ -75,6 +75,20 @@ export async function boxRequest(action = "status", body?: Record<string, unknow
   return value;
 }
 
+export async function uploadBoxFrame(body: Uint8Array<ArrayBuffer>, key: string, session: string, signal: AbortSignal): Promise<boolean> {
+  const response = await apiFetch(`${API_BASE}/box/frame`, {
+    method: "POST", body: new Blob([body], { type: "image/jpeg" }),
+    signal: AbortSignal.any([signal, AbortSignal.timeout(130_000)]),
+    headers: { "Content-Type": "image/jpeg", "X-Balut-Origin": "local", "Idempotency-Key": key, "X-Balut-Camera-Session": session },
+  });
+  if (response.status === 409 || response.status === 429 || response.status >= 500) return false;
+  const value = await response.json().catch(() => null);
+  if (!response.ok || value?.accepted !== true) throw new Error(
+    response.status === 401 ? "Sign in again to connect the camera." : typeof value?.detail === "string" ? value.detail : "Camera upload was not accepted. Reconnect and try again.",
+  );
+  return true;
+}
+
 export async function getSourceModels(signal?: AbortSignal): Promise<SourceModelCatalog> {
   return parse<SourceModelCatalog>(await apiFetch(`${API_BASE}/models`, { signal }));
 }

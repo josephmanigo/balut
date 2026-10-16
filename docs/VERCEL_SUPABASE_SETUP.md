@@ -38,17 +38,37 @@ The local admin token is generated internally and is never accepted for cloud
 requests. Supabase secrets stay in the Python backend. Anonymous and authenticated
 Supabase API clients cannot read the Balut tables or evidence bucket.
 
-## Connect the USB box
+## Connect the USB box directly from the website
 
-Use `Connect Cloud Box.cmd` on the laptop attached to the camera. On first use it
-asks for the deployed HTTPS `vercel.app` URL. It reads the device secret from
-`deployment/private/cloud-device.json`. Copy only this device profile to another
-capture laptop; do not copy the Supabase secret or Vercel environment file.
+On the computer attached to the camera, open the deployed website in Chrome or
+Edge, sign in with the existing account, and open **Analyze**. Click
+**Connect USB camera** and select the box camera's FTDI USB serial port in the
+browser picker. The website reads the existing camera protocol and uploads JPEGs
+using the signed-in browser session. No ZIP, Python, camera profile, device secret,
+or Supabase key needs to be copied to this computer. Windows still needs to detect
+the USB serial adapter; check the data cable and driver if the picker is empty.
 
-Leave the connector running, open Analyze on any signed-in device, remove the egg,
-wait for three fresh frames, confirm the box is empty, and save the empty view.
+After the browser saves permission for that computer and website, the page checks
+authorized camera ports on sign-in and when USB is plugged in, and connects
+automatically when exactly one matching adapter is available. A new computer,
+revoked permission, or a cleared browser profile requires the USB picker again.
+Manual Disconnect remains paused until Connect is clicked again or the page is
+reopened. The browser cannot silently grant first-use USB permission.
+
+Keep the website tab open and the computer awake and online. Other signed-in
+phones and laptops can view the same camera and history. Remove the egg, wait
+for three fresh frames, confirm the box is empty, and save the empty view.
 Keep the camera and lighting fixed. After placing one egg, a steady scene change
 triggers one saved analysis. Remove the egg before placing the next one.
+
+Each browser connection starts a new camera session and requires a fresh empty
+view before automatic analysis. JPEG size, dimensions, USB CRC, session, origin,
+rate, idempotency, and shared camera lease checks remain enforced. Closing the
+page or signing out stops its USB capture. No motor or lighting commands are sent.
+
+The existing `Connect Cloud Box.cmd` remains an alternative for a prepared laptop.
+It uses `deployment/private/cloud-device.json`; copy only this device profile if
+moving that connector to another laptop. Never copy the Supabase server secret.
 
 Capture runs inside each frame-upload request; there is no cloud background loop.
 A database lease prevents two Vercel instances from changing capture state at the

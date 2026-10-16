@@ -3,7 +3,7 @@ import asyncio
 import hashlib
 import time
 from copy import deepcopy
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
@@ -11,7 +11,7 @@ from starlette.concurrency import run_in_threadpool
 from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, difference
 from .model_service import decode_jpeg
 from .remote_camera import USB_ORIGIN
-from .security import require_box_operator
+from .security import require_box_operator, require_idempotency_key
 from .supabase_store import CloudStorageError
 
 
@@ -114,10 +114,10 @@ class ServerlessBox:
         box.save(release=True)
         return response
 
-    async def receive(self, body, key):
-        return await run_in_threadpool(self.receive_frame, body, key)
+    async def receive(self, body, key, camera_session="signed-usb"):
+        return await run_in_threadpool(self.receive_frame, body, key, camera_session)
 
-    def receive_frame(self, body, key):
+    def receive_frame(self, body, key, camera_session="signed-usb"):
         if not 4 < len(body) <= 128 * 1024:
             raise HTTPException(413, "USB frame exceeds 128 KB")
         try:
@@ -141,9 +141,10 @@ class ServerlessBox:
                 raise HTTPException(429, "Send at most five frames per second")
             if box.config.get("pending"):
                 asyncio.run(box.finish_pending())
-            if box.received and now - box.received > 12:
+            if box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12:
                 box.require_new_reference()
                 box.frames = []
+            box.config["cameraSession"] = camera_session
             box.body, box.received, box.connected = body, now, True
             asyncio.run(box.tick())
             # 256 entries cover the entire 30-second signature window at the maximum frame rate.
@@ -170,6 +171,17 @@ def serverless_box_router(box, settings):
     def status(request: Request):
         require_box_operator(request, settings)
         return box.status()
+
+    @router.post("/frame")
+    async def browser_frame(request: Request):
+        require_box_operator(request, settings)
+        if request.headers.get("Content-Type") != "image/jpeg" or request.url.query:
+            raise HTTPException(400, "Send a single USB camera JPEG.")
+        try:
+            camera_session = str(UUID(request.headers.get("X-Balut-Camera-Session", "")))
+        except ValueError as exc:
+            raise HTTPException(400, "Reconnect the USB camera from this page.") from exc
+        return await box.receive(await request.body(), require_idempotency_key(request), "browser-" + camera_session)
 
     @router.post("/connect")
     def connect(payload: CameraConnection, request: Request):
