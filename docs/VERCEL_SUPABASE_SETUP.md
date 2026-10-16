@@ -8,9 +8,11 @@ capturing; viewing history and signing in do not depend on that laptop.
 ## Deploy from GitHub
 
 1. Import `josephmanigo/balut`, branch `main`, root directory `./`.
-2. Use the **FastAPI** framework preset. Keep the commands from `vercel.json`.
-   The install command installs both Node and Python dependencies. The build
-   assembles the hash-checked model chunks and builds the website.
+2. Use the **FastAPI** framework preset. Leave the **Install Command** override
+   disabled so Vercel installs Python dependencies from `requirements.txt` and
+   optimizes the function bundle. Keep the build command from `vercel.json`; it
+   installs Node dependencies, builds the website, and assembles the hash-checked
+   model chunks. A custom install command disables Vercel's bundle optimization.
 3. Add these variables to **Production**, with no `VITE_` prefix:
 
    | Name | Value |

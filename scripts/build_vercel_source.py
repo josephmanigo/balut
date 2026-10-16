@@ -10,14 +10,13 @@ from build_school_kit import ROOT, OUT, pack, tree
 def main():
     files = {name: ROOT / name for name in (
         "app.py", "vercel.json", ".python-version", "package.json", "package-lock.json",
-        "deployment/requirements-vercel.txt", "scripts/assemble_render_model.py")}
+        "requirements.txt", "scripts/assemble_render_model.py")}
     for directory in ("apps/edge_api/balut_api", "apps/web/src", "deployment/model-parts",
                       "deployment/releases/automatic-recapture-20260912"):
         tree(files, directory, directory)
     files.pop("deployment/releases/automatic-recapture-20260912/egg-grade/best.onnx")
     for name in ("index.html", "package.json", "tsconfig.json", "tsconfig.app.json", "tsconfig.node.json", "vite.config.ts"):
         files["apps/web/" + name] = ROOT / "apps/web" / name
-    files["requirements.txt"] = ROOT / "deployment/requirements-vercel.txt"
     stage = ROOT / "deployment/runtime" / ("vercel-source-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"))
     stage.mkdir(parents=True)
     for name, source in files.items():

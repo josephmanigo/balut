@@ -1,8 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "fastapi",
-  "installCommand": "npm ci && uv pip install -r deployment/requirements-vercel.txt",
-  "buildCommand": "npm run build && python scripts/assemble_render_model.py",
+  "buildCommand": "npm ci && npm run build && python scripts/assemble_render_model.py",
   "regions": ["bom1"],
   "functions": { "app.py": { "maxDuration": 120, "excludeFiles": "{.git,.github,.venv*,**/node_modules,node_modules,api,ml,data,artifacts,output,firmware,apps/{mobile,edge_api/tests,web/src},scripts,docs,supabase,deployment/{model-parts,private,runtime,logs}}/**" } },
   "headers": [{ "source": "/(.*)", "headers": [

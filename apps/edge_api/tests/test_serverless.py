@@ -172,6 +172,8 @@ def test_vercel_entrypoint_uses_the_production_domain_and_backend_secrets(monkey
     assert settings.supabase_secret_key == SECRET and SECRET not in repr(settings)
     assert len(settings.local_admin_token) >= 32 and settings.local_admin_token != settings.device_shared_secret
     config = json.loads((root / "vercel.json").read_text())
-    assert "uv pip install -r deployment/requirements-vercel.txt" in config["installCommand"]
+    assert not config.get("installCommand")  # Custom installation disables Vercel's bundle optimization.
+    assert config["buildCommand"].startswith("npm ci && npm run build && ")
+    assert "onnxruntime==" in (root / "requirements.txt").read_text()
     assert config["functions"]["app.py"]["maxDuration"] < 150
     assert len(config["functions"]["app.py"]["excludeFiles"]) <= 256
