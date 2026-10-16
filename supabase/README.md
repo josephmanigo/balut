@@ -1,5 +1,11 @@
 # Supabase remote schema
 
+For the current app's shared username/password, model History, and images, use
+`migrations/202610170001_shared_workspace.sql` and
+[the shared workspace guide](../docs/SUPABASE_SETUP.md). That migration is
+standalone and requires no browser Supabase credentials. The older schema
+described below belongs to the separate research/synchronization scaffold.
+
 The migration creates the synchronized research records, private evidence
 bucket, explicit roles, RLS, append-only evidence/review/audit triggers, model
 release constraints, and device/inspection scope helpers.

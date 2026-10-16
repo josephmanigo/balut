@@ -11,6 +11,14 @@ const prediction: SourcePrediction = { predictionId: "auto-test", modelId: "egg-
 
 describe("automatic camera capture", () => {
   beforeEach(() => vi.resetAllMocks());
+  it("shows the cloud connector instructions and requires a connected camera before calibration", async () => {
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", state: "offline" });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByText(/open Connect Cloud Box.cmd/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Camera address")).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("checkbox"));
+    expect(screen.getByRole("button", { name: "Save empty view & start" })).toBeDisabled();
+  });
   it("requires an empty-box confirmation before starting and keeps capture automatic", async () => {
     const user = userEvent.setup();
     let current = blank;

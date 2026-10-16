@@ -8,9 +8,10 @@ export function Brand() {
   return <div className="workbench-brand"><ScanLine size={28} strokeWidth={1.5} aria-hidden="true" /><span>balut<span className="brand-suffix">AIoT</span></span></div>;
 }
 
-export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cloudDemo = false }: {
+export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cloudDemo = false, sharedStorage = false }: {
   locale: "en" | "fil"; setLocale: (value: "en" | "fil") => void; onSignOut: () => void; signingOut: boolean; notice: string;
   cloudDemo?: boolean;
+  sharedStorage?: boolean;
 }) {
   const [view, setView] = useState<"analyze" | "history">("analyze");
   const [historyVersion, setHistoryVersion] = useState(0);
@@ -25,13 +26,13 @@ export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cl
     </header>
     <main className="workspace-main" id="workspace-main">
       {notice && <p className="inline-error" role="alert">{notice}</p>}
-      {cloudDemo && <p className="inline-error" role="note">{t("Free cloud demo · History and images reset when the server restarts. Keep a separate record of results you need.", "Libreng cloud demo · Mawawala ang mga tala at larawan kapag nag-restart ang server. Magtabi ng kopya ng mahahalagang resulta.")}</p>}
+      {cloudDemo && !sharedStorage && <p className="inline-error" role="note">{t("Free cloud demo · History and images reset when the server restarts. Keep a separate record of results you need.", "Libreng cloud demo · Mawawala ang mga tala at larawan kapag nag-restart ang server. Magtabi ng kopya ng mahahalagang resulta.")}</p>}
       <div hidden={view !== "analyze"}>
         <div className="workspace-heading"><div><h1>{t("A little light. A closer look.", "Mas malinaw na kuha.")}</h1><p>{t("Place one egg. Results save automatically.", "Maglagay ng isang itlog. Awtomatikong mase-save ang resulta.")}</p></div><span className="workspace-tag">{t("Candling workbench", "Candling workbench")}</span></div>
         <AutomaticBox locale={locale} active={view === "analyze"} onSaved={() => setHistoryVersion(value => value + 1)} />
       </div>
       {view === "history" && <PredictionHistory locale={locale} version={historyVersion} onAnalyze={() => setView("analyze")} />}
-      <footer className="workspace-footer"><span>{cloudDemo ? t("Temporary demo history", "Pansamantalang mga tala") : t("Saved on this laptop", "Naka-save sa laptop na ito")}</span><span>{t("Appearance only · Not a food-safety assessment", "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain")}</span></footer>
+      <footer className="workspace-footer"><span>{sharedStorage ? t("Saved online · Shared across your devices", "Naka-save online · Para sa lahat ng iyong device") : cloudDemo ? t("Temporary demo history", "Pansamantalang mga tala") : t("Saved on this laptop", "Naka-save sa laptop na ito")}</span><span>{t("Appearance only · Not a food-safety assessment", "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain")}</span></footer>
     </main>
   </div>;
 }

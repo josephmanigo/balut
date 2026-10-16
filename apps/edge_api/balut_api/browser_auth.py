@@ -68,19 +68,32 @@ class BrowserSessions:
         self.tokens[token] = (now + SESSION_SECONDS, username)
         return token
 
+    def revoke(self, token):
+        self.tokens.pop(token, None)
+
+    def clear(self):
+        self.tokens.clear()
+
+    def attempt(self):
+        now = time.monotonic()
+        self.failures = [stamp for stamp in self.failures if now - stamp < 60]
+        return len(self.failures) < 10
+
+    def failed(self):
+        self.failures.append(time.monotonic())
+
 
 def browser_auth_router(database, sessions: BrowserSessions) -> APIRouter:
     router = APIRouter(prefix="/api/v1/auth")
     password_gate = asyncio.Lock()
 
-    def signed_in(response: Response, username: str, request: Request):
-        response.set_cookie(COOKIE_NAME, sessions.issue(username), httponly=True, secure=request.url.scheme == "https", samesite="strict", path="/")
+    async def signed_in(response: Response, username: str, request: Request):
+        token = await run_in_threadpool(sessions.issue, username)
+        response.set_cookie(COOKIE_NAME, token, httponly=True, secure=request.url.scheme == "https", samesite="strict", path="/")
         return {"authenticated": True, "username": username, "setupRequired": False}
 
-    def check_attempts():
-        now = time.monotonic()
-        sessions.failures = [stamp for stamp in sessions.failures if now - stamp < 60]
-        if len(sessions.failures) >= 10:
+    async def check_attempts():
+        if not await run_in_threadpool(sessions.attempt):
             raise HTTPException(429, "Too many sign-in attempts. Wait one minute and try again.", headers={"Retry-After": "60"})
         if password_gate.locked():
             raise HTTPException(429, "Sign-in is busy. Try again shortly.", headers={"Retry-After": "1"})
@@ -89,6 +102,7 @@ def browser_auth_router(database, sessions: BrowserSessions) -> APIRouter:
     def session(request: Request):
         return {"authenticated": sessions.authenticated(request), "username": sessions.username(request),
                 "setupRequired": database.get_operator_account() is None,
+                **({"sharedStorage": True} if request.app.state.settings.supabase_url else {}),
                 **({"cloudDemo": True} if request.app.state.settings.cloud_origin else {})}
 
     @router.post("/register", status_code=201)
@@ -98,30 +112,30 @@ def browser_auth_router(database, sessions: BrowserSessions) -> APIRouter:
             raise HTTPException(400, "Use 3–32 letters, numbers, dots, underscores or hyphens for your username.")
         if credentials.password != credentials.confirm_password:
             raise HTTPException(400, "Passwords do not match.")
-        if database.get_operator_account() is not None:
-            raise HTTPException(409, "This laptop already has an account. Sign in instead.")
-        check_attempts()
+        if await run_in_threadpool(database.get_operator_account) is not None:
+            raise HTTPException(409, "This workspace already has an account. Sign in instead.")
+        await check_attempts()
         async with password_gate:
             hashed = await run_in_threadpool(hash_password, credentials.password)
-            if not database.create_operator_account(username, hashed):
-                raise HTTPException(409, "This laptop already has an account. Sign in instead.")
-        sessions.tokens.clear()
-        return signed_in(response, username, request)
+            if not await run_in_threadpool(database.create_operator_account, username, hashed):
+                raise HTTPException(409, "This workspace already has an account. Sign in instead.")
+        await run_in_threadpool(sessions.clear)
+        return await signed_in(response, username, request)
 
     @router.post("/login")
     async def login(credentials: LoginInput, response: Response, request: Request):
-        check_attempts()
-        account = database.get_operator_account()
+        await check_attempts()
+        account = await run_in_threadpool(database.get_operator_account)
         async with password_gate:
             valid_password = bool(account) and await run_in_threadpool(verify_password, credentials.password, account["password_hash"])
         if not account or credentials.username.strip().lower() != account["username"] or not valid_password:
-            sessions.failures.append(time.monotonic())
+            await run_in_threadpool(sessions.failed)
             raise HTTPException(401, "Username or password is incorrect. Try again.")
-        return signed_in(response, account["username"], request)
+        return await signed_in(response, account["username"], request)
 
     @router.post("/logout")
     async def logout(request: Request, response: Response):
-        sessions.tokens.pop(request.cookies.get(COOKIE_NAME, ""), None)
+        await run_in_threadpool(sessions.revoke, request.cookies.get(COOKIE_NAME, ""))
         response.delete_cookie(COOKIE_NAME, httponly=True, secure=request.url.scheme == "https", samesite="strict", path="/")
         return {"authenticated": False}
 

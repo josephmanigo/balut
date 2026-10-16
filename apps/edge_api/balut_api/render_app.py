@@ -19,4 +19,6 @@ app = create_app(Settings(
     model_registry_sha256=(registry.parent / "registry.sha256").read_text().split()[0],
     web_dist_path=root / "apps/web/dist", cloud_origin=os.environ["RENDER_EXTERNAL_URL"],
     max_request_bytes=160 * 1024,
+    supabase_url=os.getenv("SUPABASE_URL") or None,
+    supabase_secret_key=os.getenv("SUPABASE_SECRET_KEY") or None,
 ))

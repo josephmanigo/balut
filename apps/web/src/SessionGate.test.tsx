@@ -7,6 +7,12 @@ vi.mock("./Workspace", () => ({ Brand: () => <span>Balut</span>, Workspace: ({ o
 
 describe("browser sign-in", () => {
   beforeEach(() => vi.stubGlobal("fetch", vi.fn()));
+  it("identifies shared storage without the temporary-history warning", () => {
+    render(<Login cloudDemo sharedStorage onLogin={() => {}} />);
+    expect(screen.getByText("Shared workspace")).toBeInTheDocument();
+    expect(screen.getByText(/same history on your laptops and phones/)).toBeInTheDocument();
+    expect(screen.queryByText(/Temporary cloud history/)).not.toBeInTheDocument();
+  });
   it("identifies the cloud account and temporary storage before sign-in", () => {
     render(<Login cloudDemo onLogin={() => {}} />);
     expect(screen.getByText("Cloud demo")).toBeInTheDocument();

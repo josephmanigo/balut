@@ -7,9 +7,11 @@ from uuid import uuid4
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from .browser_auth import COOKIE_NAME
 from .security import is_local_address, valid_operator_request
+from .supabase_store import CloudStorageError
 
 logger = logging.getLogger("balut.requests")
 
@@ -21,7 +23,7 @@ class HttpGuard:
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
-        # Render terminates TLS before forwarding; the configured public origin determines cookie security.
+        # Cloud hosting terminates TLS before forwarding; use the configured origin for cookie security.
         if self.settings.cloud_origin:
             scope = {**scope, "scheme": "https"}
         request = Request(scope)
@@ -52,7 +54,7 @@ class HttpGuard:
             if production:
                 if self.settings.cloud_origin:
                     if str(request.base_url).rstrip("/") != self.settings.cloud_origin:
-                        return await reject(400, "Use the configured Render address")
+                        return await reject(400, "Use the configured cloud address")
                     cloud_routes = {"/", "/health", "/ready", "/api/v1/models", "/api/v1/model-predictions",
                                     "/api/v1/auth/session", "/api/v1/auth/login", "/api/v1/auth/logout",
                                     "/api/v1/box/status", "/api/v1/box/connect", "/api/v1/box/reference",
@@ -78,7 +80,7 @@ class HttpGuard:
             )
             public_auth = request.method == "POST" and request.url.path in {"/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/logout"}
             if production and request.method != "OPTIONS" and not (public_page or public_auth):
-                if not request.url.path.startswith("/api/v1/device/") and not valid_operator_request(request, self.settings):
+                if not request.url.path.startswith("/api/v1/device/") and not await run_in_threadpool(valid_operator_request, request, self.settings):
                     return await reject(401, "Operator authentication required")
             if request.headers.get("Content-Encoding", "identity") != "identity":
                 return await reject(415, "Compressed request bodies are not accepted")
@@ -112,6 +114,8 @@ class HttpGuard:
                 return await receive()
 
             await self.app(scope, replay, traced_send)
+        except CloudStorageError:
+            return await reject(503, "Shared storage unavailable; retry when connected")
         finally:
             # Never log auth headers, request bodies, or arbitrary query strings.
             logger.info("request_id=%s method=%s status=%s elapsed_ms=%.1f", request_id, request.method, status, (time.monotonic()-started)*1000)

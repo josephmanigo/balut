@@ -20,3 +20,9 @@ it("labels temporary Render history clearly", async () => {
   expect(screen.getByRole("note")).toHaveTextContent("History and images reset when the server restarts");
   expect(screen.queryByText("Saved on this laptop")).not.toBeInTheDocument();
 });
+
+it("shows shared history only when the backend confirms shared storage", () => {
+  render(<Workspace locale="en" setLocale={() => {}} onSignOut={() => {}} signingOut={false} notice="" cloudDemo sharedStorage />);
+  expect(screen.getByText("Saved online · Shared across your devices")).toBeInTheDocument();
+  expect(screen.queryByRole("note")).not.toBeInTheDocument();
+});

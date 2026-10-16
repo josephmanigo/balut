@@ -26,6 +26,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   const [notice, setNotice] = useState("");
   const [unreachable, setUnreachable] = useState(false);
   const lastResult = useRef<string | undefined>(undefined);
+  const pollDelay = useRef(250);
   const generation = useRef(0);
   const changing = useRef(false);
   const addressLoaded = useRef(false);
@@ -38,6 +39,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   }, [status?.result?.predictionId, active]);
 
   function accept(value: BoxStatus) {
+    pollDelay.current = value.cloudCapture ? 1500 : 250;
     setStatus(value);
     setUnreachable(false);
     if (!addressLoaded.current) { setAddress(value.cameraUrl); addressLoaded.current = true; }
@@ -58,7 +60,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         try { const value = await boxRequest(); if (!stopped && current === generation.current) acceptRef.current(value); }
         catch { if (!stopped && current === generation.current) setUnreachable(true); }
       }
-      if (!stopped) timer = setTimeout(poll, 250);
+      if (!stopped) timer = setTimeout(poll, pollDelay.current);
     }
     void poll();
     return () => { stopped = true; alive.current = false; clearTimeout(timer); };
@@ -96,12 +98,12 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     {notice && <p className="inline-error" role="alert">{notice}</p>}
     <details className="box-settings" open={!status?.calibrated}>
       <summary><Settings2 size={17} />{t("Box setup", "Setup ng kahon")}</summary>
-      <form onSubmit={event => { event.preventDefault(); void change("connect", { cameraUrl: address }); }}>
+      {status?.cloudCapture ? <p>{t("On the laptop connected to the box, open Connect Cloud Box.cmd and keep it running. Wait for the camera view here.", "Sa laptop na konektado sa kahon, buksan ang Connect Cloud Box.cmd at panatilihing tumatakbo. Hintayin ang kuha ng camera rito.")}</p> : <form onSubmit={event => { event.preventDefault(); void change("connect", { cameraUrl: address }); }}>
         <label htmlFor="box-address">{t("Camera address", "Address ng camera")}</label>
         <div className="box-address-row"><input id="box-address" type="url" required value={address} disabled={busy} placeholder="http://192.168.1.50" autoComplete="off" onChange={event => setAddress(event.target.value)} /><button className="outline-button" disabled={busy || !address.trim()}>{busy ? t("Please wait…", "Sandali…") : t("Connect camera", "Ikonekta ang camera")}</button></div>
         <p>{t("Use the camera address provided during box setup.", "Gamitin ang address ng camera na ibinigay sa setup ng kahon.")}</p>
-      </form>
-      {status?.cameraUrl && <div className="box-reference"><label><input type="checkbox" checked={empty} disabled={busy} onChange={event => setEmpty(event.target.checked)} />{t("The box is empty. Lighting is ready.", "Bakante ang kahon. Handa ang ilaw.")}</label><button type="button" className="solid-button" disabled={!empty || busy} onClick={() => void change("reference", { emptyConfirmed: true })}>{t("Save empty view & start", "I-save ang bakanteng kuha at simulan")}</button></div>}
+      </form>}
+      {status?.cameraUrl && <div className="box-reference"><label><input type="checkbox" checked={empty} disabled={busy} onChange={event => setEmpty(event.target.checked)} />{t("The box is empty. Lighting is ready.", "Bakante ang kahon. Handa ang ilaw.")}</label><button type="button" className="solid-button" disabled={!empty || busy || !!status.cloudCapture && !status.connected} onClick={() => void change("reference", { emptyConfirmed: true })}>{t("Save empty view & start", "I-save ang bakanteng kuha at simulan")}</button></div>}
       <p className="box-setup-note">{t("Keep camera and lighting fixed. A steady scene change triggers capture; this is not an egg-presence sensor.", "Panatilihing nakapirmi ang camera at ilaw. Pagbabago sa tanawin ang nagti-trigger ng kuha; hindi ito sensor ng itlog.")}</p>
     </details>
   </section>;

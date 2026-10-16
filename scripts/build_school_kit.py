@@ -49,30 +49,23 @@ def main():
         ("deployment/drivers/cp210x/package", "deployment/drivers/cp210x/package"),
     ]:
         tree(school, source, target)
-    for name in ["SchoolBox.ps1", "Initialize-Serving.ps1", "Start-Balut.ps1", "camera_usb_bridge.py", "prepare_render_account.py", "upload_box_frames.py", "backup_serving.py"]:
+    for name in ["SchoolBox.ps1", "Initialize-Serving.ps1", "Start-Balut.ps1", "camera_usb_bridge.py", "prepare_render_account.py", "upload_box_frames.py", "backup_serving.py", "migrate_supabase.py"]:
         school["scripts/" + name] = ROOT / "scripts" / name
-    for name in ["Start School Box.cmd", "Stop School Box.cmd", "Start Vercel Connector.cmd", "Copy Vercel Key.cmd", "Install USB Drivers.cmd", "Prepare Render Account.cmd", "Connect Render Box.cmd"]:
+    for name in ["Start School Box.cmd", "Stop School Box.cmd", "Start Vercel Connector.cmd", "Copy Vercel Key.cmd", "Install USB Drivers.cmd", "Prepare Render Account.cmd", "Connect Render Box.cmd", "Connect Cloud Box.cmd"]:
         school[name] = ROOT / name
     school["runtime/cloudflared.exe"] = cloud
     for name in ["cloudflared-LICENSE", "cloudflared-source.json"]:
         school["runtime/" + name] = cloud.parent / name
     school["deployment/drivers/vcredist/vc_redist.x64.exe"] = ROOT / "deployment/drivers/vcredist/vc_redist.x64.exe"
-    school["README.md"] = ROOT / "docs/RENDER_FREE_SETUP.md"
+    school["README.md"] = ROOT / "docs/VERCEL_SUPABASE_SETUP.md"
     school["LOCAL_FALLBACK.md"] = ROOT / "docs/SCHOOL_VERCEL_SETUP.md"
     school["RENDER_SETUP.md"] = ROOT / "docs/RENDER_FREE_SETUP.md"
+    school["SUPABASE_SETUP.md"] = ROOT / "docs/SUPABASE_SETUP.md"
     school["requirements-serving.lock.txt"] = ROOT / "deployment/requirements-serving.lock.txt"
 
-    vercel = {name: ROOT / name for name in ["package.json", "package-lock.json", "vercel.json", ".vercelignore", "api/box.mjs", "scripts/test_vercel_proxy.mjs"]}
-    tree(vercel, "apps/web/src", "apps/web/src")
-    for name in ["index.html", "package.json", "tsconfig.json", "tsconfig.app.json", "tsconfig.node.json", "vite.config.ts"]:
-        vercel["apps/web/" + name] = ROOT / "apps/web" / name
-    if (ROOT / "apps/web/public").is_dir():
-        tree(vercel, "apps/web/public", "apps/web/public")
-    vercel["README.md"] = ROOT / "docs/SCHOOL_VERCEL_SETUP.md"
-    vercel[".gitignore"] = ROOT / "deployment/templates/vercel.gitignore"
     result = {
-        "school": pack("Balut-School-Box-20261017.zip", "BalutSchoolBox", school),
-        "vercel": pack("Balut-Vercel-Source-20261017.zip", "BalutVercel", vercel),
+        "school": pack("Balut-School-Cloud-20261017.zip", "BalutSchoolBox", school),
+        "vercel": "Run scripts/build_vercel_source.py for the Vercel website and AI package",
         "scope": "Prepared software; actual other laptop, public Vercel and real-egg acceptance still required",
     }
     (OUT / "packages.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

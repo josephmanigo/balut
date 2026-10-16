@@ -1,4 +1,4 @@
-"""Send camera frames outward to the Render service; no incoming laptop ports or tunnel."""
+"""Send camera frames outward to the cloud service; no incoming laptop ports or tunnel."""
 import hashlib
 import hmac
 import json
@@ -19,8 +19,8 @@ FRAME_PATH = "/api/v1/device/box/frame"
 
 def render_origin(value):
     value = value.strip().rstrip("/")
-    if not re.fullmatch(r"https://[a-z0-9-]+\.onrender\.com", value):
-        raise ValueError("Enter only your https://SERVICE.onrender.com address")
+    if not re.fullmatch(r"https://[a-z0-9-]+\.(onrender\.com|vercel\.app)", value):
+        raise ValueError("Enter your HTTPS vercel.app or onrender.com address")
     return value
 
 
@@ -35,12 +35,14 @@ def frame_headers(body, secret, key, timestamp):
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    profile_path = root / "deployment/private/render-device.json"
+    profile_path = root / "deployment/private/cloud-device.json"
     if not profile_path.is_file():
-        raise SystemExit("Run Prepare Render Account.cmd first. Copy the SAME protected settings to the school laptop.")
+        profile_path = root / "deployment/private/render-device.json"
+    if not profile_path.is_file():
+        raise SystemExit("Copy deployment/private/cloud-device.json from the prepared laptop before starting the cloud connector.")
     profile = json.loads(profile_path.read_text(encoding="utf-8-sig"))
     if "origin" not in profile:
-        profile["origin"] = render_origin(input("Paste your Render website address: "))
+        profile["origin"] = render_origin(input("Paste your cloud website address: "))
         profile_path.write_text(json.dumps(profile), encoding="utf-8")
     origin = render_origin(profile["origin"])
     if len(profile.get("secret", "")) < 32:
@@ -50,7 +52,7 @@ def main():
     sequence = 0
     print("Camera connector active. Keep this window open; Ctrl+C stops it. No photos are written to this laptop.", flush=True)
     try:
-        with httpx.Client(trust_env=False, follow_redirects=False, timeout=httpx.Timeout(20, connect=10)) as client:
+        with httpx.Client(trust_env=False, follow_redirects=False, timeout=httpx.Timeout(130, connect=10)) as client:
             while True:
                 started = time.monotonic()
                 try:
@@ -62,11 +64,11 @@ def main():
                     response = client.post(origin + FRAME_PATH, content=body, headers=headers)
                     if response.status_code == 200 and response.headers.get("content-type", "").startswith("application/json"):
                         if sequence == 1 or sequence % 30 == 0:
-                            print("Live frame accepted by Render.", flush=True)
+                            print("Live frame accepted by Balut cloud.", flush=True)
                     elif response.status_code in {401, 403}:
-                        raise SystemExit("Render rejected the camera credentials or clock. Check matching settings and sync Windows time.")
+                        raise SystemExit("Cloud rejected the camera credentials or clock. Check matching settings and sync Windows time.")
                     else:
-                        print("Render is starting or unavailable. Retrying with a new frame; analysis requires fresh images.", flush=True)
+                        print("Cloud is starting or unavailable. Retrying with a new frame; analysis requires fresh images.", flush=True)
                 except OSError:
                     if camera is not None:
                         camera.close()

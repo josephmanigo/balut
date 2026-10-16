@@ -200,9 +200,9 @@ class AutomaticBox:
         result = await run_in_threadpool(self.predict, body, pending["key"])
         self.config.update(resultId=result["predictionId"], latched=True)
         self.config.pop("pending", None)
-        self.save()
         self.result = result
         self.state = "recapture" if result["recaptureRequested"] else "remove_egg"
+        self.save()
 
     async def tick(self):
         if not self.config.get("enabled"):

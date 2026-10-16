@@ -37,6 +37,7 @@ from .http_guard import HttpGuard
 from .browser_auth import BrowserSessions, browser_auth_router
 from .model_service import ModelService, ModelBusyError
 from .automatic_box import AutomaticBox, box_router
+from .supabase_store import CloudStorageError, Supabase, SupabaseDatabase, SupabaseEvidence
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -44,6 +45,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     resolved_settings.validate()
     database = Database(resolved_settings.database_path)
     evidence_store = EvidenceStore(resolved_settings.evidence_path)
+    cloud = None
+    if resolved_settings.supabase_url:
+        cloud = Supabase(resolved_settings.supabase_url, resolved_settings.supabase_secret_key)
+        database = SupabaseDatabase(resolved_settings.database_path, cloud)
+        evidence_store = SupabaseEvidence(resolved_settings.evidence_path, cloud)
     models = ModelService()
 
     def persist_prediction(model_id, body, actor, key, source=None):
@@ -68,7 +74,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return persist_prediction(models.analysis_model_id, body, "automatic-box", key, "iot_box")
 
     box = AutomaticBox(database, evidence_store, predict_box)
-    if resolved_settings.cloud_origin:
+    if resolved_settings.serverless:
+        from .serverless_box import ServerlessBox, serverless_box_router
+        from .remote_camera import remote_camera_router
+        box = ServerlessBox(database, evidence_store, predict_box, cloud)
+        remote_camera = box
+    elif resolved_settings.cloud_origin:
         from .remote_camera import RemoteCamera, USB_ORIGIN, remote_camera_router
         remote_camera = RemoteCamera(box)
         box.fetch = remote_camera.fetch
@@ -76,7 +87,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         database.initialize()
-        if resolved_settings.cloud_origin and database.get_operator_account() is None:
+        if resolved_settings.serverless and database.get_operator_account() is None:
+            raise RuntimeError("Migrate the existing account to Supabase before deployment")
+        if resolved_settings.cloud_origin and not resolved_settings.serverless and database.get_operator_account() is None:
             username = os.getenv("BALUT_OPERATOR_USERNAME", "")
             password_hash = os.getenv("BALUT_OPERATOR_PASSWORD_HASH", "")
             if not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{2,31}", username) or not re.fullmatch(r"scrypt\$131072\$8\$1\$[0-9a-f]{32}\$[0-9a-f]{64}", password_hash):
@@ -84,20 +97,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             database.create_operator_account(username, password_hash)
         if resolved_settings.model_registry_path:
             models.load(resolved_settings.model_registry_path, resolved_settings.model_registry_sha256)
-        if resolved_settings.cloud_origin:
+        if resolved_settings.cloud_origin and not resolved_settings.serverless:
             config = database.box_config()
             config.update(cameraUrl=USB_ORIGIN, enabled=False)
             config.pop("reference", None)
             database.save_box_config(config)
-        await box.start()
-        if resolved_settings.cloud_origin and box.config.get("pending"):
+        if not resolved_settings.serverless:
+            await box.start()
+        if resolved_settings.cloud_origin and not resolved_settings.serverless and box.config.get("pending"):
             # Recover durable evidence once before requiring a fresh empty view.
             async with box.lock:
                 await box.finish_pending()
         try:
             yield
         finally:
-            await box.close()
+            if not resolved_settings.serverless:
+                await box.close()
             models.close()
 
     application = FastAPI(
@@ -117,8 +132,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.state.model_service = models
     application.state.box = box
     application.state.browser_sessions = BrowserSessions()
+    if resolved_settings.serverless:
+        from .cloud_sessions import CloudSessions
+        application.state.browser_sessions = CloudSessions(cloud)
     application.include_router(browser_auth_router(database, application.state.browser_sessions))
-    application.include_router(box_router(box, resolved_settings))
+    application.include_router((serverless_box_router if resolved_settings.serverless else box_router)(box, resolved_settings))
     if resolved_settings.cloud_origin:
         application.state.remote_camera = remote_camera
         application.include_router(remote_camera_router(remote_camera, resolved_settings))
@@ -143,6 +161,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.add_middleware(HttpGuard, settings=resolved_settings)
 
     @application.exception_handler(sqlite3.OperationalError)
+    @application.exception_handler(CloudStorageError)
     async def storage_unavailable(request: Request, exc: sqlite3.OperationalError):
         logging.getLogger("balut.storage").error("Database unavailable: %s", type(exc).__name__)
         return JSONResponse({"detail": "Storage unavailable; no result accepted"}, status_code=503)
@@ -163,10 +182,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             with database.connect() as connection:
                 connection.execute("SELECT count(*) FROM model_predictions").fetchone()
+            if cloud:
+                cloud.check()
             storage_ready = shutil.disk_usage(resolved_settings.evidence_path).free >= 100 * 1024 * 1024
             model_ready = not resolved_settings.model_registry_path or bool(models.models)
             ready = storage_ready and model_ready
-        except (sqlite3.Error, OSError):
+        except (sqlite3.Error, OSError, CloudStorageError):
             ready = False
         return JSONResponse({"serviceReady": ready, "automaticGradingReady": False,
                              "mode": "SOURCE_LABEL_SHADOW_ONLY", "loadedModels": len(models.models)}, status_code=200 if ready else 503)

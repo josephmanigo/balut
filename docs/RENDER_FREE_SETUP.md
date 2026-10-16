@@ -2,6 +2,11 @@
 
 This is the selected deployment target. Vercel and public laptop tunnels are not required.
 
+For a shared account and persistent history/images, complete
+[the Supabase setup](SUPABASE_SETUP.md) before deploying the current blueprint.
+The two Supabase variables keep records outside Render's temporary filesystem.
+The temporary-history warnings below describe deployments without Supabase.
+
 ```text
 Camera USB → Windows laptop connector → signed HTTPS frames → Render AI + website
                                                                 ↑
@@ -13,7 +18,7 @@ Keep both USB cables plugged into the box laptop. It needs internet while the ca
 ## Free plan limits you accepted
 
 - Render's free web service can sleep after 15 minutes without inbound traffic. Open the website and wait for startup before a demonstration.
-- Its local files are erased on restarts, redeployments and sleep. **History and saved evidence are temporary.** The website displays this warning. Record important results separately. A production release needs durable storage and a restore drill.
+- Its local files are erased on restarts, redeployments and sleep. **Without Supabase, history and saved evidence are temporary.** With Supabase configured, completed results, images, and the account persist there; local camera calibration still resets. The website labels the active storage mode.
 - Your account is recreated from protected environment settings after a reset. Sessions expire on restart; sign in again and save a new empty view.
 - Free compute is limited to 512 MB RAM and shared CPU. Local software tests do not prove that this exact model stays within Render's memory and startup limits. Verify the live deployment's logs and metrics before the defense. No paid resource is configured by the supplied blueprint.
 - The model remains `SOURCE_LABEL_SHADOW_ONLY`: Day 16, Day 18, suspected Reject, or unclassified recapture. It does not prove age or food safety. Testing with known-age physical eggs in this box is still required.

@@ -1,13 +1,18 @@
 # Balut AIoT research prototype
 
+Deploy the **website and AI on Vercel**, with the account, sessions, prediction
+history, camera state and private images in Supabase. See
+[Vercel deployment and environment variables](docs/VERCEL_SUPABASE_SETUP.md) and
+[Supabase setup and local-data migration](docs/SUPABASE_SETUP.md).
+The USB laptop sends signed frames; any signed-in laptop or phone can view results.
+
 This repository implements the software side of a single-egg, eight-view Balut candling research prototype. It contains a runnable local API and simulator, a bilingual React dashboard, ESP32-S3 firmware and hardware interfaces, a Flutter Android workspace, leakage-safe ML tooling, and Supabase schema/RLS definitions.
 
 The GitHub checkout includes source code, documentation, test fixtures, and the
-current Render model release. Its model is stored in five chunks; the Docker
-build reconstructs it and verifies its SHA-256. Follow the
-[Render setup guide](docs/RENDER_FREE_SETUP.md) for the hosted demo.
-Connect this repository directly to Render using the root `render.yaml`; the
-guide's ZIP upload step is only needed when using the separate source package.
+current model release. Its model is stored in five chunks; the Vercel and Docker
+builds reconstruct it and verify its SHA-256. Import the repository root into
+Vercel with the **FastAPI** preset and the commands in `vercel.json`.
+The [Render guide](docs/RENDER_FREE_SETUP.md) remains an alternative deployment.
 Training checkpoints, downloaded datasets, private credentials, saved predictions,
 installed runtimes, and generated APK/ZIP packages stay local and are excluded
 from Git. The simulator setup below does not require the trained model.

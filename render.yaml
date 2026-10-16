@@ -14,3 +14,7 @@ services:
         sync: false
       - key: BALUT_DEVICE_SHARED_SECRET
         sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false

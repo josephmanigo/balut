@@ -23,7 +23,7 @@ async function authRequest(action: string, body?: object) {
     if (response.status === 422) throw new AuthError(422, "Check your details. Passwords need 12–128 characters.");
     throw new Error("Cannot connect. Check the Balut service and try again.");
   }
-  return response.json() as Promise<{ authenticated: boolean; setupRequired?: boolean; username?: string; cloudDemo?: boolean }>;
+  return response.json() as Promise<{ authenticated: boolean; setupRequired?: boolean; username?: string; cloudDemo?: boolean; sharedStorage?: boolean }>;
 }
 
 export function SessionGate() {
@@ -33,11 +33,12 @@ export function SessionGate() {
   const [signingOut, setSigningOut] = useState(false);
   const [setupRequired, setSetupRequired] = useState(false);
   const [cloudDemo, setCloudDemo] = useState(false);
+  const [sharedStorage, setSharedStorage] = useState(false);
   useEffect(() => {
     let active = true;
     const expired = () => { setState("login"); setNotice("Session ended. Sign in again."); };
     window.addEventListener("balut:session-expired", expired);
-    authRequest("session").then(value => { if (active) { setCloudDemo(!!value.cloudDemo); setSetupRequired(!!value.setupRequired); setState(value.authenticated ? "ready" : "login"); } })
+    authRequest("session").then(value => { if (active) { setCloudDemo(!!value.cloudDemo); setSharedStorage(!!value.sharedStorage); setSetupRequired(!!value.setupRequired); setState(value.authenticated ? "ready" : "login"); } })
       .catch(() => { if (active) { setState("login"); setNotice("Cannot connect. Check the Balut service and try again."); } });
     return () => { active = false; window.removeEventListener("balut:session-expired", expired); };
   }, []);
@@ -49,13 +50,14 @@ export function SessionGate() {
     finally { setSigningOut(false); }
   }
   if (state === "checking") return <div className="session-loading" role="status"><Brand /><LoaderCircle className="spin" size={22} /><p>Opening your workspace…</p></div>;
-  if (state === "ready") return <Workspace locale={locale} setLocale={setLocale} onSignOut={() => void signOut()} signingOut={signingOut} notice={notice} cloudDemo={cloudDemo} />;
-  return <Login locale={locale} setLocale={setLocale} notice={notice} setupRequired={setupRequired} cloudDemo={cloudDemo} onLogin={() => { setSetupRequired(false); setNotice(""); setState("ready"); }} />;
+  if (state === "ready") return <Workspace locale={locale} setLocale={setLocale} onSignOut={() => void signOut()} signingOut={signingOut} notice={notice} cloudDemo={cloudDemo} sharedStorage={sharedStorage} />;
+  return <Login locale={locale} setLocale={setLocale} notice={notice} setupRequired={setupRequired} cloudDemo={cloudDemo} sharedStorage={sharedStorage} onLogin={() => { setSetupRequired(false); setNotice(""); setState("ready"); }} />;
 }
 
-export function Login({ locale = "en", setLocale, notice = "", setupRequired = false, cloudDemo = false, onLogin }: {
+export function Login({ locale = "en", setLocale, notice = "", setupRequired = false, cloudDemo = false, sharedStorage = false, onLogin }: {
   locale?: "en" | "fil"; setLocale?: (value: "en" | "fil") => void; notice?: string; setupRequired?: boolean; onLogin: () => void;
   cloudDemo?: boolean;
+  sharedStorage?: boolean;
 }) {
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
   const [creating, setCreating] = useState(setupRequired);
@@ -91,7 +93,7 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
       <p className="login-story-foot">{t("Built for a more considered inspection.", "Para sa mas maingat na pagsusuri.")}</p>
     </section>
     <main className="login-panel">
-      <div className="login-panel-top"><span>{cloudDemo ? "Cloud demo" : t("Local workspace", "Lokal na workspace")}</span><button className="quiet-button" onClick={() => setLocale?.(locale === "en" ? "fil" : "en")} type="button"><Languages size={16} />{locale === "en" ? "Filipino" : "English"}</button></div>
+      <div className="login-panel-top"><span>{sharedStorage ? t("Shared workspace", "Nakabahaging workspace") : cloudDemo ? "Cloud demo" : t("Local workspace", "Lokal na workspace")}</span><button className="quiet-button" onClick={() => setLocale?.(locale === "en" ? "fil" : "en")} type="button"><Languages size={16} />{locale === "en" ? "Filipino" : "English"}</button></div>
       <div className="login-form-wrap">
         <LockKeyhole className="login-lock" size={26} strokeWidth={1.4} aria-hidden="true" />
         <h1>{creating ? t("Create your account.", "Gumawa ng account.") : t("Welcome back.", "Maligayang pagbabalik.")}</h1>
@@ -104,9 +106,9 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
           <button className="solid-button" type="submit" disabled={busy}>{busy ? <><LoaderCircle className="spin" size={18} />{creating ? t("Creating account…", "Ginagawa ang account…") : t("Signing in…", "Nagsa-sign in…")}</> : <>{creating ? t("Create account", "Gumawa ng account") : t("Sign in", "Mag-sign in")}<ArrowRight size={18} /></>}</button>
         </form>
         {canRegister && <p className="auth-switch">{creating ? t("Already set up?", "May account na?") : t("New to this laptop?", "Bago sa laptop na ito?")} <button type="button" disabled={busy} onClick={() => { setCreating(!creating); setError(""); setPassword(""); setConfirmation(""); setVisible(false); }}>{creating ? t("Sign in", "Mag-sign in") : t("Create account", "Gumawa ng account")}</button></p>}
-        <p className="account-note">{cloudDemo ? t("Use the account prepared for this cloud demo.", "Gamitin ang account para sa cloud demo na ito.") : creating ? t("One account for this laptop. Your existing records stay here.", "Isang account para sa laptop. Mananatili ang mga tala.") : t("Use the account you created on this laptop.", "Gamitin ang account na ginawa sa laptop na ito.")}</p>
+        <p className="account-note">{sharedStorage ? t("One account. The same history on your laptops and phones.", "Isang account. Parehong mga tala sa iyong laptop at telepono.") : cloudDemo ? t("Use the account prepared for this cloud demo.", "Gamitin ang account para sa cloud demo na ito.") : creating ? t("One account for this laptop. Your existing records stay here.", "Isang account para sa laptop. Mananatili ang mga tala.") : t("Use the account you created on this laptop.", "Gamitin ang account na ginawa sa laptop na ito.")}</p>
       </div>
-      <footer className="login-panel-foot"><LockKeyhole size={14} aria-hidden="true" />{cloudDemo ? t("Temporary cloud history · resets on server restart.", "Pansamantalang tala · mawawala kapag nag-restart ang server.") : t("Images and records stay on this laptop.", "Naka-save sa laptop na ito ang mga larawan at tala.")}</footer>
+      <footer className="login-panel-foot"><LockKeyhole size={14} aria-hidden="true" />{sharedStorage ? t("Account, images and history saved securely online.", "Ligtas na naka-save online ang account, larawan at mga tala.") : cloudDemo ? t("Temporary cloud history · resets on server restart.", "Pansamantalang tala · mawawala kapag nag-restart ang server.") : t("Images and records stay on this laptop.", "Naka-save sa laptop na ito ang mga larawan at tala.")}</footer>
     </main>
   </div>;
 }

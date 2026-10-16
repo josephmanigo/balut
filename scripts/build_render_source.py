@@ -34,10 +34,13 @@ def main():
         if part.name == "manifest.json" or part.name in {entry["name"] for entry in manifest["parts"]}:
             files["deployment/model-parts/" + part.name] = part
     files["README.md"] = ROOT / "docs/RENDER_FREE_SETUP.md"
+    files["SUPABASE_SETUP.md"] = ROOT / "docs/SUPABASE_SETUP.md"
+    files["supabase/migrations/202610170001_shared_workspace.sql"] = ROOT / "supabase/migrations/202610170001_shared_workspace.sql"
+    files["scripts/migrate_supabase.py"] = ROOT / "scripts/migrate_supabase.py"
     files[".gitignore"] = ROOT / "deployment/templates/vercel.gitignore"
-    result = pack("Balut-Render-Source-20261017.zip", "BalutRender", files)
-    result["scope"] = "FREE_DEMO_ONLY; ephemeral history; Render and physical acceptance pending"
-    (OUT / "render-package.json").write_text(json.dumps(result, indent=2) + "\n")
+    result = pack("Balut-Render-Supabase-20261017.zip", "BalutRender", files)
+    result["scope"] = "Shared storage requires Supabase setup; live deployment and physical acceptance pending"
+    (OUT / "render-supabase-package.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 
 

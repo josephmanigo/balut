@@ -13,6 +13,10 @@ def main():
     parser.add_argument("--profile", type=Path, required=True)
     args = parser.parse_args()
     profile = json.loads(args.profile.read_text(encoding="utf-8-sig"))
+    shared_profile = args.profile.parent / "supabase.json"
+    if shared_profile.exists():
+        shared = json.loads(shared_profile.read_text(encoding="utf-8-sig"))
+        os.environ.update({"SUPABASE_URL": shared["url"], "SUPABASE_SECRET_KEY": shared["secret_key"]})
     required = ["database_path", "evidence_path", "model_registry_path", "model_registry_sha256", "web_dist_path", "log_path", "local_admin_token", "device_shared_secret", "port"]
     if any(key not in profile for key in required):
         raise SystemExit("Deployment profile is incomplete")

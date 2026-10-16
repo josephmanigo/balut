@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import ipaddress
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -29,6 +29,9 @@ class Settings:
     max_request_bytes: int = 10 * 1024 * 1024
     https_origin: str | None = None
     cloud_origin: str | None = None
+    serverless: bool = False
+    supabase_url: str | None = None
+    supabase_secret_key: str | None = field(default=None, repr=False)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -59,12 +62,24 @@ class Settings:
             model_registry_sha256=os.getenv("BALUT_MODEL_REGISTRY_SHA256"),
             web_dist_path=Path(os.environ["BALUT_WEB_DIST"]) if os.getenv("BALUT_WEB_DIST") else None,
             https_origin=os.getenv("BALUT_HTTPS_ORIGIN") or None,
+            supabase_url=os.getenv("SUPABASE_URL") or None,
+            supabase_secret_key=os.getenv("SUPABASE_SECRET_KEY") or None,
         )
 
     def validate(self) -> None:
+        if bool(self.supabase_url) != bool(self.supabase_secret_key):
+            raise RuntimeError("Set both SUPABASE_URL and SUPABASE_SECRET_KEY; partial cloud configuration is not allowed")
+        if self.supabase_url:
+            if not re.fullmatch(r"https://[a-z0-9-]+\.supabase\.co", self.supabase_url):
+                raise RuntimeError("SUPABASE_URL must be the project's HTTPS supabase.co origin")
+            key = self.supabase_secret_key
+            if len(key) < 32 or any(character.isspace() for character in key) or not key.startswith(("sb_secret_", "eyJ")):
+                raise RuntimeError("Use a server-only Supabase secret key")
         if self.cloud_origin and (self.environment != "production" or self.https_origin
-                                  or not re.fullmatch(r"https://[a-z0-9-]+\.onrender\.com", self.cloud_origin)):
-            raise RuntimeError("Cloud mode requires one explicit HTTPS onrender.com origin in production")
+                                  or not re.fullmatch(r"https://[a-z0-9-]+\.(onrender\.com|vercel\.app)", self.cloud_origin)):
+            raise RuntimeError("Cloud mode requires one explicit HTTPS onrender.com or vercel.app origin in production")
+        if self.serverless and not (self.cloud_origin and self.supabase_url):
+            raise RuntimeError("Serverless mode requires a cloud origin and Supabase")
         if self.https_origin:
             try:
                 origin = urlsplit(self.https_origin)

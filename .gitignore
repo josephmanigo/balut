@@ -41,6 +41,7 @@ apps/mobile/android/local.properties
 *.pfx
 !apps/mobile/assets/certificates/balut-local-box.pem
 .vercel/
+supabase/.temp/
 deployment/drivers/
 deployment/phone-setup/
 artifacts/
