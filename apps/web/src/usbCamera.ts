@@ -98,7 +98,6 @@ export class UsbCamera {
       if (info.usbVendorId !== 0x0403 || info.usbProductId !== 0x6001) throw new Error("Select the box camera's FTDI USB adapter.");
       await port.open({ baudRate: 921600, bufferSize: 256 * 1024 });
       this.port = port;
-      await port.setSignals({ dataTerminalReady: false, requestToSend: false });
       if (!port.readable || !port.writable) throw new Error("USB camera is unavailable.");
       this.reader = port.readable.getReader(); this.writer = port.writable.getWriter();
       this.running = this.run();
@@ -114,6 +113,31 @@ export class UsbCamera {
     await this.reader?.cancel().catch(() => {});
     if (this.running) await this.running;
     else await this.release();
+  }
+
+  private async startCamera() {
+    // Keep GPIO0 high while releasing reset so the camera boots its app, not the serial bootloader.
+    await this.port!.setSignals({ dataTerminalReady: false, requestToSend: true });
+    try { await new Promise(resolve => window.setTimeout(resolve, 120)); }
+    finally { await this.port!.setSignals({ dataTerminalReady: false, requestToSend: false }); }
+    if (this.stopped) return;
+    const timer = window.setTimeout(() => { void this.reader?.cancel().catch(() => {}); }, 16000);
+    const decoder = new TextDecoder();
+    let text = "", received = 0;
+    try {
+      while (!this.stopped) {
+        const { value, done } = await this.reader!.read();
+        if (done) throw new Error("Camera did not finish starting. Reconnect its USB cable and try again.");
+        if (!value) continue;
+        received += value.length;
+        if (received > 32 * 1024) throw new Error("Camera keeps restarting. Check its USB power and reconnect.");
+        text = (text + decoder.decode(value, { stream: true })).slice(-1024);
+        if (text.includes("Camera self-check failed") || text.includes("Camera init failed")) {
+          throw new Error("Camera could not start its sensor. Check camera power and its ribbon cable, then reconnect.");
+        }
+        if (text.includes("BALUT_USB_READY")) return;
+      }
+    } finally { window.clearTimeout(timer); }
   }
 
   private async capture() {
@@ -134,6 +158,8 @@ export class UsbCamera {
     const session = crypto.randomUUID();
     let sequence = 0;
     try {
+      if (this.stopped) return;
+      await this.startCamera();
       while (!this.stopped) {
         const body = await this.capture();
         if (this.stopped) break;

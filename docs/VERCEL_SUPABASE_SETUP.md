@@ -61,7 +61,12 @@ for three fresh frames, confirm the box is empty, and save the empty view.
 Keep the camera and lighting fixed. After placing one egg, a steady scene change
 triggers one saved analysis. Remove the egg before placing the next one.
 
-Each browser connection starts a new camera session and requires a fresh empty
+Each browser connection starts a new camera session. On opening USB, the browser resets only the
+camera into its application and waits up to 16 seconds for `BALUT_USB_READY`.
+Boot output is discarded before requesting a JPEG; an unfinished startup never
+reaches analysis. The camera firmware is not rewritten.
+
+Every new connection requires a fresh empty
 view before automatic analysis. JPEG size, dimensions, USB CRC, session, origin,
 rate, idempotency, and shared camera lease checks remain enforced. Closing the
 page or signing out stops its USB capture. No motor or lighting commands are sent.

@@ -7,7 +7,7 @@ const jpeg = new Uint8Array([255, 216, 0, 7, 255, 217]);
 const header = new TextEncoder().encode("Boot message\r\nBALUT_JPEG 6 85e7bf70\r\n");
 function frame() { return new Uint8Array([...header, ...jpeg, 10]); }
 
-function cameraPort(send = true) {
+function cameraPort(send = true, startup: Uint8Array = new TextEncoder().encode("BALUT_USB_READY\r\n")) {
   let incoming: ReadableStreamDefaultController<Uint8Array>;
   const readable = new ReadableStream<Uint8Array>({ start(controller) { incoming = controller; } });
   const write = vi.fn(async (command: Uint8Array) => {
@@ -16,7 +16,9 @@ function cameraPort(send = true) {
   });
   return { readable, writable: new WritableStream<Uint8Array>({ write }), write,
     getInfo: () => ({ usbVendorId: 0x0403, usbProductId: 0x6001 }),
-    open: vi.fn(async () => {}), setSignals: vi.fn(async () => {}), close: vi.fn(async () => {}) };
+    open: vi.fn(async () => {}), setSignals: vi.fn(async (signals: { requestToSend: boolean }) => {
+      if (!signals.requestToSend && startup) incoming.enqueue(startup);
+    }), close: vi.fn(async () => {}) };
 }
 
 describe("USB camera protocol", () => {
@@ -40,10 +42,11 @@ describe("USB camera protocol", () => {
     Object.defineProperty(navigator, "serial", { value: { requestPort }, configurable: true });
     vi.mocked(uploadBoxFrame).mockRejectedValueOnce(new TypeError("network unavailable")).mockResolvedValue(true);
     const changed = vi.fn(); const connection = new UsbCamera(changed);
-    await connection.connect(); await vi.advanceTimersByTimeAsync(0);
+    await connection.connect(); await vi.advanceTimersByTimeAsync(120);
     expect(requestPort).toHaveBeenCalledWith({ filters: [{ usbVendorId: 0x0403, usbProductId: 0x6001 }] });
     expect(port.open).toHaveBeenCalledWith({ baudRate: 921600, bufferSize: 262144 });
-    expect(port.setSignals).toHaveBeenCalledWith({ dataTerminalReady: false, requestToSend: false });
+    expect(port.setSignals).toHaveBeenNthCalledWith(1, { dataTerminalReady: false, requestToSend: true });
+    expect(port.setSignals).toHaveBeenNthCalledWith(2, { dataTerminalReady: false, requestToSend: false });
     expect(changed).toHaveBeenCalledWith("retrying");
     await vi.advanceTimersByTimeAsync(1000);
     expect(port.write).toHaveBeenCalledTimes(2);
@@ -60,7 +63,7 @@ describe("USB camera protocol", () => {
     const port = cameraPort(false);
     Object.defineProperty(navigator, "serial", { value: { requestPort: async () => port }, configurable: true });
     const changed = vi.fn(); const connection = new UsbCamera(changed);
-    await connection.connect(); await vi.advanceTimersByTimeAsync(8001);
+    await connection.connect(); await vi.advanceTimersByTimeAsync(8121);
     expect(changed).toHaveBeenCalledWith("disconnected", expect.stringMatching(/stopped responding/));
     expect(port.close).toHaveBeenCalledOnce();
     expect(port.readable.locked || port.writable.locked).toBe(false);
@@ -90,5 +93,33 @@ describe("USB camera protocol", () => {
     const stopAmbiguous = watchUsbCamera(found); await vi.advanceTimersByTimeAsync(0);
     expect(found).toHaveBeenCalledTimes(2);
     stopAmbiguous();
+  });
+
+  it("waits through the camera's measured startup noise before requesting its first frame", async () => {
+    const boot = new Uint8Array([...new Uint8Array(6059).fill(128), ...new TextEncoder().encode("\r\nBALUT_USB_READY\r\n")]);
+    const port = cameraPort(true, boot);
+    Object.defineProperty(navigator, "serial", { value: { requestPort: async () => port }, configurable: true });
+    const changed = vi.fn(); const connection = new UsbCamera(changed);
+    await connection.connect(); await vi.advanceTimersByTimeAsync(500);
+    try {
+      expect(uploadBoxFrame).toHaveBeenCalledOnce();
+      expect(changed).toHaveBeenCalledWith("connected");
+      expect(port.setSignals).toHaveBeenNthCalledWith(1, { dataTerminalReady: false, requestToSend: true });
+      expect(port.setSignals).toHaveBeenNthCalledWith(2, { dataTerminalReady: false, requestToSend: false });
+    } finally {
+      const closing = connection.close(); await vi.advanceTimersByTimeAsync(1000); await closing;
+    }
+  });
+
+  it("does not request or upload images before startup completes and closes cleanly during startup", async () => {
+    const port = cameraPort(true, new Uint8Array());
+    Object.defineProperty(navigator, "serial", { value: { requestPort: async () => port }, configurable: true });
+    const changed = vi.fn(); const connection = new UsbCamera(changed);
+    await connection.connect(); await vi.advanceTimersByTimeAsync(1000);
+    expect(port.write).not.toHaveBeenCalled();
+    expect(uploadBoxFrame).not.toHaveBeenCalled();
+    await connection.close();
+    expect(port.close).toHaveBeenCalledOnce();
+    expect(port.readable.locked || port.writable.locked).toBe(false);
   });
 });
