@@ -40,8 +40,8 @@ class RemoteCamera:
             raise HTTPException(413, "USB frame exceeds 128 KB")
         def check():
             with decode_jpeg(body) as image:
-                if image.size != (640, 480):
-                    raise ValueError("Expected the box camera's 640 by 480 source frame")
+                if image.size not in {(640, 480), (800, 600)}:
+                    raise ValueError("Expected a 640 by 480 or 800 by 600 box camera frame")
         try:
             await run_in_threadpool(check)
         except ValueError as exc:

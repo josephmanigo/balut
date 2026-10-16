@@ -1,6 +1,36 @@
 # Camera quality and speed — 2026-10-17
 
-## Installed profile
+## Installed wider-view profile
+
+At the user's request to zoom out, the GC2145 RGB565 fallback now captures
+**800x600** with software JPEG quality **90**, the same 10 MHz clock, one frame
+buffer, and 921600-baud USB. In the installed SDK's subsampling mode, Espressif's
+[GC2145 driver](https://github.com/espressif/esp32-camera/blob/master/sensors/gc2145.c)
+uses a 1600x1200 sensor window for SVGA instead of VGA's 1280x960 center window.
+This provides approximately 25% more width and height from the same fixed mount.
+The existing rotation and slight rightward framing remain; preview and analysis
+now receive **570x800** images. This changes captured field of view, rather than
+merely shrinking the image on the page.
+
+The exact camera identity and preserved original flash were checked before
+installation. Esptool verified the written firmware; application SHA-256 is
+`eba77a4321c2671808f74be19a032469a3dcf67ac5702e11e75316ef5555034b`.
+The previous working VGA application and its boot files are preserved under
+`deployment/private/camera-backup/before-wide-view-20261017`.
+
+Three real USB JPEGs passed CRC and full decoding at 800x600. Capture times were
+2.094, 1.719 and 1.672 seconds, with 33,820–39,452 bytes per image. Startup reached
+`BALUT_USB_READY` in 11.031 seconds, within the browser's 16-second timeout.
+The diagnostic closed the camera port without uploading images or creating
+prediction records. Evidence is under `output/camera-wide-view-20261017`.
+
+The full backend test suite passed, including both supported USB sizes, rejection
+of unsupported sizes, and requiring a new empty reference when source dimensions
+change. These images confirm the wider capture, not physical classification
+accuracy. The egg remains very bright in the observed lighting. Remove it and save
+a fresh empty reference before testing analysis. Spinner firmware is unchanged.
+
+## Earlier quality profile and measurements
 
 The user's final preference was high image quality to help classification, rather than maximum frame rate. The retained profile uses GC2145 RGB565 capture at **640x480**, software JPEG quality **90**, a 10 MHz sensor clock, one frame buffer, and 921600-baud USB serial. It supplies four times the pixels of the original 320x240 / JPEG85 / 115200-baud profile. No Wi-Fi credentials are included in this camera build.
 

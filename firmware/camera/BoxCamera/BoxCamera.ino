@@ -77,7 +77,8 @@ void setup() {
   if (error == ESP_ERR_NOT_SUPPORTED) {
     Serial.println("Native JPEG unavailable; using RGB565 capture and JPEG conversion.");
     config.pixel_format = PIXFORMAT_RGB565;
-    config.frame_size = FRAMESIZE_VGA;
+    // GC2145 SVGA samples the full sensor; VGA uses a narrower center window.
+    config.frame_size = FRAMESIZE_SVGA;
     config.fb_count = 1;
     config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
     error = esp_camera_init(&config);

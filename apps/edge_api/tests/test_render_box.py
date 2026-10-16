@@ -33,9 +33,9 @@ def cloud(tmp_path, monkeypatch, password_hash):
         yield client, app, settings
 
 
-def jpeg(color="gray"):
+def jpeg(color="gray", size=(640, 480)):
     output = io.BytesIO()
-    Image.new("RGB", (640, 480), color).save(output, "JPEG")
+    Image.new("RGB", size, color).save(output, "JPEG")
     return output.getvalue()
 
 
@@ -75,14 +75,15 @@ def test_cloud_frames_require_hmac_fresh_clock_checksum_and_unique_content(cloud
     assert client.post(path, content=body + b"changed", headers=headers).status_code == 401
 
 
-def test_remote_camera_consumes_new_frames_and_never_reuses_stale_input():
+@pytest.mark.parametrize("size", [(640, 480), (800, 600)])
+def test_remote_camera_consumes_new_frames_and_never_reuses_stale_input(size):
     class Box:
         config = {"reference": [0], "enabled": True}
         def require_new_reference(self): self.config = {"enabled": False}
     async def scenario():
         box = Box()
         camera = RemoteCamera(box, timeout=.02)
-        first = jpeg()
+        first = jpeg(size=size)
         await camera.receive(first, "frame-key-001")
         assert await camera.fetch(USB_ORIGIN) == first
         with pytest.raises(ValueError, match="offline"):

@@ -1,4 +1,5 @@
 import copy
+import base64
 import hashlib
 import io
 import time
@@ -62,8 +63,8 @@ def shared(provider, monkeypatch):
     return state
 
 
-def camera_frame(occupied=False):
-    image = Image.new("RGB", (640, 480), (40, 40, 40))
+def camera_frame(occupied=False, size=(640, 480)):
+    image = Image.new("RGB", size, (40, 40, 40))
     if occupied:
         ImageDraw.Draw(image).ellipse((210, 70, 430, 410), fill=(210, 190, 120))
     output = io.BytesIO()
@@ -181,6 +182,33 @@ def test_empty_reference_waits_for_fresh_stable_frames_across_instances(tmp_path
     assert status["state"] == "waiting" and status["enabled"] and status["calibrated"]
     assert not predictions and not local.database.list_predictions()
     assert "referenceDeadline" not in shared["camera"]["config"]
+
+
+def test_wider_camera_frames_reset_reference_and_keep_full_preview_detail(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    cloud = Supabase(URL, SECRET)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def new(): return ServerlessBox(local.database, local.evidence, local.predict, cloud)
+    for index in range(3):
+        now[0] += 1
+        new().receive_frame(camera_frame(), f"vga-{index}")
+    new().mutate(lambda box: box.calibrate_saved())
+    assert new().status()["calibrated"]
+    now[0] += 1
+    new().receive_frame(camera_frame(size=(800, 600)), "wide-first")
+    assert not new().status()["calibrated"] and not new().status()["enabled"]
+    for index in range(2):
+        now[0] += 1
+        new().receive_frame(camera_frame(size=(800, 600)), f"wide-{index}")
+    new().mutate(lambda box: box.calibrate_saved())
+    assert new().status()["calibrated"] and not predictions
+    with Image.open(io.BytesIO(base64.b64decode(new().status()["preview"]))) as image:
+        assert image.size == (570, 800)
+    now[0] += 1
+    with pytest.raises(HTTPException) as error:
+        new().receive_frame(camera_frame(size=(1280, 960)), "unsupported-size")
+    assert error.value.status_code == 422
 
 
 @pytest.mark.parametrize("interruption", ["timeout", "camera", "disconnect"])

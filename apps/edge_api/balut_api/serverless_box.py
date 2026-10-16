@@ -161,8 +161,9 @@ class ServerlessBox:
             raise HTTPException(413, "USB frame exceeds 128 KB")
         try:
             with decode_jpeg(body) as image:
-                if image.size != (640, 480):
-                    raise ValueError("Expected the box camera's 640 by 480 source frame")
+                source_size = list(image.size)
+                if image.size not in {(640, 480), (800, 600)}:
+                    raise ValueError("Expected a 640 by 480 or 800 by 600 box camera frame")
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         digest = hashlib.sha256(body).hexdigest()
@@ -180,10 +181,12 @@ class ServerlessBox:
                 raise HTTPException(429, "Send at most five frames per second")
             if box.config.get("pending"):
                 asyncio.run(box.finish_pending())
-            if box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12:
+            if (box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12
+                    or box.config.get("sourceSize", [640, 480]) != source_size):
                 box.require_new_reference()
                 box.frames = []
             box.config["cameraSession"] = camera_session
+            box.config["sourceSize"] = source_size
             box.body, box.received, box.connected = body, now, True
             asyncio.run(box.tick())
             # 256 entries cover the entire 30-second signature window at the maximum frame rate.
