@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutomaticBox } from "./AutomaticBox";
@@ -68,6 +68,38 @@ describe("automatic camera capture", () => {
       await act(async () => { await vi.advanceTimersByTimeAsync(1600); });
       expect(saved).toHaveBeenCalledOnce();
     } finally { vi.useRealTimers(); }
+  });
+  it("waits for a steady empty view after one confirmed save, then becomes ready through polling", async () => {
+    vi.useFakeTimers();
+    try {
+      let current: BoxStatus = { ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", connected: true, state: "needs_reference" };
+      vi.mocked(boxRequest).mockImplementation(async action => {
+        if (action === "reference") current = { ...current, state: "calibrating" };
+        return current;
+      });
+      const saved = vi.fn();
+      render(<AutomaticBox locale="en" onSaved={saved} />);
+      await act(async () => { await Promise.resolve(); });
+      fireEvent.click(screen.getByRole("checkbox"));
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Save empty view & start" })); });
+      expect(screen.getByRole("heading", { name: "Saving the empty view." })).toBeInTheDocument();
+      expect(screen.getByText(/Waiting up to 20 seconds/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Saving empty view…" })).toBeDisabled();
+      expect(screen.getByRole("checkbox")).toBeDisabled();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      current = { ...current, calibrated: true, enabled: true, state: "waiting" };
+      await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+      expect(screen.getByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
+      expect(vi.mocked(boxRequest).mock.calls.filter(([action]) => action === "reference")).toEqual([["reference", { emptyConfirmed: true }]]);
+      expect(saved).not.toHaveBeenCalled();
+    } finally { vi.useRealTimers(); }
+  });
+  it("shows calibration timeout and requires a new empty-box confirmation", async () => {
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", connected: true,
+      state: "needs_reference", error: "No steady empty view was saved. Keep the box empty, steady the camera and lighting, then save again." });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("No steady empty view was saved.");
+    expect(screen.getByRole("button", { name: "Save empty view & start" })).toBeDisabled();
   });
   it("shows disconnection rather than a ready-to-capture state", async () => {
     vi.mocked(boxRequest).mockRejectedValue(new Error("offline"));

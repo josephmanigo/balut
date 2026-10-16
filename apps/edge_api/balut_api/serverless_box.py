@@ -52,6 +52,44 @@ class SavedBox(AutomaticBox):
         self.frames = (self.frames + [samples])[-3:]
         return body, samples
 
+    def reference_ready(self):
+        return self.connected and len(self.frames) == 3 and max(
+            difference(self.frames[0], samples) for samples in self.frames[1:]) <= .015
+
+    def require_new_reference(self):
+        self.config.pop("referenceDeadline", None)
+        self.error = None
+        super().require_new_reference()
+
+    def request_reference(self):
+        if self.config.get("pending"):
+            raise ValueError("Finish the pending analysis before resetting the empty view.")
+        if not self.connected:
+            raise ValueError("Reconnect the camera before saving the empty view.")
+        if self.reference_ready():
+            self.calibrate_saved()
+            return
+        self.require_new_reference()
+        # Wait for fresh uploads without holding the shared camera lease between frames.
+        self.config["referenceDeadline"] = time.time() + 20
+        self.frames = []
+        self.state, self.result = "calibrating", None
+
+    async def tick(self):
+        previous_error = self.error
+        await super().tick()
+        deadline = self.config.get("referenceDeadline")
+        if deadline:
+            if time.time() > deadline:
+                self.config.pop("referenceDeadline")
+                self.state, self.error = "needs_reference", "No steady empty view was saved. Keep the box empty, steady the camera and lighting, then save again."
+            elif self.reference_ready():
+                self.calibrate_saved()
+            else:
+                self.state = "calibrating"
+        elif not self.config.get("enabled"):
+            self.error = previous_error
+
     def status(self):
         result = super().status()
         result["cloudCapture"] = True
@@ -74,9 +112,10 @@ class SavedBox(AutomaticBox):
             raise ValueError("Finish the pending analysis before resetting the empty view.")
         if not self.connected or len(self.frames) != 3:
             raise ValueError("Wait for three fresh camera frames before saving the empty view.")
-        if max(difference(self.frames[0], samples) for samples in self.frames[1:]) > .015:
+        if not self.reference_ready():
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=self.frames[-1], enabled=True, latched=False)
+        self.config.pop("referenceDeadline", None)
         self.config.pop("resultId", None)
         self.result, self.previous, self.error = None, None, None
         self.occupied_frames = self.empty_frames = 0
@@ -200,7 +239,7 @@ def serverless_box_router(box, settings):
     def reference(payload: EmptyReference, request: Request):
         if not payload.empty_confirmed:
             raise HTTPException(400, "Remove the egg and confirm the box is empty.")
-        return change(request, lambda saved: saved.calibrate_saved())
+        return change(request, lambda saved: saved.request_reference())
 
     @router.post("/enabled")
     def enabled(payload: BoxEnabled, request: Request):

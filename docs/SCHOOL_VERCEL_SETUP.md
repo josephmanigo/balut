@@ -17,7 +17,10 @@ and power cables, a charger, and a computer with internet and Chrome or Edge.
    No project ZIP, Python, camera profile or secret needs to be copied.
 4. Wait for the camera preview. Remove the egg, keep the camera and lighting
    fixed, confirm **The box is empty. Lighting is ready.**, and click
-   **Save empty view & start**. Three fresh, steady frames are required.
+   **Save empty view & start**. Keep the box empty until **Ready for an egg.**
+   If the last three frames are changing, the website waits up to 20 seconds
+   for three fresh, steady frames. An expired request or a new camera connection
+   requires another empty-box confirmation; analysis stays off until calibration succeeds.
 5. Place one egg and keep hands clear. Wait for the saved result, then remove
    the egg before the next one. Confirm the result appears in **History**.
 

@@ -8,6 +8,7 @@ const states: Record<string, [string, string, string, string]> = {
   not_connected: ["Connect your box.", "Ikonekta ang kahon.", "Set up the camera once. Then place an egg.", "I-setup ang camera. Ilagay ang itlog pagkatapos."],
   connecting: ["Finding your camera…", "Hinahanap ang camera…", "Keep the box powered on.", "Panatilihing nakabukas ang kahon."],
   needs_reference: ["Start with an empty box.", "Magsimula sa bakanteng kahon.", "Remove the egg. Keep normal candling light on.", "Alisin ang itlog. Gamitin ang karaniwang ilaw."],
+  calibrating: ["Saving the empty view.", "Sine-save ang bakanteng kuha.", "Leave the box empty. Waiting up to 20 seconds for a steady image.", "Panatilihing bakante ang kahon. Maghihintay nang hanggang 20 segundo para sa hindi gumagalaw na kuha."],
   waiting: ["Ready for an egg.", "Handa para sa itlog.", "Place one egg. Keep your hands clear.", "Maglagay ng isang itlog. Ilayo ang mga kamay."],
   settling: ["Hold still a moment.", "Sandaling huwag galawin.", "Capture starts when the view is steady.", "Kukunan kapag hindi na gumagalaw."],
   analyzing: ["Taking a closer look.", "Sinusuri ang larawan.", "Your result saves automatically.", "Awtomatikong mase-save ang resulta."],
@@ -79,6 +80,8 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     } finally { changing.current = false; if (alive.current) setBusy(false); }
   }
   const copy = states[status?.state ?? "not_connected"] ?? states.offline;
+  const calibrating = status?.state === "calibrating";
+  const setupError = notice || (status?.state === "needs_reference" ? status.error : null);
   const result = status?.result;
   const label = result?.recaptureRequested ? t("Another image needed", "Kailangan ng ibang larawan")
     : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: t("Reject — suspected", "Posibleng reject") }[result?.sourcePrediction ?? ""]);
@@ -93,11 +96,11 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         <h2>{unreachable ? t("Connection interrupted.", "Naputol ang koneksyon.") : copy[locale === "en" ? 0 : 1]}</h2>
         <p>{unreachable ? t("Check the Balut server. Reconnecting automatically.", "Suriin ang Balut server. Kokonekta muli.") : copy[locale === "en" ? 2 : 3]}</p>
         {status?.cloudCapture && <UsbCameraConnect locale={locale} />}
-        {status?.state === "analyzing" && <LoaderCircle className="spin" size={24} />}
+        {(status?.state === "analyzing" || calibrating) && <LoaderCircle className="spin" size={24} />}
         {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? t("Unclassified · adjust the view and replace the egg.", "Walang klasipikasyon · ayusin ang kuha at ilagay muli.") : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p><time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
       </div>
     </div>
-    {notice && <p className="inline-error" role="alert">{notice}</p>}
+    {setupError && <p className="inline-error" role="alert">{setupError}</p>}
     <details className="box-settings" open={!status?.calibrated}>
       <summary><Settings2 size={17} />{t("Box setup", "Setup ng kahon")}</summary>
       {!status?.cloudCapture && <form onSubmit={event => { event.preventDefault(); void change("connect", { cameraUrl: address }); }}>
@@ -105,7 +108,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         <div className="box-address-row"><input id="box-address" type="url" required value={address} disabled={busy} placeholder="http://192.168.1.50" autoComplete="off" onChange={event => setAddress(event.target.value)} /><button className="outline-button" disabled={busy || !address.trim()}>{busy ? t("Please wait…", "Sandali…") : t("Connect camera", "Ikonekta ang camera")}</button></div>
         <p>{t("Use the camera address provided during box setup.", "Gamitin ang address ng camera na ibinigay sa setup ng kahon.")}</p>
       </form>}
-      {status?.cameraUrl && <div className="box-reference"><label><input type="checkbox" checked={empty} disabled={busy} onChange={event => setEmpty(event.target.checked)} />{t("The box is empty. Lighting is ready.", "Bakante ang kahon. Handa ang ilaw.")}</label><button type="button" className="solid-button" disabled={!empty || busy || !!status.cloudCapture && !status.connected} onClick={() => void change("reference", { emptyConfirmed: true })}>{t("Save empty view & start", "I-save ang bakanteng kuha at simulan")}</button></div>}
+      {status?.cameraUrl && <div className="box-reference"><label><input type="checkbox" checked={empty} disabled={busy || calibrating} onChange={event => setEmpty(event.target.checked)} />{t("The box is empty. Lighting is ready.", "Bakante ang kahon. Handa ang ilaw.")}</label><button type="button" className="solid-button" disabled={!empty || busy || calibrating || !!status.cloudCapture && !status.connected} onClick={() => void change("reference", { emptyConfirmed: true })}>{calibrating ? t("Saving empty view…", "Sine-save ang bakanteng kuha…") : t("Save empty view & start", "I-save ang bakanteng kuha at simulan")}</button></div>}
       <p className="box-setup-note">{t("Keep camera and lighting fixed. A steady scene change triggers capture; this is not an egg-presence sensor.", "Panatilihing nakapirmi ang camera at ilaw. Pagbabago sa tanawin ang nagti-trigger ng kuha; hindi ito sensor ng itlog.")}</p>
     </details>
   </section>;

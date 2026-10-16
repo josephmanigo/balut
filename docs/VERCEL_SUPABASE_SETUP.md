@@ -57,7 +57,10 @@ reopened. The browser cannot silently grant first-use USB permission.
 
 Keep the website tab open and the computer awake and online. Other signed-in
 phones and laptops can view the same camera and history. Remove the egg, wait
-for three fresh frames, confirm the box is empty, and save the empty view.
+for the preview, confirm the box is empty, and save the empty view. Keep it empty
+until **Ready for an egg.** If the view is changing, calibration waits up to 20
+seconds for three fresh, steady frames without lowering the stability threshold.
+An expired request or a new camera connection cannot silently save a reference.
 Keep the camera and lighting fixed. After placing one egg, a steady scene change
 triggers one saved analysis. Remove the egg before placing the next one.
 

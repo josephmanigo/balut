@@ -155,6 +155,62 @@ def test_failed_evidence_upload_rolls_back_frame_and_shared_lease_blocks_other_i
     with pytest.raises(ValueError): render_origin(ORIGIN + ".evil.example")
 
 
+def test_empty_reference_waits_for_fresh_stable_frames_across_instances(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    cloud = Supabase(URL, SECRET)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def new(): return ServerlessBox(local.database, local.evidence, local.predict, cloud)
+    sequence = [0]
+    def send(occupied=False, session="signed-usb"):
+        now[0] += 1
+        sequence[0] += 1
+        new().receive_frame(camera_frame(occupied), f"reference-{sequence[0]:03}", session)
+
+    send()
+    send(True)
+    send()
+    new().mutate(lambda box: box.request_reference())
+    assert new().status()["state"] == "calibrating"
+    assert not new().status()["enabled"]
+    send()
+    send()
+    assert not new().status()["calibrated"]
+    send()
+    status = new().status()
+    assert status["state"] == "waiting" and status["enabled"] and status["calibrated"]
+    assert not predictions and not local.database.list_predictions()
+    assert "referenceDeadline" not in shared["camera"]["config"]
+
+
+@pytest.mark.parametrize("interruption", ["timeout", "camera", "disconnect"])
+def test_waiting_reference_expires_or_cancels_on_camera_change(tmp_path, shared, monkeypatch, interruption):
+    local, predictions = make_box(tmp_path)
+    cloud = Supabase(URL, SECRET)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def new(): return ServerlessBox(local.database, local.evidence, local.predict, cloud)
+    new().receive_frame(camera_frame(), "start-reference")
+    new().mutate(lambda box: box.request_reference())
+    assert new().status()["state"] == "calibrating"
+    if interruption == "timeout":
+        for index in range(1, 5):
+            now[0] += 6
+            new().receive_frame(camera_frame(index % 2 == 0), f"moving-{index}")
+        assert new().status()["state"] == "needs_reference"
+        assert "steady" in new().status()["error"]
+    elif interruption == "disconnect":
+        now[0] += 13
+        assert not new().status()["connected"]
+    session = "new-camera" if interruption == "camera" else "signed-usb"
+    for index in range(3):
+        now[0] += 1
+        new().receive_frame(camera_frame(), f"late-{index}", session)
+    assert not new().status()["calibrated"] and not new().status()["enabled"]
+    assert "referenceDeadline" not in shared["camera"]["config"]
+    assert not predictions
+
+
 def test_browser_usb_frames_require_session_origin_and_valid_images_and_reset_calibration(tmp_path, shared, provider, monkeypatch):
     provider["account"] = {"username": "classroom", "password_hash": "not-used-by-this-test"}
     now = [time.time()]
@@ -172,6 +228,7 @@ def test_browser_usb_frames_require_session_origin_and_valid_images_and_reset_ca
         assert client.post("/api/v1/box/frame?anything=1", headers=headers, content=camera_frame()).status_code == 400
         assert client.post("/api/v1/box/frame", headers=headers, content=b"not-jpeg").status_code == 422
         assert client.post("/api/v1/box/frame", headers=headers, content=b"x" * (128 * 1024 + 1)).status_code == 413
+        assert client.post("/api/v1/box/reference", headers={"Origin": ORIGIN, "X-Balut-Origin": "local"}, json={"emptyConfirmed": False}).status_code == 400
         for index in range(3):
             now[0] += 1
             headers["Idempotency-Key"] = f"browser-frame-{index:03}"
