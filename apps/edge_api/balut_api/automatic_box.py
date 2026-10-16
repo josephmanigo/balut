@@ -22,6 +22,7 @@ from .security import require_box_operator
 from .model_service import decode_jpeg
 
 MAX_IMAGE = 10 * 1024 * 1024
+CAMERA_FRAMING_VERSION = 2
 PRIVATE_NETWORKS = tuple(ipaddress.ip_network(value) for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"))
 
 
@@ -42,11 +43,11 @@ def camera_origin(value: str) -> str:
 
 
 def prepare_camera_frame(body: bytes):
-    # The fixed sensor needs rotation and a small rightward crop for both preview and analysis.
+    # Keep the light at the bottom and retain the entire sensor view.
     with decode_jpeg(body) as image:
         output = io.BytesIO()
         rotated = image.transpose(Image.Transpose.ROTATE_90)
-        rotated.crop((rotated.width // 20, 0, rotated.width, rotated.height)).save(output, "JPEG", quality=95, subsampling=0)
+        rotated.save(output, "JPEG", quality=95, subsampling=0)
         return output.getvalue()
 
 
@@ -166,7 +167,7 @@ class AutomaticBox:
             await asyncio.sleep(.25)
         if max(difference(frames[0], sample) for sample in frames[1:]) > .015:
             raise ValueError("The view is moving. Leave the box empty and try again.")
-        self.config.update(reference=frames[-1], enabled=True, latched=False)
+        self.config.update(reference=frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
         self.config.pop("resultId", None)
         self.result, self.previous, self.error = None, None, None
         self.occupied_frames = self.empty_frames = 0
@@ -205,6 +206,9 @@ class AutomaticBox:
         self.save()
 
     async def tick(self):
+        if (self.config.get("reference") and self.config.get("framingVersion") != CAMERA_FRAMING_VERSION
+                and not self.config.get("pending")):
+            self.require_new_reference()
         if not self.config.get("enabled"):
             if self.config.get("cameraUrl"):
                 await self.read_frame(self.config["cameraUrl"])
@@ -229,9 +233,10 @@ class AutomaticBox:
                 self.state = "waiting"
             return
         # shortcut: scene change is not a trained egg detector; replace with a validated presence sensor when wiring is known.
-        self.occupied_frames = self.occupied_frames + 1 if changed >= .08 and motion <= .015 else 0
+        self.occupied_frames = self.occupied_frames + 1 if changed >= .08 else 0
         self.state = "settling" if changed >= .08 else "waiting"
-        if self.occupied_frames >= 3:
+        # A rotating holder may never stop; prefer a steady pair, otherwise capture the third occupied frame.
+        if self.occupied_frames >= 2 and (motion <= .015 or self.occupied_frames >= 3):
             image_hash = hashlib.sha256(body).hexdigest()
             await run_in_threadpool(self.evidence.store_jpeg, body, image_hash)
             self.config.update(latched=True, pending={"key": "box-" + uuid4().hex, "imageHash": image_hash})

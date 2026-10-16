@@ -156,10 +156,10 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
               ),
             ),
             'settling' => (
-              t('Hold still a moment.', 'Sandaling huwag galawin.'),
+              t('Preparing to capture.', 'Naghahanda sa pagkuha.'),
               t(
-                'Capture starts when the view is steady.',
-                'Kukunan kapag hindi na gumagalaw.',
+                'Keep your hands clear. Capture continues while the holder rotates.',
+                'Ilayo ang mga kamay. Kukunan kahit umiikot ang lalagyan.',
               ),
             ),
             'analyzing' => (
@@ -438,7 +438,7 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
                 const SizedBox(height: 16),
                 Text(
                   t(
-                    'Keep camera and lighting fixed. A steady scene change triggers capture; this is not an egg-presence sensor.',
+                    'Keep camera and lighting fixed. A lasting scene change triggers capture; this is not an egg-presence sensor.',
                     'Panatilihing nakapirmi ang camera at ilaw. Pagbabago sa tanawin ang nagti-trigger ng kuha; hindi ito sensor ng itlog.',
                   ),
                   style: theme.textTheme.bodySmall,

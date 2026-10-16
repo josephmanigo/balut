@@ -81,7 +81,7 @@ def make_box(tmp_path, fail_first=False, prediction_class="DAY_16"):
     return AutomaticBox(database, evidence, predict), predictions
 
 
-def test_camera_framing_rotates_light_to_bottom_and_crops_left_for_preview_and_analysis(tmp_path):
+def test_camera_framing_rotates_light_to_bottom_and_preserves_both_edges_for_preview_and_analysis(tmp_path):
     async def scenario():
         box, _ = make_box(tmp_path)
         image = Image.new("RGB", (640, 480), "black")
@@ -95,11 +95,11 @@ def test_camera_framing_rotates_light_to_bottom_and_crops_left_for_preview_and_a
         body, samples = await box.read_frame("http://192.168.1.50")
         assert base64.b64decode(box.preview) == body and len(samples) == 2304
         with Image.open(io.BytesIO(body)) as rotated:
-            assert rotated.size == (456, 640)
+            assert rotated.size == (480, 640)
             assert min(rotated.getpixel((240, 600))) > 240
             assert max(rotated.getpixel((240, 40))) < 15
-            assert max(rotated.getpixel((2, 40))) < 15
-            assert rotated.getpixel((453, 40))[2] > 240
+            assert rotated.getpixel((2, 40))[0] > 240
+            assert rotated.getpixel((477, 40))[2] > 240
     asyncio.run(scenario())
 
 
@@ -158,6 +158,32 @@ def test_preview_refreshes_before_calibration_and_while_paused_without_analysis(
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("moving", [False, True])
+def test_capture_has_bounded_wait_for_rotation_but_ignores_brief_scene_changes(tmp_path, moving):
+    async def scenario():
+        box, calls = make_box(tmp_path)
+        body = frame()
+        async def fetch(_): return body
+        box.fetch = fetch
+        await box.connect("http://192.168.1.50")
+        await box.calibrate()
+        body = frame(True)
+        await box.tick()
+        assert not calls
+        body = frame()
+        await box.tick()
+        assert not calls and box.state == "waiting"
+        for index in range(3 if moving else 2):
+            body = frame(True, offset=12 if moving and index % 2 else -12 if moving else 0)
+            await box.tick()
+            if index == 0:
+                assert not calls
+        assert len(calls) == 1 and box.state == "remove_egg"
+        for _ in range(5): await box.tick()
+        assert len(calls) == 1
+    asyncio.run(scenario())
+
+
 def test_saved_capture_recovers_after_interruption_and_pause_preserves_latch(tmp_path):
     async def scenario():
         box, calls = make_box(tmp_path, fail_first=True)
@@ -171,6 +197,7 @@ def test_saved_capture_recovers_after_interruption_and_pause_preserves_latch(tmp
             for _ in range(4): await box.tick()
         pending = box.database.box_config()["pending"]
         assert box.evidence.contains(pending["imageHash"])
+        box.config.pop("framingVersion")
         box.enable(False)
         await box.tick()
         assert len(calls) == 1
@@ -183,6 +210,7 @@ def test_saved_capture_recovers_after_interruption_and_pause_preserves_latch(tmp
         assert "pending" not in box.database.box_config()
         for _ in range(6): await box.tick()
         assert len(box.database.list_predictions()) == 1
+        assert not box.config.get("reference") and not box.config["enabled"]
     asyncio.run(scenario())
 
 
@@ -199,7 +227,7 @@ def test_network_adapter_rejects_redirects_and_non_images(tmp_path):
             body, samples = await box.read_frame("http://192.168.1.50")
             assert base64.b64decode(box.preview) == body and len(samples) == 2304
             with Image.open(io.BytesIO(body)) as image:
-                assert image.size == (114, 160)
+                assert image.size == (120, 160)
     asyncio.run(scenario())
 
 

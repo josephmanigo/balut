@@ -89,16 +89,13 @@ void setup() {
   }
   sensor_t *sensor = esp_camera_sensor_get();
   Serial.printf("Sensor PID: 0x%04x; PSRAM: %s; frame format: %d\n", sensor->id.PID, psramFound() ? "present" : "absent", config.pixel_format);
-  // Discard startup frames while the sensor's exposure settles.
-  for (int i = 0; i < 6; ++i) {
-    camera_fb_t *warmup = esp_camera_fb_get();
-    if (!warmup) {
-      Serial.println("Camera warmup failed.");
-      return;
-    }
-    esp_camera_fb_return(warmup);
-    delay(30);
+  // Discard the first frame; empty-box calibration checks exposure after the live view starts.
+  camera_fb_t *warmup = esp_camera_fb_get();
+  if (!warmup) {
+    Serial.println("Camera warmup failed.");
+    return;
   }
+  esp_camera_fb_return(warmup);
   // Fail before serving if the sensor cannot produce an actual JPEG.
   camera_fb_t *test = esp_camera_fb_get();
   uint8_t *testJpeg = nullptr;

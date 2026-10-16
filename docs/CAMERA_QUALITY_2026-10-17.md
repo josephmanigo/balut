@@ -1,6 +1,38 @@
 # Camera quality and speed — 2026-10-17
 
-## Installed wider-view profile
+## Faster capture and full framing
+
+The subsequent speed update removes the remaining 5% left crop. The shared
+preview and analysis now retain the full **600x800** oriented image. Saved empty
+references are invalidated when framing changes, including references from
+the previous deployment at the same source resolution. Pending saved captures
+are recovered before reference invalidation.
+
+Capture now counts consecutive changed frames: a steady pair captures on the
+second frame, and a rotating scene captures on the third. A return to the empty
+view resets this count. The existing one-capture latch, three-empty-frame rearm,
+explicit calibration, JPEG validation, durable retries, and model quality and
+research restrictions remain. This is still a scene-change heuristic; hands or
+other objects can trigger it, so keep hands clear after placing an egg.
+
+Successful browser uploads no longer add an unconditional one-second delay.
+The loop remains sequential, with a 250 ms minimum cycle and one-second backoff
+on transient failures. The firmware reduces discarded startup frames from six
+to one and retains the JPEG self-check. Empty-view calibration still requires
+three steady frames after startup.
+
+The firmware compile check, all **156 backend tests**, **36 web tests**, TypeScript
+checks, production web build, and Android static analysis passed. The previous
+working SVGA firmware is preserved with verified hashes under
+`deployment/private/camera-backup/before-fast-start-20261017`.
+Physical installation and timing of this faster firmware are pending camera
+port release; the measurements below describe the preceding firmware.
+
+The sensor already uses its full 1600x1200 window. Removing the crop restores
+30 image columns, about 5.3% more visible width than the preceding prepared view.
+Additional optical width requires changing the camera distance or lens.
+
+## Earlier installed wider-view profile
 
 At the user's request to zoom out, the GC2145 RGB565 fallback now captures
 **800x600** with software JPEG quality **90**, the same 10 MHz clock, one frame

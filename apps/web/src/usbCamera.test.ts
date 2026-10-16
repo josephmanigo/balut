@@ -70,6 +70,25 @@ describe("USB camera protocol", () => {
     expect(uploadBoxFrame).not.toHaveBeenCalled();
   });
 
+  it("starts the next capture immediately after a slow successful upload without overlapping uploads", async () => {
+    const port = cameraPort();
+    Object.defineProperty(navigator, "serial", { value: { requestPort: async () => port }, configurable: true });
+    vi.mocked(uploadBoxFrame).mockImplementation(async () => {
+      await new Promise(resolve => setTimeout(resolve, 600));
+      return true;
+    });
+    const connection = new UsbCamera(vi.fn());
+    await connection.connect(); await vi.advanceTimersByTimeAsync(719);
+    expect(port.write).toHaveBeenCalledTimes(1);
+    expect(uploadBoxFrame).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(2);
+    expect(port.write).toHaveBeenCalledTimes(2);
+    expect(uploadBoxFrame).toHaveBeenCalledTimes(2);
+    const closing = connection.close(); await vi.advanceTimersByTimeAsync(600); await closing;
+    expect(port.write).toHaveBeenCalledTimes(2);
+    expect(port.close).toHaveBeenCalledOnce();
+  });
+
   it("allows cancelling the port picker without an error or upload", async () => {
     Object.defineProperty(navigator, "serial", { value: { requestPort: async () => { throw new DOMException("No port", "NotFoundError"); } }, configurable: true });
     const changed = vi.fn(); await new UsbCamera(changed).connect();
@@ -102,7 +121,7 @@ describe("USB camera protocol", () => {
     const changed = vi.fn(); const connection = new UsbCamera(changed);
     await connection.connect(); await vi.advanceTimersByTimeAsync(500);
     try {
-      expect(uploadBoxFrame).toHaveBeenCalledOnce();
+      expect(uploadBoxFrame).toHaveBeenCalledTimes(2);
       expect(changed).toHaveBeenCalledWith("connected");
       expect(port.setSignals).toHaveBeenNthCalledWith(1, { dataTerminalReady: false, requestToSend: true });
       expect(port.setSignals).toHaveBeenNthCalledWith(2, { dataTerminalReady: false, requestToSend: false });

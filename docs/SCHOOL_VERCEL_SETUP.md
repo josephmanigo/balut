@@ -23,6 +23,10 @@ and power cables, a charger, and a computer with internet and Chrome or Edge.
    requires another empty-box confirmation; analysis stays off until calibration succeeds.
 5. Place one egg and keep hands clear. Wait for the saved result, then remove
    the egg before the next one. Confirm the result appears in **History**.
+   Capture uses two steady changed frames, or three changed frames if the holder
+   keeps rotating. It does not wait indefinitely for rotation to stop. Network
+   transfer and AI analysis add time after capture. Image quality checks can
+   still request another view.
 
 ## Later use
 

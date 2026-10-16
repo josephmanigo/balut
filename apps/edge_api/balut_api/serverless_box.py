@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
-from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, difference
+from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, difference, CAMERA_FRAMING_VERSION
 from .model_service import decode_jpeg
 from .remote_camera import USB_ORIGIN
 from .security import require_box_operator, require_idempotency_key
@@ -53,7 +53,7 @@ class SavedBox(AutomaticBox):
         return body, samples
 
     def reference_ready(self):
-        return self.connected and len(self.frames) == 3 and max(
+        return self.config.get("framingVersion") == CAMERA_FRAMING_VERSION and self.connected and len(self.frames) == 3 and max(
             difference(self.frames[0], samples) for samples in self.frames[1:]) <= .015
 
     def require_new_reference(self):
@@ -72,6 +72,7 @@ class SavedBox(AutomaticBox):
         self.require_new_reference()
         # Wait for fresh uploads without holding the shared camera lease between frames.
         self.config["referenceDeadline"] = time.time() + 20
+        self.config["framingVersion"] = CAMERA_FRAMING_VERSION
         self.frames = []
         self.state, self.result = "calibrating", None
 
@@ -114,7 +115,7 @@ class SavedBox(AutomaticBox):
             raise ValueError("Wait for three fresh camera frames before saving the empty view.")
         if not self.reference_ready():
             raise ValueError("The view is moving. Leave the box empty and try again.")
-        self.config.update(reference=self.frames[-1], enabled=True, latched=False)
+        self.config.update(reference=self.frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
         self.config.pop("referenceDeadline", None)
         self.config.pop("resultId", None)
         self.result, self.previous, self.error = None, None, None
@@ -182,11 +183,13 @@ class ServerlessBox:
             if box.config.get("pending"):
                 asyncio.run(box.finish_pending())
             if (box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12
-                    or box.config.get("sourceSize", [640, 480]) != source_size):
+                    or box.config.get("sourceSize", [640, 480]) != source_size
+                    or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION):
                 box.require_new_reference()
                 box.frames = []
             box.config["cameraSession"] = camera_session
             box.config["sourceSize"] = source_size
+            box.config["framingVersion"] = CAMERA_FRAMING_VERSION
             box.body, box.received, box.connected = body, now, True
             asyncio.run(box.tick())
             # 256 entries cover the entire 30-second signature window at the maximum frame rate.

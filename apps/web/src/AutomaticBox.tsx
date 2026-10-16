@@ -10,7 +10,7 @@ const states: Record<string, [string, string, string, string]> = {
   needs_reference: ["Start with an empty box.", "Magsimula sa bakanteng kahon.", "Remove the egg. Keep normal candling light on.", "Alisin ang itlog. Gamitin ang karaniwang ilaw."],
   calibrating: ["Saving the empty view.", "Sine-save ang bakanteng kuha.", "Leave the box empty. Waiting up to 20 seconds for a steady image.", "Panatilihing bakante ang kahon. Maghihintay nang hanggang 20 segundo para sa hindi gumagalaw na kuha."],
   waiting: ["Ready for an egg.", "Handa para sa itlog.", "Place one egg. Keep your hands clear.", "Maglagay ng isang itlog. Ilayo ang mga kamay."],
-  settling: ["Hold still a moment.", "Sandaling huwag galawin.", "Capture starts when the view is steady.", "Kukunan kapag hindi na gumagalaw."],
+  settling: ["Preparing to capture.", "Naghahanda sa pagkuha.", "Keep your hands clear. Capture continues while the holder rotates.", "Ilayo ang mga kamay. Kukunan kahit umiikot ang lalagyan."],
   analyzing: ["Taking a closer look.", "Sinusuri ang larawan.", "Your result saves automatically.", "Awtomatikong mase-save ang resulta."],
   remove_egg: ["Result saved.", "Nai-save ang resulta.", "Remove the egg before placing the next one.", "Alisin ang itlog bago ilagay ang susunod."],
   recapture: ["Another view needed.", "Kailangan ng ibang kuha.", "Remove the egg, adjust it, then place it again.", "Alisin, ayusin, at ilagay muli ang itlog."],
@@ -109,7 +109,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         <p>{t("Use the camera address provided during box setup.", "Gamitin ang address ng camera na ibinigay sa setup ng kahon.")}</p>
       </form>}
       {status?.cameraUrl && <div className="box-reference"><label><input type="checkbox" checked={empty} disabled={busy || calibrating} onChange={event => setEmpty(event.target.checked)} />{t("The box is empty. Lighting is ready.", "Bakante ang kahon. Handa ang ilaw.")}</label><button type="button" className="solid-button" disabled={!empty || busy || calibrating || !!status.cloudCapture && !status.connected} onClick={() => void change("reference", { emptyConfirmed: true })}>{calibrating ? t("Saving empty view…", "Sine-save ang bakanteng kuha…") : t("Save empty view & start", "I-save ang bakanteng kuha at simulan")}</button></div>}
-      <p className="box-setup-note">{t("Keep camera and lighting fixed. A steady scene change triggers capture; this is not an egg-presence sensor.", "Panatilihing nakapirmi ang camera at ilaw. Pagbabago sa tanawin ang nagti-trigger ng kuha; hindi ito sensor ng itlog.")}</p>
+      <p className="box-setup-note">{t("Keep camera and lighting fixed. A lasting scene change triggers capture; this is not an egg-presence sensor.", "Panatilihing nakapirmi ang camera at ilaw. Pagbabago sa tanawin ang nagti-trigger ng kuha; hindi ito sensor ng itlog.")}</p>
     </details>
   </section>;
 }

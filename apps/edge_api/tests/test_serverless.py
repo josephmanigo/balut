@@ -117,7 +117,7 @@ def test_capture_survives_new_instances_and_failed_prediction_without_duplicate(
         return new().receive_frame(camera_frame(occupied), f"frame-{sequence[0]:03}")
     for _ in range(3): send()
     new().mutate(lambda box: box.calibrate_saved())
-    for _ in range(3): send(True)
+    send(True)
     with pytest.raises(OSError, match="interruption"): send(True)
     assert shared["camera"]["config"]["pending"]
     send(True)
@@ -204,11 +204,36 @@ def test_wider_camera_frames_reset_reference_and_keep_full_preview_detail(tmp_pa
     new().mutate(lambda box: box.calibrate_saved())
     assert new().status()["calibrated"] and not predictions
     with Image.open(io.BytesIO(base64.b64decode(new().status()["preview"]))) as image:
-        assert image.size == (570, 800)
+        assert image.size == (600, 800)
+    # A deployment that removes cropping also invalidates the old reference at the same source size.
+    shared["camera"]["config"].pop("framingVersion")
+    now[0] += 1
+    new().receive_frame(camera_frame(size=(800, 600)), "uncropped-first")
+    assert not new().status()["calibrated"] and not new().status()["enabled"]
+    assert len(shared["camera"]["frames"]) == 1 and not predictions
     now[0] += 1
     with pytest.raises(HTTPException) as error:
         new().receive_frame(camera_frame(size=(1280, 960)), "unsupported-size")
     assert error.value.status_code == 422
+
+
+def test_calibration_after_deployment_waits_for_uncropped_frames(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    cloud = Supabase(URL, SECRET)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    worker = ServerlessBox(local.database, local.evidence, local.predict, cloud)
+    for index in range(3):
+        now[0] += 1
+        worker.receive_frame(camera_frame(), f"before-framing-{index}")
+    shared["camera"]["config"].pop("framingVersion")
+    worker.mutate(lambda box: box.request_reference())
+    assert worker.status()["state"] == "calibrating" and not worker.status()["calibrated"]
+    for index in range(3):
+        now[0] += 1
+        worker.receive_frame(camera_frame(), f"after-framing-{index}")
+        assert worker.status()["calibrated"] == (index == 2)
+    assert worker.status()["state"] == "waiting" and not predictions
 
 
 @pytest.mark.parametrize("interruption", ["timeout", "camera", "disconnect"])

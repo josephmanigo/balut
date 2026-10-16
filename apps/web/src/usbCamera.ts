@@ -161,17 +161,23 @@ export class UsbCamera {
       if (this.stopped) return;
       await this.startCamera();
       while (!this.stopped) {
+        const started = performance.now();
+        let retrying = false;
         const body = await this.capture();
         if (this.stopped) break;
         try {
           const accepted = await uploadBoxFrame(body, `web-${session}-${++sequence}`, session, this.abort.signal);
+          retrying = !accepted;
           if (!this.stopped) this.changed(accepted ? "connected" : "retrying");
         } catch (error) {
           if (this.stopped) break;
           if (!(error instanceof TypeError) && !(error instanceof DOMException && error.name === "TimeoutError")) throw error;
+          retrying = true;
           this.changed("retrying");
         }
-        await new Promise(resolve => window.setTimeout(resolve, 1000));
+        // Capture and upload already take time; only back off on failure or to stay below five frames per second.
+        const delay = retrying ? 1000 : Math.max(0, 250 - (performance.now() - started));
+        if (!this.stopped && delay) await new Promise(resolve => window.setTimeout(resolve, delay));
       }
     } catch (error) {
       if (!this.stopped) this.changed("disconnected", error instanceof Error ? error.message : "Camera disconnected. Connect again.");
