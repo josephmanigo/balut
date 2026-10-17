@@ -66,3 +66,11 @@ def test_all_three_view_evidence_and_one_result_survive_retry_and_restart(tmp_pa
         with pytest.raises(OSError, match="Evidence"):
             restarted.state.box.predict(bodies, "multiview-test")
         assert len(restarted.state.database.list_predictions()) == 1
+
+
+def test_failed_views_keep_actionable_quality_reasons():
+    views = [result(None) for _ in range(3)]
+    views[0]["recaptureReasons"] = ["IMAGE_TOO_BLURRY"]
+    views[1]["recaptureReasons"] = ["IMAGE_TOO_BLURRY", "UNFAMILIAR_APPEARANCE"]
+    combined = combine_views(views, ["a", "b", "c"])
+    assert combined["recaptureReasons"] == ["MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS", "IMAGE_TOO_BLURRY", "UNFAMILIAR_APPEARANCE"]

@@ -8,6 +8,38 @@
 static bool cameraReady = false;
 static constexpr unsigned long USB_BAUD = 921600;
 
+static void exposureStatus() {
+  sensor_t *sensor = esp_camera_sensor_get();
+  if (!sensor || sensor->id.PID != GC2145_PID) return;
+  sensor->set_reg(sensor, 0xfe, 0xff, 0);
+  Serial.printf("BALUT_EXPOSURE shutter=%d aec=%d gain=%d\n",
+      (sensor->get_reg(sensor, 0x03, 0x1f) << 8) | sensor->get_reg(sensor, 0x04, 0xff),
+      sensor->get_reg(sensor, 0xb6, 0x01), sensor->get_reg(sensor, 0xb0, 0xff));
+}
+
+static bool candlingExposure() {
+  static constexpr unsigned target = 32;
+  sensor_t *sensor = esp_camera_sensor_get();
+  if (!sensor || sensor->id.PID != GC2145_PID) return false;
+  // GC2145's high-level exposure setters are stubs; lower its real AEC target and bounds.
+  // Exposure/gain registers latch on a frame boundary; verify gain after warmup below.
+  bool ok = sensor->set_reg(sensor, 0xfe, 0xff, 0) == 0;
+  ok = ok && sensor->set_reg(sensor, 0xb6, 0x01, 0) == 0;
+  ok = ok && sensor->set_reg(sensor, 0x03, 0x1f, 0) == 0;
+  ok = ok && sensor->set_reg(sensor, 0x04, 0xff, 4) == 0;
+  ok = ok && sensor->set_reg(sensor, 0xb0, 0xff, 0x20) == 0;
+  ok = ok && sensor->set_reg(sensor, 0xb6, 0x01, 1) == 0;
+  ok = ok && sensor->set_reg(sensor, 0xfe, 0xff, 1) == 0;
+  ok = ok && sensor->set_reg(sensor, 0x13, 0xff, target) == 0;
+  ok = ok && sensor->set_reg(sensor, 0x23, 0xff, target / 2) == 0;
+  ok = ok && sensor->set_reg(sensor, 0x15, 0xff, target + 16) == 0;
+  ok = ok && sensor->get_reg(sensor, 0x13, 0xff) == static_cast<int>(target);
+  ok = ok && sensor->get_reg(sensor, 0x23, 0xff) == static_cast<int>(target / 2);
+  ok = ok && sensor->get_reg(sensor, 0x15, 0xff) == static_cast<int>(target + 16);
+  bool restored = sensor->set_reg(sensor, 0xfe, 0xff, 0) == 0;
+  return ok && restored;
+}
+
 static bool jpegData(camera_fb_t *frame, uint8_t **data, size_t *length) {
   if (!frame) return false;
   if (frame->format == PIXFORMAT_JPEG) {
@@ -89,6 +121,10 @@ void setup() {
   }
   sensor_t *sensor = esp_camera_sensor_get();
   Serial.printf("Sensor PID: 0x%04x; PSRAM: %s; frame format: %d\n", sensor->id.PID, psramFound() ? "present" : "absent", config.pixel_format);
+  if (sensor->id.PID == GC2145_PID && !candlingExposure()) {
+    Serial.println("Camera exposure configuration failed.");
+    return;
+  }
   // Discard the first frame; empty-box calibration checks exposure after the live view starts.
   camera_fb_t *warmup = esp_camera_fb_get();
   if (!warmup) {
@@ -103,6 +139,10 @@ void setup() {
   cameraReady = jpegData(test, &testJpeg, &testLength);
   if (test && test->format != PIXFORMAT_JPEG) free(testJpeg);
   if (test) esp_camera_fb_return(test);
+  if (sensor->id.PID == GC2145_PID) {
+    cameraReady = cameraReady && sensor->get_reg(sensor, 0xb0, 0xff) == 0x20 && sensor->get_reg(sensor, 0xb6, 0x01) == 1;
+    exposureStatus();
+  }
   if (!cameraReady) {
     Serial.println("Camera self-check failed; no image server started.");
     return;
@@ -119,6 +159,8 @@ void loop() {
       command[used] = '\0';
       if (strcmp(command, "CAPTURE") == 0) {
         captureUsb();
+      } else if (strcmp(command, "STATUS") == 0) {
+        exposureStatus();
       }
       used = 0;
     } else if (next != '\r' && used < sizeof(command) - 1) {

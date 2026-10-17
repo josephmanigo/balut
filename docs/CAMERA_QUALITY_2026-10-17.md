@@ -1,5 +1,41 @@
 # Camera quality and speed — 2026-10-17
 
+## Installed exposure correction and three-view capture
+
+The GC2145 was already at four exposure lines under the user's normal candling
+light, with global gain register `0xb0` at `0x55`. Lowering only the automatic
+exposure target to 32 or 16 did not materially change settled images. The retained
+profile reduces global gain to `0x20`, initializes exposure at four lines, keeps
+automatic exposure enabled, and sets its target/low/high bounds to 32/16/48.
+This avoids starting at the driver's long 1122-line exposure. The ordinary driver
+exposure/brightness setters are stubs, so the firmware uses the documented sensor
+registers. Gain/exposure writes latch on frame boundaries: gain and AEC readback
+are verified after the warmup and JPEG self-check, before announcing USB readiness.
+
+Sources: [Espressif GC2145 driver](https://github.com/espressif/esp32-camera/blob/master/sensors/gc2145.c),
+[sensor defaults](https://github.com/espressif/esp32-camera/blob/master/sensors/private_include/gc2145_settings.h),
+[GalaxyCore register datasheet, pages 22, 32, 35–36](https://files.pine64.org/doc/datasheet/PinebookPro/GC2145%20CSP%20DataSheet%20release%20V1.0_20131201.pdf).
+
+Final firmware application SHA-256:
+`de0eaad76f4aaadaef84925ec821057c82737f77b907815cced83171473f2a6d`.
+Esptool verified the flash on the identified FTDI camera board. After a fresh
+reset, six JPEGs passed CRC and full decode at 800x600 (600x800 oriented), taking
+1.734–2.000 seconds each. Final readback was shutter 5, AEC enabled, gain 32.
+The first oriented frame's central ROI mean was 121/255, compared with 249/255
+before the change. The corrected image visibly retains shell detail without the
+earlier white startup washout. These measurements concern this egg and lighting,
+not age accuracy. Evidence is in `output/exposure-multiview-20261017`, including
+the final reset sequence under `final-startup`. The previous working firmware is
+preserved under `deployment/private/camera-backup/before-exposure-20261017`.
+
+Automatic scans now collect three timed views and save one consensus result;
+see [current capture behavior](AUTOMATIC_BOX_2026-10-14.md). The sealed model and
+its thresholds are unchanged. An offline run on three actual tuned-camera frames
+requested recapture because they were blurry and unfamiliar; no age label or
+accuracy claim was assigned. Focus/working distance and known-age physical
+validation remain unresolved. The exposure change requires a fresh confirmed
+empty reference. Spinner and illumination firmware were not changed.
+
 ## Faster capture and full framing
 
 The subsequent speed update removes the remaining 5% left crop. The shared

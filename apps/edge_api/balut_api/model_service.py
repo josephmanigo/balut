@@ -21,6 +21,8 @@ def combine_views(results, hashes):
     labels = set(accepted.values())
     prediction = next(iter(labels)) if len(accepted) >= 2 and len(labels) == 1 else None
     reasons = [] if prediction else ["MULTIVIEW_DISAGREEMENT" if len(labels) > 1 else "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS"]
+    if prediction is None:
+        reasons += sorted({reason for view in results for reason in view["recaptureReasons"]})
     # Keep scores and quality measurements attached to their individual view, never invent a combined probability.
     result = {key: results[0][key] for key in ("modelId", "modelReleaseId", "registrySha256", "modelSha256",
               "isSimulated", "operationalOutcome", "operationalUseAuthorized", "authority", "limitations")}

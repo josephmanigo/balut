@@ -11,6 +11,13 @@ const prediction: SourcePrediction = { predictionId: "auto-test", modelId: "egg-
 
 describe("automatic camera capture", () => {
   beforeEach(() => vi.resetAllMocks());
+  it("explains a blurry multi-view recapture without inventing an age", async () => {
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "recapture", result: { ...prediction,
+      sourcePrediction: null, recaptureRequested: true, analysisOutcome: "RECAPTURE_REQUIRED", recaptureReasons: ["IMAGE_TOO_BLURRY"] } });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByText("Image too blurry · check camera focus, then replace the egg.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
+  });
   it("shows automatic multi-view progress without a capture button", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, calibrated: true, connected: true,
       enabled: true, state: "capturing_views", capturedViews: 2, targetViews: 3 });
