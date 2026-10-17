@@ -18,7 +18,7 @@ The automatic-only update passed 40 focused backend tests and six web workflow t
 
 Existing accounts and saved predictions were preserved; expected box configuration changes are separate. A pre-update backup is `deployment/backups/before-live-preview-20261017.db`. Evidence is under `output/box-connection-20261016`.
 
-After camera tuning, automatic analysis remains paused and the old empty reference has been cleared. The latest view is dark and does not yet clearly frame the holder. Check physical position, focus, and normal candling light, then save a fresh empty reference before testing a real placement/removal cycle. Spinner firmware was separately updated and user-confirmed as described above; the camera work does not change its control.
+The cloud camera now has a confirmed empty reference for the full 800x600 source and analysis enabled. The cloud website removes the manual empty-view/start controls and checks the saved reference automatically after reconnecting and between eggs. A changed camera or lighting still needs calibration during maintenance; an arbitrary stable image is never assumed empty. Physical placement/removal acceptance remains pending. Spinner firmware was separately updated and user-confirmed as described above; the camera work does not change its control.
 
 The following sections retain the earlier network setup and diagnostic history.
 

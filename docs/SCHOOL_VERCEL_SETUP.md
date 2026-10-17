@@ -15,12 +15,9 @@ and power cables, a charger, and a computer with internet and Chrome or Edge.
 3. Click **Connect USB camera** and select the camera's FTDI USB serial port.
    The browser requires this permission on each new computer/browser profile.
    No project ZIP, Python, camera profile or secret needs to be copied.
-4. Wait for the camera preview. Remove the egg, keep the camera and lighting
-   fixed, and click **Box is empty — start** once. Keep the box empty until
-   **Ready for an egg.** The setup controls then collapse automatically.
-   If the last three frames are changing, the website waits up to 20 seconds
-   for three fresh, steady frames. An expired initial setup needs another
-   confirmation; analysis stays off until calibration succeeds.
+4. Wait for the camera preview. Remove the egg and keep the camera and lighting
+   fixed. The box checks its saved empty view and shows **Ready for an egg.**
+   There is no save-empty-view or start button in the cloud website.
 5. Place one egg and keep hands clear. Wait for the saved result, then remove
    the egg before the next one. Confirm the result appears in **History**.
    Capture uses two steady changed frames, or three changed frames if the holder
@@ -34,14 +31,32 @@ With USB permission saved, the signed-in page automatically checks the available
 camera on startup and when USB is connected. Exactly one matching adapter must
 be available. Keep this tab open and the computer awake and online. A fresh
 connection checks the saved empty view automatically. Three fresh matching frames
-return the box to Ready without a setup click. Moving the camera or changing
-lighting requires a fresh reference through **Box setup**. Manual Disconnect pauses reconnection
+return the box to Ready without a setup click. The current box already has a
+confirmed empty view stored in Supabase, shared across computers. Manual Pause
+stays paused until Resume is clicked. Manual Disconnect pauses reconnection
 until Connect is clicked or the page is reopened.
+
+Keep camera position and normal candling light unchanged. A replacement camera,
+changed framing, or changed lighting needs a new confirmed reference during box
+maintenance. A missing reference displays **Camera calibration needed**; the app
+never assumes that an arbitrary still image is empty. The authenticated
+`POST /api/v1/box/reference` maintenance endpoint remains available and requires
+`emptyConfirmed: true` after a person checks the physical box. The earlier local
+LAN interface retains its calibration controls. Neither is part of normal cloud
+operation.
 
 Phones and other laptops can open the same website, sign in, and view the camera
 and shared history. Only the computer physically connected to the camera captures
-images. First-use USB permission, a missing OS driver, and physical empty-box
-confirmation cannot be silently skipped by the website.
+images. First-use USB permission and a missing OS driver cannot be silently
+skipped by the website.
+
+The capture computer shows each CRC-checked USB frame directly, before cloud
+upload or AI processing completes. Only the newest waiting frame is retained
+for the next upload, with one upload at a time; shared viewers still use cloud
+previews. This removes network and inference waits from the local preview, but
+does not change the camera's measured 1.750–2.359 seconds per JPEG. This serial
+camera does not provide 60 FPS. A 60 FPS goal requires a different camera and
+video transport; software interpolation is not additional captured detail.
 
 ## If the camera is not listed
 

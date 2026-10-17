@@ -84,8 +84,12 @@ export class UsbCamera {
   private stopped = false;
   private abort = new AbortController();
   private running?: Promise<void>;
+  private uploading?: Promise<void>;
+  private pending?: { body: Uint8Array<ArrayBuffer>; key: string; session: string };
+  private uploadError?: unknown;
 
-  constructor(private changed: (state: UsbCameraState, error?: string) => void) {}
+  constructor(private changed: (state: UsbCameraState, error?: string) => void,
+    private preview?: (frame: Uint8Array<ArrayBuffer>) => void) {}
 
   async connect(grantedPort?: CameraPort) {
     const serial = (navigator as Navigator & { serial?: CameraSerial }).serial;
@@ -161,27 +165,48 @@ export class UsbCamera {
       if (this.stopped) return;
       await this.startCamera();
       while (!this.stopped) {
+        if (this.uploadError) throw this.uploadError;
         const started = performance.now();
-        let retrying = false;
         const body = await this.capture();
         if (this.stopped) break;
-        try {
-          const accepted = await uploadBoxFrame(body, `web-${session}-${++sequence}`, session, this.abort.signal);
-          retrying = !accepted;
-          if (!this.stopped) this.changed(accepted ? "connected" : "retrying");
-        } catch (error) {
-          if (this.stopped) break;
-          if (!(error instanceof TypeError) && !(error instanceof DOMException && error.name === "TimeoutError")) throw error;
-          retrying = true;
-          this.changed("retrying");
-        }
-        // Capture and upload already take time; only back off on failure or to stay below five frames per second.
-        const delay = retrying ? 1000 : Math.max(0, 250 - (performance.now() - started));
+        if (sequence === 0) this.changed("connected");
+        this.preview?.(body);
+        // Keep one newest frame, so slow inference never freezes the local view or builds a stale queue.
+        this.pending = { body, key: `web-${session}-${++sequence}`, session };
+        this.uploading ??= this.uploadPending().finally(() => { this.uploading = undefined; });
+        const delay = Math.max(0, 250 - (performance.now() - started));
         if (!this.stopped && delay) await new Promise(resolve => window.setTimeout(resolve, delay));
       }
     } catch (error) {
+      error = this.uploadError ?? error;
       if (!this.stopped) this.changed("disconnected", error instanceof Error ? error.message : "Camera disconnected. Connect again.");
-    } finally { await this.release(); }
+    } finally {
+      this.stopped = true; this.abort.abort(); this.pending = undefined;
+      await this.uploading;
+      await this.release();
+    }
+  }
+
+  private async uploadPending() {
+    try {
+      while (this.pending && !this.stopped) {
+        const frame = this.pending; this.pending = undefined;
+        const started = performance.now();
+        let accepted = false;
+        try { accepted = await uploadBoxFrame(frame.body, frame.key, frame.session, this.abort.signal); }
+        catch (error) {
+          if (this.stopped) break;
+          if (!(error instanceof TypeError) && !(error instanceof DOMException && error.name === "TimeoutError")) throw error;
+        }
+        if (this.stopped) break;
+        this.changed(accepted ? "connected" : "retrying");
+        const delay = accepted ? Math.max(0, 250 - (performance.now() - started)) : 1000;
+        if (delay) await new Promise(resolve => window.setTimeout(resolve, delay));
+      }
+    } catch (error) {
+      this.uploadError = error;
+      await this.reader?.cancel().catch(() => {});
+    }
   }
 
   private async release() {

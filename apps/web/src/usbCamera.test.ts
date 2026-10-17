@@ -49,7 +49,7 @@ describe("USB camera protocol", () => {
     expect(port.setSignals).toHaveBeenNthCalledWith(2, { dataTerminalReady: false, requestToSend: false });
     expect(changed).toHaveBeenCalledWith("retrying");
     await vi.advanceTimersByTimeAsync(1000);
-    expect(port.write).toHaveBeenCalledTimes(2);
+    expect(port.write.mock.calls.length).toBeGreaterThan(2);
     expect(uploadBoxFrame).toHaveBeenCalledTimes(2);
     expect(vi.mocked(uploadBoxFrame).mock.calls[0][1]).not.toBe(vi.mocked(uploadBoxFrame).mock.calls[1][1]);
     expect(changed).toHaveBeenCalledWith("connected");
@@ -70,22 +70,25 @@ describe("USB camera protocol", () => {
     expect(uploadBoxFrame).not.toHaveBeenCalled();
   });
 
-  it("starts the next capture immediately after a slow successful upload without overlapping uploads", async () => {
+  it("keeps fresh local previews during a slow upload and sends only the newest waiting frame", async () => {
     const port = cameraPort();
     Object.defineProperty(navigator, "serial", { value: { requestPort: async () => port }, configurable: true });
     vi.mocked(uploadBoxFrame).mockImplementation(async () => {
       await new Promise(resolve => setTimeout(resolve, 600));
       return true;
     });
-    const connection = new UsbCamera(vi.fn());
+    const preview = vi.fn();
+    const connection = new UsbCamera(vi.fn(), preview);
     await connection.connect(); await vi.advanceTimersByTimeAsync(719);
-    expect(port.write).toHaveBeenCalledTimes(1);
+    expect(port.write).toHaveBeenCalledTimes(3);
+    expect(preview).toHaveBeenCalledTimes(3);
     expect(uploadBoxFrame).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(2);
-    expect(port.write).toHaveBeenCalledTimes(2);
+    expect(port.write).toHaveBeenCalledTimes(3);
     expect(uploadBoxFrame).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(uploadBoxFrame).mock.calls[1][0]).toBe(preview.mock.calls[2][0]);
     const closing = connection.close(); await vi.advanceTimersByTimeAsync(600); await closing;
-    expect(port.write).toHaveBeenCalledTimes(2);
+    expect(port.write).toHaveBeenCalledTimes(3);
     expect(port.close).toHaveBeenCalledOnce();
   });
 
@@ -94,6 +97,19 @@ describe("USB camera protocol", () => {
     const changed = vi.fn(); await new UsbCamera(changed).connect();
     expect(changed).toHaveBeenLastCalledWith("disconnected", undefined);
     expect(uploadBoxFrame).not.toHaveBeenCalled();
+  });
+
+  it("stops capture and releases the camera when cloud authentication fails", async () => {
+    const port = cameraPort();
+    Object.defineProperty(navigator, "serial", { value: { requestPort: async () => port }, configurable: true });
+    vi.mocked(uploadBoxFrame).mockRejectedValue(new Error("Sign in again."));
+    const changed = vi.fn();
+    const connection = new UsbCamera(changed, vi.fn());
+    await connection.connect(); await vi.advanceTimersByTimeAsync(500);
+    expect(changed).toHaveBeenLastCalledWith("disconnected", "Sign in again.");
+    expect(port.write).toHaveBeenCalledOnce();
+    expect(port.close).toHaveBeenCalledOnce();
+    expect(port.readable.locked || port.writable.locked).toBe(false);
   });
 
   it("automatically finds a previously allowed camera on page load and USB reconnect, without prompting", async () => {

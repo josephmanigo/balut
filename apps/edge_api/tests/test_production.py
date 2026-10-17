@@ -51,6 +51,7 @@ def test_production_auth_and_host_guard(tmp_path):
         response = client.get("/health")
         assert response.headers["x-frame-options"] == "DENY"
         assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
+        assert "img-src 'self' data: blob:;" in response.headers["content-security-policy"]
         assert "'unsafe-eval'" not in response.headers["content-security-policy"]
 
 

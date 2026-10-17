@@ -40,7 +40,7 @@ class HttpGuard:
                     (b"cache-control", b"no-store"), (b"referrer-policy", b"no-referrer"),
                     (b"x-frame-options", b"DENY"),
                     (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), serial=(self)"),
-                    (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"),
+                    (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"),
                 ])
                 if self.settings.cloud_origin:
                     message["headers"].append((b"strict-transport-security", b"max-age=31536000"))

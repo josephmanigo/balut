@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutomaticBox } from "./AutomaticBox";
-import { boxRequest } from "./api";
+import { boxRequest, uploadBoxFrame } from "./api";
 import type { BoxStatus, SourcePrediction } from "./api";
 
 vi.mock("./api", () => ({ boxRequest: vi.fn(), uploadBoxFrame: vi.fn() }));
@@ -11,14 +11,15 @@ const prediction: SourcePrediction = { predictionId: "auto-test", modelId: "egg-
 
 describe("automatic camera capture", () => {
   beforeEach(() => vi.resetAllMocks());
-  it("offers USB capture and requires a connected camera before calibration", async () => {
+  it("offers USB capture without a manual cloud setup or start button", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", state: "offline" });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
     expect(await screen.findByRole("button", { name: "Connect USB camera" })).toBeDisabled();
     expect(screen.getByText(/Use Chrome or Edge on a computer/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Camera address")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Box is empty — start" })).toBeDisabled();
+    expect(screen.queryByText("Box setup")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /empty.*start/i })).not.toBeInTheDocument();
   });
   it("opens the browser's USB picker only after the operator clicks Connect", async () => {
     const requestPort = vi.fn().mockRejectedValue(new DOMException("Cancelled", "NotFoundError"));
@@ -73,37 +74,35 @@ describe("automatic camera capture", () => {
       expect(saved).toHaveBeenCalledOnce();
     } finally { vi.useRealTimers(); }
   });
-  it("waits for a steady empty view after one confirmed save, then becomes ready through polling", async () => {
+  it("shows calibration performed during box setup without sending a false empty confirmation", async () => {
     vi.useFakeTimers();
     try {
-      let current: BoxStatus = { ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", connected: true, state: "needs_reference" };
-      vi.mocked(boxRequest).mockImplementation(async action => {
-        if (action === "reference") current = { ...current, state: "calibrating" };
-        return current;
-      });
+      let current: BoxStatus = { ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", connected: true, state: "calibrating" };
+      vi.mocked(boxRequest).mockImplementation(async () => current);
       const saved = vi.fn();
       render(<AutomaticBox locale="en" onSaved={saved} />);
       await act(async () => { await Promise.resolve(); });
-      await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Box is empty — start" })); });
       expect(screen.getByRole("heading", { name: "Saving the empty view." })).toBeInTheDocument();
       expect(screen.getByText(/Waiting up to 20 seconds/)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Saving empty view…" })).toBeDisabled();
+      expect(screen.queryByRole("button", { name: /empty.*start|saving empty/i })).not.toBeInTheDocument();
       expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       current = { ...current, calibrated: true, enabled: true, state: "waiting" };
       await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
       expect(screen.getByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
-      expect(vi.mocked(boxRequest).mock.calls.filter(([action]) => action === "reference")).toEqual([["reference", { emptyConfirmed: true }]]);
+      expect(vi.mocked(boxRequest).mock.calls.every(args => args.length === 0)).toBe(true);
       expect(saved).not.toHaveBeenCalled();
     } finally { vi.useRealTimers(); }
   });
-  it("shows calibration timeout and requires a new empty-box confirmation", async () => {
+  it("explains missing cloud calibration instead of silently learning an egg as the empty view", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", connected: true,
       state: "needs_reference", error: "No steady empty view was saved. Keep the box empty, steady the camera and lighting, then save again." });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("No steady empty view was saved.");
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Box is empty — start" })).toBeEnabled();
+    expect(screen.getByRole("heading", { name: "Camera calibration needed." })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /empty.*start/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("Box setup")).not.toBeInTheDocument();
     expect(boxRequest).not.toHaveBeenCalledWith("reference", expect.anything());
   });
   it("shows automatic empty recognition after reconnecting without another setup click", async () => {
@@ -116,12 +115,20 @@ describe("automatic camera capture", () => {
       render(<AutomaticBox locale="en" onSaved={saved} />);
       await act(async () => { await Promise.resolve(); });
       expect(screen.getByRole("heading", { name: "Checking the empty box." })).toBeInTheDocument();
+      expect(screen.queryByText("Box setup")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /empty.*start/i })).not.toBeInTheDocument();
       vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "waiting" });
       await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
       expect(screen.getByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
       expect(screen.getByText("Box is empty. Place one egg and keep your hands clear.")).toBeInTheDocument();
+      vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "remove_egg", result: prediction });
+      await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+      expect(screen.getByText("Remove the egg before placing the next one.")).toBeInTheDocument();
+      vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "waiting", result: prediction });
+      await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+      expect(screen.getByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
       expect(vi.mocked(boxRequest).mock.calls.every(args => args.length === 0)).toBe(true);
-      expect(saved).not.toHaveBeenCalled();
+      expect(saved).toHaveBeenCalledOnce();
     } finally { vi.useRealTimers(); }
   });
   it("shows disconnection rather than a ready-to-capture state", async () => {
@@ -144,5 +151,45 @@ describe("automatic camera capture", () => {
       expect(screen.getByRole("heading", { name: "Automatic mode paused." })).toBeInTheDocument();
       expect(boxRequest).not.toHaveBeenCalledWith("enabled", expect.anything());
     } finally { vi.useRealTimers(); }
+  });
+
+  it("shows the direct USB image before a cloud upload finishes and releases its URL on disconnect", async () => {
+    vi.useFakeTimers();
+    const oldCreate = URL.createObjectURL, oldRevoke = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn(() => "blob:direct-preview");
+    URL.revokeObjectURL = vi.fn();
+    let incoming: ReadableStreamDefaultController<Uint8Array>;
+    const port = {
+      readable: new ReadableStream<Uint8Array>({ start(controller) { incoming = controller; } }),
+      writable: new WritableStream<Uint8Array>({ write() {
+        incoming.enqueue(new Uint8Array([...new TextEncoder().encode("BALUT_JPEG 6 85e7bf70\n"), 255, 216, 0, 7, 255, 217, 10]));
+      } }),
+      getInfo: () => ({ usbVendorId: 0x0403, usbProductId: 0x6001 }),
+      open: vi.fn(async () => {}), close: vi.fn(async () => {}),
+      setSignals: async (signals: { requestToSend: boolean }) => {
+        if (!signals.requestToSend) incoming.enqueue(new TextEncoder().encode("BALUT_USB_READY\n"));
+      },
+    };
+    Object.defineProperty(navigator, "serial", { value: Object.assign(new EventTarget(), { getPorts: async () => [port] }), configurable: true });
+    vi.mocked(uploadBoxFrame).mockImplementation(async () => { await new Promise(resolve => setTimeout(resolve, 600)); return true; });
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, preview: "old-cloud-image", state: "offline" });
+    try {
+      render(<AutomaticBox locale="en" onSaved={() => {}} />);
+      await act(async () => { await Promise.resolve(); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(121); });
+      expect(screen.getByRole("img")).toHaveAttribute("src", "blob:direct-preview");
+      expect(screen.getByRole("img").parentElement).toHaveClass("box-camera-direct");
+      expect(screen.getByText("Live")).toBeInTheDocument();
+      expect(uploadBoxFrame).toHaveBeenCalledOnce();
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Disconnect USB camera" })); await vi.advanceTimersByTimeAsync(600); });
+      expect(screen.getByRole("img")).toHaveAttribute("src", "data:image/jpeg;base64,old-cloud-image");
+      expect(screen.getByText("Last image")).toBeInTheDocument();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:direct-preview");
+      expect(port.close).toHaveBeenCalledOnce();
+    } finally {
+      Object.defineProperty(navigator, "serial", { value: undefined, configurable: true });
+      URL.createObjectURL = oldCreate; URL.revokeObjectURL = oldRevoke;
+      vi.useRealTimers();
+    }
   });
 });

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { UsbCamera, usbCameraSupported, watchUsbCamera } from "./usbCamera";
 import type { CameraPort, UsbCameraState } from "./usbCamera";
 
-export function UsbCameraConnect({ locale }: { locale: "en" | "fil" }) {
+export function UsbCameraConnect({ locale, onPreview }: { locale: "en" | "fil"; onPreview?: (url: string | null) => void }) {
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
   const [state, setState] = useState<UsbCameraState>("disconnected");
   const [error, setError] = useState("");
@@ -10,19 +10,34 @@ export function UsbCameraConnect({ locale }: { locale: "en" | "fil" }) {
   const phase = useRef<UsbCameraState>("disconnected");
   const paused = useRef(false);
   const alive = useRef(true);
+  const preview = useRef<string | null>(null);
+  function clearPreview() {
+    onPreview?.(null);
+    if (preview.current) URL.revokeObjectURL(preview.current);
+    preview.current = null;
+  }
   useEffect(() => {
     alive.current = true;
     const unwatch = watchUsbCamera(port => {
       if (!paused.current && phase.current === "disconnected") void connect(port);
     });
-    return () => { alive.current = false; unwatch(); void connection.current?.close(); };
+    return () => { alive.current = false; unwatch(); clearPreview(); void connection.current?.close(); };
   }, []);
   const supported = usbCameraSupported();
   async function connect(port?: CameraPort) {
     phase.current = "connecting"; paused.current = false; setState("connecting"); setError("");
     if (connection.current) { await connection.current.close(); connection.current = null; }
     const camera = new UsbCamera((value, message) => {
-      if (alive.current) { phase.current = value; setState(value); setError(message ?? ""); }
+      if (alive.current) {
+        phase.current = value; setState(value); setError(message ?? "");
+        if (value === "connecting" || value === "disconnected") clearPreview();
+      }
+    }, frame => {
+      if (!alive.current) return;
+      const previous = preview.current;
+      preview.current = URL.createObjectURL(new Blob([frame], { type: "image/jpeg" }));
+      onPreview?.(preview.current);
+      if (previous) URL.revokeObjectURL(previous);
     });
     connection.current = camera;
     await camera.connect(port);
@@ -30,11 +45,12 @@ export function UsbCameraConnect({ locale }: { locale: "en" | "fil" }) {
   async function disconnect() {
     phase.current = "disconnected"; paused.current = true; setState("disconnected"); setError("");
     const camera = connection.current; connection.current = null;
+    clearPreview();
     await camera?.close();
   }
   const live = state === "connected" || state === "retrying";
   return <div className="usb-camera-connect">
-    <p>{t("Plug in the box camera. On a new computer, allow its USB port once.", "Ikabit ang camera. Sa bagong computer, payagan ang USB port nito nang isang beses.")}</p>
+    {!live && <p>{t("Plug in the box camera. On a new computer, allow its USB port once.", "Ikabit ang camera. Sa bagong computer, payagan ang USB port nito nang isang beses.")}</p>}
     <button type="button" className={live ? "outline-button" : "solid-button"} disabled={!supported}
       onClick={() => void (live || state === "connecting" ? disconnect() : connect())}>
       {live || state === "connecting" ? t("Disconnect USB camera", "Idiskonekta ang USB camera") : t("Connect USB camera", "Ikonekta ang USB camera")}

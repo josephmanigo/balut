@@ -47,14 +47,28 @@ before returning to Ready. An egg left inside, startup washout, or a manual paus
 does not automatically rearm capture. Changed source dimensions/framing discard
 the reference. Recalibrate after moving the camera or changing lighting.
 
-The checkbox is removed. Initial setup uses one explicit **Box is empty — start**
-button; it still sends the required empty confirmation. Setup collapses after
-calibration, with the small **Box setup** control retained for recalibration.
-This recognition/setup update passed all **160 backend tests**, **37 web tests**,
+The subsequent cloud UI update removes the entire **Box setup** section and its
+manual start button. The current Supabase camera state has a saved reference,
+analysis enabled, framing version 2, and an 800x600 source. Normal cloud use
+automatically checks that reference after reconnecting and between eggs. Missing
+calibration displays an explicit maintenance message; the browser never sends
+an unconfirmed calibration request. Local LAN calibration controls and the
+authenticated calibration endpoint remain available for maintenance.
+The preceding recognition/setup update passed all **160 backend tests**, **37 web tests**,
 TypeScript/build checks, Android static analysis, and a local browser walkthrough
 at desktop and 390-pixel phone widths.
 Physical empty-box/egg placement cycles for this new recognition flow remain
 untested; this is image comparison, not a validated egg-presence sensor.
+
+The buttonless cloud update also gives the preview a dark forest frame and a
+Live/Last image indicator, retaining the complete image and its existing rotation.
+The capture computer now displays CRC-checked USB images directly. Capture and
+cloud upload run independently, with one upload and at most one newest waiting
+frame. A slow AI request no longer blocks the next local preview; remote viewers
+still poll the shared cloud view. The serial camera's measured frame time remains
+1.750–2.359 seconds, not 60 FPS. No interpolated frames or artificial FPS claims
+are added. Browser regression tests cover slow uploads, latest-frame selection,
+disconnect/URL cleanup, authentication failures, and automatic empty rechecking.
 
 The sensor already uses its full 1600x1200 window. Removing the crop restores
 30 image columns, about 5.3% more visible width than the preceding prepared view.
