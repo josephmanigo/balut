@@ -9,7 +9,8 @@ const states: Record<string, [string, string, string, string]> = {
   connecting: ["Finding your camera…", "Hinahanap ang camera…", "Keep the box powered on.", "Panatilihing nakabukas ang kahon."],
   needs_reference: ["Start with an empty box.", "Magsimula sa bakanteng kahon.", "Remove the egg. Keep normal candling light on.", "Alisin ang itlog. Gamitin ang karaniwang ilaw."],
   calibrating: ["Saving the empty view.", "Sine-save ang bakanteng kuha.", "Leave the box empty. Waiting up to 20 seconds for a steady image.", "Panatilihing bakante ang kahon. Maghihintay nang hanggang 20 segundo para sa hindi gumagalaw na kuha."],
-  waiting: ["Ready for an egg.", "Handa para sa itlog.", "Place one egg. Keep your hands clear.", "Maglagay ng isang itlog. Ilayo ang mga kamay."],
+  checking_empty: ["Checking the empty box.", "Sinusuri ang bakanteng kahon.", "Remove any egg. We’ll show Ready when the empty view is recognized.", "Alisin ang itlog. Lalabas ang Handa kapag nakilala ang bakanteng tanawin."],
+  waiting: ["Ready for an egg.", "Handa para sa itlog.", "Box is empty. Place one egg and keep your hands clear.", "Bakante ang kahon. Maglagay ng isang itlog at ilayo ang mga kamay."],
   settling: ["Preparing to capture.", "Naghahanda sa pagkuha.", "Keep your hands clear. Capture continues while the holder rotates.", "Ilayo ang mga kamay. Kukunan kahit umiikot ang lalagyan."],
   analyzing: ["Taking a closer look.", "Sinusuri ang larawan.", "Your result saves automatically.", "Awtomatikong mase-save ang resulta."],
   remove_egg: ["Result saved.", "Nai-save ang resulta.", "Remove the egg before placing the next one.", "Alisin ang itlog bago ilagay ang susunod."],
@@ -23,7 +24,6 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
   const [status, setStatus] = useState<BoxStatus | null>(null);
   const [address, setAddress] = useState("");
-  const [empty, setEmpty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [unreachable, setUnreachable] = useState(false);
@@ -74,7 +74,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     changing.current = true; setBusy(true); setNotice("");
     try {
       const value = await boxRequest(action, body);
-      if (alive.current) { accept(value); if (action === "reference") setEmpty(false); }
+      if (alive.current) accept(value);
     } catch (error) {
       if (alive.current) setNotice(error instanceof Error ? error.message : "Connection interrupted. Try again.");
     } finally { changing.current = false; if (alive.current) setBusy(false); }
@@ -108,8 +108,11 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         <div className="box-address-row"><input id="box-address" type="url" required value={address} disabled={busy} placeholder="http://192.168.1.50" autoComplete="off" onChange={event => setAddress(event.target.value)} /><button className="outline-button" disabled={busy || !address.trim()}>{busy ? t("Please wait…", "Sandali…") : t("Connect camera", "Ikonekta ang camera")}</button></div>
         <p>{t("Use the camera address provided during box setup.", "Gamitin ang address ng camera na ibinigay sa setup ng kahon.")}</p>
       </form>}
-      {status?.cameraUrl && <div className="box-reference"><label><input type="checkbox" checked={empty} disabled={busy || calibrating} onChange={event => setEmpty(event.target.checked)} />{t("The box is empty. Lighting is ready.", "Bakante ang kahon. Handa ang ilaw.")}</label><button type="button" className="solid-button" disabled={!empty || busy || calibrating || !!status.cloudCapture && !status.connected} onClick={() => void change("reference", { emptyConfirmed: true })}>{calibrating ? t("Saving empty view…", "Sine-save ang bakanteng kuha…") : t("Save empty view & start", "I-save ang bakanteng kuha at simulan")}</button></div>}
-      <p className="box-setup-note">{t("Keep camera and lighting fixed. A lasting scene change triggers capture; this is not an egg-presence sensor.", "Panatilihing nakapirmi ang camera at ilaw. Pagbabago sa tanawin ang nagti-trigger ng kuha; hindi ito sensor ng itlog.")}</p>
+      {status?.cameraUrl && <>
+        <p>{t("Remove the egg. Keep normal candling light on, then confirm below.", "Alisin ang itlog. Panatilihing bukas ang karaniwang ilaw, saka kumpirmahin sa ibaba.")}</p>
+        <div className="box-reference"><button type="button" className="solid-button" disabled={busy || calibrating || !status.connected} onClick={() => void change("reference", { emptyConfirmed: true })}>{calibrating ? t("Saving empty view…", "Sine-save ang bakanteng kuha…") : t("Box is empty — start", "Bakante ang kahon — simulan")}</button></div>
+      </>}
+      <p className="box-setup-note">{t("Save the empty view once. We recognize it after reconnecting and between eggs. Save again if camera position or lighting changes. This uses image comparison, not an egg-presence sensor.", "I-save nang isang beses ang bakanteng kuha. Makikilala ito sa muling pagkonekta at pagkatapos alisin ang itlog. I-save muli kapag nagbago ang posisyon ng camera o ilaw. Paghahambing ng larawan ito, hindi sensor ng itlog.")}</p>
     </details>
   </section>;
 }

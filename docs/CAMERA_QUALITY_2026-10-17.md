@@ -25,8 +25,36 @@ The firmware compile check, all **156 backend tests**, **36 web tests**, TypeScr
 checks, production web build, and Android static analysis passed. The previous
 working SVGA firmware is preserved with verified hashes under
 `deployment/private/camera-backup/before-fast-start-20261017`.
-Physical installation and timing of this faster firmware are pending camera
-port release; the measurements below describe the preceding firmware.
+The faster firmware is installed, with esptool verification of the written data.
+Application SHA-256: `b47c35a9b72ace2a359b487749a4edb229adcc2df9613d70cbda6ed8080e2e9f`.
+The camera reached `BALUT_USB_READY` in **5.218 seconds**, down from **11.016 seconds**
+with the previous firmware. Six fresh 800x600 USB JPEGs passed CRC and full decode;
+prepared images were all 600x800. Individual captures took **1.750–2.359 seconds**.
+These measure firmware readiness and USB capture, not end-to-end AI latency.
+The first frames were overexposed while automatic exposure settled; check the
+image before saving the initial empty view.
+
+A fresh physical frame was accepted by Vercel with HTTP 200, and its 600x800
+preview was verified in Supabase. `/ready` returned service ready with one
+loaded model. Automatic grading authorization remains false. No classification
+record was created by this check. Evidence is under
+`output/camera-fast-full-view-20261017`; the diagnostic closed the camera port.
+
+The next update preserves a confirmed empty reference across browser reconnects
+and short outages at the same source dimensions and framing version. It requires
+three fresh frames matching both the empty scene and its approximate brightness
+before returning to Ready. An egg left inside, startup washout, or a manual pause
+does not automatically rearm capture. Changed source dimensions/framing discard
+the reference. Recalibrate after moving the camera or changing lighting.
+
+The checkbox is removed. Initial setup uses one explicit **Box is empty — start**
+button; it still sends the required empty confirmation. Setup collapses after
+calibration, with the small **Box setup** control retained for recalibration.
+This recognition/setup update passed all **160 backend tests**, **37 web tests**,
+TypeScript/build checks, Android static analysis, and a local browser walkthrough
+at desktop and 390-pixel phone widths.
+Physical empty-box/egg placement cycles for this new recognition flow remain
+untested; this is image comparison, not a validated egg-presence sensor.
 
 The sensor already uses its full 1600x1200 window. Removing the crop restores
 30 image columns, about 5.3% more visible width than the preceding prepared view.

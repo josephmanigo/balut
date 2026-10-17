@@ -221,8 +221,6 @@
 .usb-camera-connect > p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 12px 0; }
 .usb-camera-connect .inline-error { color: var(--red); }
 .box-reference { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 24px; }
-.box-reference label { display: flex; gap: 10px; align-items: center; min-height: 44px; font-size: 14px; }
-.box-reference input { width: 19px; height: 19px; accent-color: var(--ink); }
 .box-setup-note { max-width: 650px; }
 @media (max-width: 700px) {
   .box-layout { grid-template-columns: minmax(0, 1fr); gap: 26px; padding-block: 24px; }

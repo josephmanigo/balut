@@ -32,7 +32,6 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
   String? _error, _lastId;
   bool _busy = false,
       _polling = false,
-      _empty = false,
       _setup = false,
       _unreachable = false,
       _active = true;
@@ -117,7 +116,6 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
         _accept(value);
         if (action == 'reference') {
           setState(() {
-            _empty = false;
             _setup = false;
           });
         }
@@ -148,11 +146,18 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
             ),
           )
         : switch (status?.state) {
+            'checking_empty' => (
+              t('Checking the empty box.', 'Sinusuri ang bakanteng kahon.'),
+              t(
+                'Remove any egg. We’ll show Ready when the empty view is recognized.',
+                'Alisin ang itlog. Lalabas ang Handa kapag nakilala ang bakanteng tanawin.',
+              ),
+            ),
             'waiting' => (
               t('Ready for an egg.', 'Handa para sa itlog.'),
               t(
-                'Place one egg. Keep your hands clear.',
-                'Maglagay ng isang itlog. Ilayo ang mga kamay.',
+                'Box is empty. Place one egg and keep your hands clear.',
+                'Bakante ang kahon. Maglagay ng isang itlog at ilayo ang mga kamay.',
               ),
             ),
             'settling' => (
@@ -409,37 +414,30 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
                 ),
                 if (status?.cameraUrl.isNotEmpty == true) ...[
                   const SizedBox(height: 20),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: _empty,
-                    onChanged: _busy
-                        ? null
-                        : (value) => setState(() => _empty = value == true),
-                    title: Text(
-                      t(
-                        'The box is empty. Lighting is ready.',
-                        'Bakante ang kahon. Handa ang ilaw.',
-                      ),
+                  Text(
+                    t(
+                      'Remove the egg. Keep normal candling light on, then confirm below.',
+                      'Alisin ang itlog. Panatilihing bukas ang karaniwang ilaw, saka kumpirmahin sa ibaba.',
                     ),
                   ),
+                  const SizedBox(height: 12),
                   FilledButton(
-                    onPressed: !_empty || _busy
+                    onPressed:
+                        _busy ||
+                            status?.connected != true ||
+                            status?.state == 'calibrating'
                         ? null
                         : () => _change('reference', {'emptyConfirmed': true}),
                     child: Text(
-                      t(
-                        'Save empty view & start',
-                        'I-save ang bakanteng kuha at simulan',
-                      ),
+                      t('Box is empty — start', 'Bakante ang kahon — simulan'),
                     ),
                   ),
                 ],
                 const SizedBox(height: 16),
                 Text(
                   t(
-                    'Keep camera and lighting fixed. A lasting scene change triggers capture; this is not an egg-presence sensor.',
-                    'Panatilihing nakapirmi ang camera at ilaw. Pagbabago sa tanawin ang nagti-trigger ng kuha; hindi ito sensor ng itlog.',
+                    'Save the empty view once. We recognize it after reconnecting and between eggs. Save again if camera position or lighting changes. This uses image comparison, not an egg-presence sensor.',
+                    'I-save nang isang beses ang bakanteng kuha. Makikilala ito sa muling pagkonekta at pagkatapos alisin ang itlog. I-save muli kapag nagbago ang posisyon ng camera o ilaw. Paghahambing ng larawan ito, hindi sensor ng itlog.',
                   ),
                   style: theme.textTheme.bodySmall,
                 ),

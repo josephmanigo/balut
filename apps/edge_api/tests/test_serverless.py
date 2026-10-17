@@ -63,8 +63,8 @@ def shared(provider, monkeypatch):
     return state
 
 
-def camera_frame(occupied=False, size=(640, 480)):
-    image = Image.new("RGB", size, (40, 40, 40))
+def camera_frame(occupied=False, size=(640, 480), brightness=40):
+    image = Image.new("RGB", size, (brightness,) * 3)
     if occupied:
         ImageDraw.Draw(image).ellipse((210, 70, 430, 410), fill=(210, 190, 120))
     output = io.BytesIO()
@@ -133,7 +133,8 @@ def test_capture_survives_new_instances_and_failed_prediction_without_duplicate(
     now[0] += 20
     assert not new().status()["connected"]
     send()
-    assert not new().status()["calibrated"] and not new().status()["enabled"]
+    assert new().status()["calibrated"] and new().status()["enabled"]
+    assert new().status()["state"] == "checking_empty"
     assert not new().status()["controlsMotion"]
 
 
@@ -236,6 +237,52 @@ def test_calibration_after_deployment_waits_for_uncropped_frames(tmp_path, share
     assert worker.status()["state"] == "waiting" and not predictions
 
 
+@pytest.mark.parametrize("reconnect", ["session", "gap"])
+@pytest.mark.parametrize("paused", [False, True])
+def test_reconnect_recognizes_saved_empty_view_without_calibrating_an_egg(tmp_path, shared, monkeypatch, reconnect, paused):
+    local, predictions = make_box(tmp_path)
+    cloud = Supabase(URL, SECRET)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def new(): return ServerlessBox(local.database, local.evidence, local.predict, cloud)
+    sequence = 0
+    session = "first-browser"
+    def send(occupied=False, brightness=40):
+        nonlocal sequence
+        sequence += 1
+        now[0] += 1
+        new().receive_frame(camera_frame(occupied, brightness=brightness), f"auto-empty-{sequence}", session)
+    for _ in range(3): send()
+    new().mutate(lambda box: box.calibrate_saved())
+    reference = copy.deepcopy(shared["camera"]["config"]["reference"])
+    if paused: new().mutate(lambda box: box.enable(False))
+    if reconnect == "session": session = "second-browser"
+    else: now[0] += 20
+    for _ in range(5): send(True)
+    assert new().status()["state"] == ("paused" if paused else "checking_empty")
+    assert new().status()["calibrated"] and not predictions
+    assert shared["camera"]["config"]["reference"] == reference
+    if paused:
+        for _ in range(3): send()
+        assert new().status()["state"] == "paused" and not new().status()["enabled"]
+        new().mutate(lambda box: box.enable(True))
+    for _ in range(3): send(brightness=255)
+    assert new().status()["state"] == "checking_empty" and not predictions
+    send()
+    send()
+    assert new().status()["state"] == "checking_empty"
+    send(True)  # A brief glimpse of the background must not rearm the box.
+    for _ in range(3): send()
+    assert new().status()["state"] == "waiting" and not predictions
+    assert shared["camera"]["config"]["reference"] == reference
+    send(True)
+    send(True)
+    assert len(predictions) == 1
+    for _ in range(3): send()
+    assert new().status()["state"] == "waiting"
+    assert len(predictions) == len(local.database.list_predictions()) == 1
+
+
 @pytest.mark.parametrize("interruption", ["timeout", "camera", "disconnect"])
 def test_waiting_reference_expires_or_cancels_on_camera_change(tmp_path, shared, monkeypatch, interruption):
     local, predictions = make_box(tmp_path)
@@ -264,7 +311,7 @@ def test_waiting_reference_expires_or_cancels_on_camera_change(tmp_path, shared,
     assert not predictions
 
 
-def test_browser_usb_frames_require_session_origin_and_valid_images_and_reset_calibration(tmp_path, shared, provider, monkeypatch):
+def test_browser_usb_frames_require_session_origin_valid_images_and_empty_recheck(tmp_path, shared, provider, monkeypatch):
     provider["account"] = {"username": "classroom", "password_hash": "not-used-by-this-test"}
     now = [time.time()]
     monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
@@ -292,7 +339,8 @@ def test_browser_usb_frames_require_session_origin_and_valid_images_and_reset_ca
         now[0] += 1
         headers.update({"Idempotency-Key": "new-browser-frame", "X-Balut-Camera-Session": "aeae26c7-3d4b-41bd-9db2-2eec3a3fb3a7"})
         assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).status_code == 200
-        assert not client.get("/api/v1/box/status", headers={"X-Balut-Origin": "local"}).json()["calibrated"]
+        status = client.get("/api/v1/box/status", headers={"X-Balut-Origin": "local"}).json()
+        assert status["calibrated"] and status["state"] == "checking_empty"
         assert client.post("/api/v1/device/box/frame", headers=headers, content=camera_frame()).status_code == 401
         client.post("/api/v1/auth/logout", headers={"Origin": ORIGIN, "X-Balut-Origin": "local"})
         assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).status_code == 401

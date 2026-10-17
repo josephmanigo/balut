@@ -97,6 +97,9 @@ class AutomaticBox:
             self.state = "connecting" if self.config.get("enabled") else "paused"
         if self.config.get("resultId"):
             self.result = self.database.get_prediction(self.config["resultId"])
+        if self.config.get("reference"):
+            self.config["awaitingEmpty"] = True
+            self.save()
         self.http = httpx.AsyncClient(timeout=httpx.Timeout(11), follow_redirects=False, trust_env=False)
         self.task = asyncio.create_task(self.run())
 
@@ -168,6 +171,7 @@ class AutomaticBox:
         if max(difference(frames[0], sample) for sample in frames[1:]) > .015:
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
+        self.config.pop("awaitingEmpty", None)
         self.config.pop("resultId", None)
         self.result, self.previous, self.error = None, None, None
         self.occupied_frames = self.empty_frames = 0
@@ -185,6 +189,7 @@ class AutomaticBox:
 
     def require_new_reference(self):
         self.config.pop("reference", None)
+        self.config.pop("awaitingEmpty", None)
         self.config["enabled"] = False
         self.previous = None
         self.occupied_frames = self.empty_frames = 0
@@ -223,18 +228,22 @@ class AutomaticBox:
         changed = difference(samples, self.config["reference"])
         motion = difference(samples, self.previous) if self.previous else 1.0
         self.previous = samples
-        self.empty_frames = self.empty_frames + 1 if changed <= .025 else 0
-        if self.config.get("latched"):
-            self.state = "recapture" if self.result and self.result["recaptureRequested"] else "remove_egg"
+        # Startup exposure can wash out the scene; brightness must also match the confirmed empty view.
+        empty = changed <= .025 and abs(statistics.median(samples) - statistics.median(self.config["reference"])) <= 25
+        self.empty_frames = self.empty_frames + 1 if empty else 0
+        if self.config.get("latched") or self.config.get("awaitingEmpty"):
+            self.state = ("checking_empty" if self.config.get("awaitingEmpty") else
+                          "recapture" if self.result and self.result["recaptureRequested"] else "remove_egg")
             if self.empty_frames >= 3:
                 self.config["latched"] = False
-                self.save()
+                self.config.pop("awaitingEmpty", None)
                 self.occupied_frames = 0
                 self.state = "waiting"
+                self.save()
             return
         # shortcut: scene change is not a trained egg detector; replace with a validated presence sensor when wiring is known.
         self.occupied_frames = self.occupied_frames + 1 if changed >= .08 else 0
-        self.state = "settling" if changed >= .08 else "waiting"
+        self.state = "settling" if changed >= .08 else "waiting" if empty else "checking_empty"
         # A rotating holder may never stop; prefer a steady pair, otherwise capture the third occupied frame.
         if self.occupied_frames >= 2 and (motion <= .015 or self.occupied_frames >= 3):
             image_hash = hashlib.sha256(body).hexdigest()

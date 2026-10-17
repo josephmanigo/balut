@@ -16,11 +16,11 @@ and power cables, a charger, and a computer with internet and Chrome or Edge.
    The browser requires this permission on each new computer/browser profile.
    No project ZIP, Python, camera profile or secret needs to be copied.
 4. Wait for the camera preview. Remove the egg, keep the camera and lighting
-   fixed, confirm **The box is empty. Lighting is ready.**, and click
-   **Save empty view & start**. Keep the box empty until **Ready for an egg.**
+   fixed, and click **Box is empty — start** once. Keep the box empty until
+   **Ready for an egg.** The setup controls then collapse automatically.
    If the last three frames are changing, the website waits up to 20 seconds
-   for three fresh, steady frames. An expired request or a new camera connection
-   requires another empty-box confirmation; analysis stays off until calibration succeeds.
+   for three fresh, steady frames. An expired initial setup needs another
+   confirmation; analysis stays off until calibration succeeds.
 5. Place one egg and keep hands clear. Wait for the saved result, then remove
    the egg before the next one. Confirm the result appears in **History**.
    Capture uses two steady changed frames, or three changed frames if the holder
@@ -33,8 +33,9 @@ and power cables, a charger, and a computer with internet and Chrome or Edge.
 With USB permission saved, the signed-in page automatically checks the available
 camera on startup and when USB is connected. Exactly one matching adapter must
 be available. Keep this tab open and the computer awake and online. A fresh
-connection requires an empty-box reference again; moving the box or changing
-lighting also requires a fresh reference. Manual Disconnect pauses reconnection
+connection checks the saved empty view automatically. Three fresh matching frames
+return the box to Ready without a setup click. Moving the camera or changing
+lighting requires a fresh reference through **Box setup**. Manual Disconnect pauses reconnection
 until Connect is clicked or the page is reopened.
 
 Phones and other laptops can open the same website, sign in, and view the camera

@@ -116,6 +116,7 @@ class SavedBox(AutomaticBox):
         if not self.reference_ready():
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=self.frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
+        self.config.pop("awaitingEmpty", None)
         self.config.pop("referenceDeadline", None)
         self.config.pop("resultId", None)
         self.result, self.previous, self.error = None, None, None
@@ -182,10 +183,15 @@ class ServerlessBox:
                 raise HTTPException(429, "Send at most five frames per second")
             if box.config.get("pending"):
                 asyncio.run(box.finish_pending())
-            if (box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12
-                    or box.config.get("sourceSize", [640, 480]) != source_size
-                    or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION):
-                box.require_new_reference()
+            framing_changed = (box.config.get("sourceSize", [640, 480]) != source_size
+                               or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION)
+            if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12:
+                if not framing_changed and box.config.get("reference"):
+                    # Reuse only a confirmed view, and require fresh empty matches before capturing again.
+                    box.config["awaitingEmpty"] = True
+                    box.enable(bool(box.config.get("enabled")))
+                else:
+                    box.require_new_reference()
                 box.frames = []
             box.config["cameraSession"] = camera_session
             box.config["sourceSize"] = source_size

@@ -17,8 +17,8 @@ describe("automatic camera capture", () => {
     expect(await screen.findByRole("button", { name: "Connect USB camera" })).toBeDisabled();
     expect(screen.getByText(/Use Chrome or Edge on a computer/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Camera address")).not.toBeInTheDocument();
-    await userEvent.setup().click(screen.getByRole("checkbox"));
-    expect(screen.getByRole("button", { name: "Save empty view & start" })).toBeDisabled();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Box is empty — start" })).toBeDisabled();
   });
   it("opens the browser's USB picker only after the operator clicks Connect", async () => {
     const requestPort = vi.fn().mockRejectedValue(new DOMException("Cancelled", "NotFoundError"));
@@ -47,11 +47,15 @@ describe("automatic camera capture", () => {
     await user.type(screen.getByLabelText("Camera address"), "http://192.168.1.50");
     await user.click(screen.getByRole("button", { name: "Connect camera" }));
     expect(await screen.findByRole("heading", { name: "Start with an empty box." })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save empty view & start" })).toBeDisabled();
-    await user.click(screen.getByRole("checkbox"));
-    await user.click(screen.getByRole("button", { name: "Save empty view & start" }));
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(boxRequest).not.toHaveBeenCalledWith("reference", expect.anything());
+    await user.click(screen.getByRole("button", { name: "Box is empty — start" }));
     expect(await screen.findByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
     expect(boxRequest).toHaveBeenCalledWith("reference", { emptyConfirmed: true });
+    expect(screen.getByRole("button", { name: "Box is empty — start" }).closest("details")).not.toHaveAttribute("open");
+    await user.click(screen.getByText("Box setup"));
+    expect(screen.getByRole("button", { name: "Box is empty — start" }).closest("details")).toHaveAttribute("open");
+    expect(screen.getByRole("button", { name: "Box is empty — start" })).toBeEnabled();
     expect(screen.queryByRole("button", { name: "Analyze egg" })).not.toBeInTheDocument();
   });
   it("receives a saved result through polling without an upload or click", async () => {
@@ -80,12 +84,11 @@ describe("automatic camera capture", () => {
       const saved = vi.fn();
       render(<AutomaticBox locale="en" onSaved={saved} />);
       await act(async () => { await Promise.resolve(); });
-      fireEvent.click(screen.getByRole("checkbox"));
-      await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Save empty view & start" })); });
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Box is empty — start" })); });
       expect(screen.getByRole("heading", { name: "Saving the empty view." })).toBeInTheDocument();
       expect(screen.getByText(/Waiting up to 20 seconds/)).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Saving empty view…" })).toBeDisabled();
-      expect(screen.getByRole("checkbox")).toBeDisabled();
+      expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       current = { ...current, calibrated: true, enabled: true, state: "waiting" };
       await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
@@ -99,7 +102,27 @@ describe("automatic camera capture", () => {
       state: "needs_reference", error: "No steady empty view was saved. Keep the box empty, steady the camera and lighting, then save again." });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("No steady empty view was saved.");
-    expect(screen.getByRole("button", { name: "Save empty view & start" })).toBeDisabled();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Box is empty — start" })).toBeEnabled();
+    expect(boxRequest).not.toHaveBeenCalledWith("reference", expect.anything());
+  });
+  it("shows automatic empty recognition after reconnecting without another setup click", async () => {
+    vi.useFakeTimers();
+    try {
+      const saved = vi.fn();
+      const current: BoxStatus = { ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767",
+        calibrated: true, enabled: true, connected: true, state: "checking_empty" };
+      vi.mocked(boxRequest).mockResolvedValue(current);
+      render(<AutomaticBox locale="en" onSaved={saved} />);
+      await act(async () => { await Promise.resolve(); });
+      expect(screen.getByRole("heading", { name: "Checking the empty box." })).toBeInTheDocument();
+      vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "waiting" });
+      await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+      expect(screen.getByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
+      expect(screen.getByText("Box is empty. Place one egg and keep your hands clear.")).toBeInTheDocument();
+      expect(vi.mocked(boxRequest).mock.calls.every(args => args.length === 0)).toBe(true);
+      expect(saved).not.toHaveBeenCalled();
+    } finally { vi.useRealTimers(); }
   });
   it("shows disconnection rather than a ready-to-capture state", async () => {
     vi.mocked(boxRequest).mockRejectedValue(new Error("offline"));
