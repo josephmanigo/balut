@@ -18,6 +18,16 @@ describe("automatic camera capture", () => {
     expect(await screen.findByText("Image too blurry · check camera focus, then replace the egg.")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
   });
+  it("does not present focus as the only fix when the model also rejects unfamiliar views", async () => {
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "recapture", result: { ...prediction,
+      sourcePrediction: null, recaptureRequested: true, analysisOutcome: "RECAPTURE_REQUIRED",
+      recaptureReasons: ["MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS", "AMBIGUOUS_APPEARANCE", "IMAGE_TOO_BLURRY", "UNFAMILIAR_APPEARANCE"] } });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByText("These views are unfamiliar. The model cannot give a reliable result.")).toBeInTheDocument();
+    expect(screen.getByText("Some views also have low detail. Check lens focus and reduce vibration.")).toBeInTheDocument();
+    expect(screen.queryByText("Image too blurry · check camera focus, then replace the egg.")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
+  });
   it("shows automatic multi-view progress without a capture button", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, calibrated: true, connected: true,
       enabled: true, state: "capturing_views", capturedViews: 2, targetViews: 3 });

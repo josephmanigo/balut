@@ -87,8 +87,11 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   const calibrating = status?.state === "calibrating";
   const setupError = notice || (status?.state === "needs_reference" ? status.error : null);
   const result = status?.result;
-  const recaptureHelp = result?.recaptureReasons.includes("IMAGE_TOO_BLURRY")
-    ? t("Image too blurry · check camera focus, then replace the egg.", "Malabo ang larawan · suriin ang focus ng camera, saka ilagay muli ang itlog.")
+  const unfamiliar = result?.recaptureReasons.includes("UNFAMILIAR_APPEARANCE");
+  const blurry = result?.recaptureReasons.includes("IMAGE_TOO_BLURRY");
+  const recaptureHelp = unfamiliar
+    ? t("These views are unfamiliar. The model cannot give a reliable result.", "Hindi pamilyar ang mga larawang ito. Hindi makapagbigay ng maaasahang resulta ang modelo.")
+    : blurry ? t("Image too blurry · check camera focus, then replace the egg.", "Malabo ang larawan · suriin ang focus ng camera, saka ilagay muli ang itlog.")
     : t("Unclassified · adjust the view and replace the egg.", "Walang klasipikasyon · ayusin ang kuha at ilagay muli.");
   const cameraLive = !!localPreview || !!status?.connected && !unreachable;
   const label = result?.recaptureRequested ? t("Another image needed", "Kailangan ng ibang larawan")
@@ -113,7 +116,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         {status?.cloudCapture && <UsbCameraConnect locale={locale} onPreview={setLocalPreview} />}
         {status?.state === "capturing_views" && <p>{t("Views captured", "Mga nakuhang larawan")} · {status.capturedViews ?? 0} / {status.targetViews ?? 3}</p>}
         {(status?.state === "analyzing" || status?.state === "capturing_views" || calibrating) && <LoaderCircle className="spin" size={24} />}
-        {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? recaptureHelp : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p><time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
+        {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? recaptureHelp : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p>{result.recaptureRequested && unfamiliar && blurry && <p>{t("Some views also have low detail. Check lens focus and reduce vibration.", "Kulang din sa detalye ang ilang kuha. Suriin ang focus ng lens at bawasan ang pagyanig.")}</p>}<time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
       </div>
     </div>
     {setupError && <p className="inline-error" role="alert">{setupError}</p>}

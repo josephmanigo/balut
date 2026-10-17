@@ -1,5 +1,26 @@
 # Camera quality and speed — 2026-10-17
 
+## Rotating-egg blur investigation
+
+The saved scan `16d730b9-6f1a-4830-b1c0-181b55aa67af` contains three real views.
+Two passed the blur threshold (edge variances 34.89 and 25.87 against 20); the
+third failed at 15.23. All three were rejected as unfamiliar, with the first
+also ambiguous. A blur-only UI message therefore concealed another independent
+reason the scan could not produce a reliable classification. The UI now explains
+unfamiliar views first and reports low detail separately when both occur.
+
+A private camera-only probe tested manual shutter readbacks of four, two, and
+one lines, with gains 32, 64, and 85 respectively, while the holder kept rotating.
+Three real frames per profile all remained below the frozen edge threshold;
+median variances were 10.56, 11.20, and 9.45. Automatic-exposure comparison frames
+also failed. Sensor readback confirmed each setting. No profile demonstrated
+resolved image softness, and the experiment does not establish motion as the
+sole cause. The working automatic-exposure firmware is retained. No motor
+commands, model-threshold changes, or test prediction records were generated.
+Further improvement requires checking physical focus/working distance and
+camera-domain model validation. Evidence:
+`output/camera-blur-20261017/shutter-comparison-summary.json`.
+
 ## Empty-holder recognition delay
 
 The whole-scene check stayed in `checking_empty` on confirmed-empty frames when
