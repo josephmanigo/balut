@@ -1,5 +1,24 @@
 # Camera quality and speed — 2026-10-17
 
+## Empty-holder recognition delay
+
+The whole-scene check stayed in `checking_empty` on confirmed-empty frames when
+the laptop background or exposure changed. A replay of six real empty frames
+reproduced the failure without cloud or history writes. Empty recognition now
+also compares the calibrated lower holder's shape using correlation, with a
+contrast floor that rejects black or washed-out images. A matching empty holder
+overrides background scene changes for capture triggering and partial-scan
+cancellation. The original full-scene match remains available for low-contrast
+references. Existing references and full-resolution model inputs are preserved.
+
+Two consecutive fresh matching frames now rearm capture, instead of three.
+At roughly two seconds per USB image this still takes several seconds, plus
+network and UI refresh time. Recognition remains a camera heuristic and requires
+fixed camera/holder geometry. Replay checks recognized four actual empty views,
+rejected all six actual egg views, and rejected black/washed-out frames; these
+checks do not establish egg-age accuracy. Evidence:
+`output/exposure-multiview-20261017/empty-recognition-replay.json`.
+
 ## Installed exposure correction and three-view capture
 
 The GC2145 was already at four exposure lines under the user's normal candling

@@ -8,6 +8,9 @@ The camera captures three fresh views at least 1.5 seconds apart while the holde
 rotates independently. Keep the same egg in place until the saved result appears.
 The UI shows capture progress; no manual start or capture button is required.
 These are timed views, not measured angles or verified full-turn coverage.
+Empty recognition accepts the calibrated lower holder's shape despite background
+or exposure changes. Two consecutive matching uploads return the box to Ready;
+the shape check also requires contrast to reject black or washed-out frames.
 
 Each view passes the unchanged sealed model's quality and uncertainty gates.
 At least two distinct accepted JPEGs must agree, and any accepted contradictory

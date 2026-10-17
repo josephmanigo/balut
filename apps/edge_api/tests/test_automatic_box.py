@@ -6,7 +6,7 @@ import httpx
 import pytest
 from PIL import Image, ImageDraw
 
-from balut_api.automatic_box import AutomaticBox, camera_origin, difference, frame_data
+from balut_api.automatic_box import AutomaticBox, camera_origin, difference, empty_view_matches, frame_data
 from balut_api.database import Database, canonical_sha256
 from balut_api.evidence import EvidenceStore
 
@@ -40,6 +40,36 @@ def test_camera_origin_and_scene_change_boundaries():
     assert difference(occupied, occupied) == 0
     with pytest.raises((ValueError, OSError)):
         frame_data(b"not an image")
+
+
+def test_empty_holder_rearms_after_two_frames_despite_background_and_exposure_changes(tmp_path):
+    async def scenario():
+        box, calls = make_box(tmp_path)
+        reference = [80] * (48 * 48)
+        # A fixed holder edge and light remain below the changing background.
+        for y in range(30, 48):
+            for x in range(48):
+                reference[y * 48 + x] = 30 + y * 2 if x < 8 or x > 39 else 130 + y * 2
+        for lost_image in ([0] * 2304, [255] * 2304):
+            assert not empty_view_matches(lost_image, reference)
+        obstructed = reference.copy()
+        for y in range(30, 48):
+            obstructed[y * 48 + 8:y * 48 + 40] = [50] * 32
+        assert not empty_view_matches(obstructed, reference)
+        samples = [220] * (48 * 30) + [int(value * .7 + 10) for value in reference[48 * 30:]]
+        box.config = {"cameraUrl": "http://192.168.1.50", "reference": reference,
+                      "enabled": True, "latched": True, "awaitingEmpty": True, "framingVersion": 2}
+        async def read(_): return b"", samples
+        box.read_frame = read
+        await box.tick()
+        assert box.state == "checking_empty" and not calls
+        await box.tick()
+        assert box.state == "waiting" and not box.config.get("awaitingEmpty") and not box.config["latched"]
+        # Background changes after Ready must not start a spurious scan.
+        samples[:48 * 30] = [20] * (48 * 30)
+        for _ in range(4): await box.tick()
+        assert box.state == "waiting" and not calls
+    asyncio.run(scenario())
 
 
 def test_camera_preview_preserves_native_detail_and_bounds_large_images():

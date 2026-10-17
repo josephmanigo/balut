@@ -307,15 +307,14 @@ def test_reconnect_recognizes_saved_empty_view_without_calibrating_an_egg(tmp_pa
     for _ in range(3): send(brightness=255)
     assert new().status()["state"] == "checking_empty" and not predictions
     send()
-    send()
     assert new().status()["state"] == "checking_empty"
-    send(True)  # A brief glimpse of the background must not rearm the box.
-    for _ in range(3): send()
+    send(True)  # One empty frame must not rearm the box.
+    for _ in range(2): send()
     assert new().status()["state"] == "waiting" and not predictions
     assert shared["camera"]["config"]["reference"] == reference
     for _ in range(4): send(True)
     assert len(predictions) == 1
-    for _ in range(3): send()
+    for _ in range(2): send()
     assert new().status()["state"] == "waiting"
     assert len(predictions) == len(local.database.list_predictions()) == 1
 

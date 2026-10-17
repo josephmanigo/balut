@@ -79,6 +79,16 @@ def difference(left, right):
     return sum(abs(value - shift) > 25 for value in differences) / len(differences)
 
 
+def empty_view_matches(samples, reference):
+    if difference(samples, reference) <= .025 and abs(statistics.median(samples) - statistics.median(reference)) <= 25:
+        return True
+    # The calibrated lower holder stays in view when background content or exposure changes.
+    holder, empty_holder = samples[30 * 48:], reference[30 * 48:]
+    if min(statistics.pstdev(holder), statistics.pstdev(empty_holder)) < 12:
+        return False
+    return statistics.correlation(holder, empty_holder) >= .85
+
+
 class AutomaticBox:
     def __init__(self, database, evidence, predict):
         self.database, self.evidence, self.predict = database, evidence, predict
@@ -258,12 +268,11 @@ class AutomaticBox:
         changed = difference(samples, self.config["reference"])
         motion = difference(samples, self.previous) if self.previous else 1.0
         self.previous = samples
-        # Startup exposure can wash out the scene; brightness must also match the confirmed empty view.
-        empty = changed <= .025 and abs(statistics.median(samples) - statistics.median(self.config["reference"])) <= 25
+        empty = empty_view_matches(samples, self.config["reference"])
         self.empty_frames = self.empty_frames + 1 if empty else 0
         if collection := self.config.get("collection"):
             elapsed = time.time() - collection["startedAt"]
-            if changed < .08 or not 0 <= elapsed <= 20:
+            if empty or changed < .08 or not 0 <= elapsed <= 20:
                 self.config.pop("collection")
                 self.config["awaitingEmpty"] = True
                 self.state = "checking_empty"
@@ -274,7 +283,7 @@ class AutomaticBox:
         if self.config.get("latched") or self.config.get("awaitingEmpty"):
             self.state = ("checking_empty" if self.config.get("awaitingEmpty") else
                           "recapture" if self.result and self.result["recaptureRequested"] else "remove_egg")
-            if self.empty_frames >= 3:
+            if self.empty_frames >= 2:
                 self.config["latched"] = False
                 self.config.pop("awaitingEmpty", None)
                 self.occupied_frames = 0
@@ -282,8 +291,9 @@ class AutomaticBox:
                 self.save()
             return
         # shortcut: scene change is not a trained egg detector; replace with a validated presence sensor when wiring is known.
-        self.occupied_frames = self.occupied_frames + 1 if changed >= .08 else 0
-        self.state = "settling" if changed >= .08 else "waiting" if empty else "checking_empty"
+        occupied = not empty and changed >= .08
+        self.occupied_frames = self.occupied_frames + 1 if occupied else 0
+        self.state = "settling" if occupied else "waiting" if empty else "checking_empty"
         # A rotating holder may never stop; prefer a steady pair, otherwise capture the third occupied frame.
         if self.occupied_frames >= 2 and (motion <= .015 or self.occupied_frames >= 3):
             await self.collect_view(body)
