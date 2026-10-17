@@ -13,6 +13,7 @@ const states: Record<string, [string, string, string, string]> = {
   waiting: ["Ready for an egg.", "Handa para sa itlog.", "Box is empty. Place one egg and keep your hands clear.", "Bakante ang kahon. Maglagay ng isang itlog at ilayo ang mga kamay."],
   settling: ["Preparing to capture.", "Naghahanda sa pagkuha.", "Keep your hands clear. Capture continues while the holder rotates.", "Ilayo ang mga kamay. Kukunan kahit umiikot ang lalagyan."],
   analyzing: ["Taking a closer look.", "Sinusuri ang larawan.", "Your result saves automatically.", "Awtomatikong mase-save ang resulta."],
+  capturing_views: ["Capturing three views.", "Kumukuha ng tatlong larawan.", "Leave the egg rotating. Keep your hands clear until the result appears.", "Hayaang umikot ang itlog. Ilayo ang mga kamay hanggang lumabas ang resulta."],
   remove_egg: ["Result saved.", "Nai-save ang resulta.", "Remove the egg before placing the next one.", "Alisin ang itlog bago ilagay ang susunod."],
   recapture: ["Another view needed.", "Kailangan ng ibang kuha.", "Remove the egg, adjust it, then place it again.", "Alisin, ayusin, at ilagay muli ang itlog."],
   paused: ["Automatic mode paused.", "Naka-pause ang awtomatikong mode.", "Live view continues. Resume when the box is ready.", "Tuloy ang live na kuha. Ituloy ang pagsusuri kapag handa na ang kahon."],
@@ -107,7 +108,8 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         <h2>{unreachable ? t("Connection interrupted.", "Naputol ang koneksyon.") : copy[locale === "en" ? 0 : 1]}</h2>
         <p>{unreachable ? t("Check the Balut server. Reconnecting automatically.", "Suriin ang Balut server. Kokonekta muli.") : copy[locale === "en" ? 2 : 3]}</p>
         {status?.cloudCapture && <UsbCameraConnect locale={locale} onPreview={setLocalPreview} />}
-        {(status?.state === "analyzing" || calibrating) && <LoaderCircle className="spin" size={24} />}
+        {status?.state === "capturing_views" && <p>{t("Views captured", "Mga nakuhang larawan")} · {status.capturedViews ?? 0} / {status.targetViews ?? 3}</p>}
+        {(status?.state === "analyzing" || status?.state === "capturing_views" || calibrating) && <LoaderCircle className="spin" size={24} />}
         {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? t("Unclassified · adjust the view and replace the egg.", "Walang klasipikasyon · ayusin ang kuha at ilagay muli.") : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p><time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
       </div>
     </div>

@@ -49,6 +49,8 @@ export interface BoxStatus {
   connected: boolean;
   calibrated: boolean;
   state: string;
+  capturedViews?: number;
+  targetViews?: number;
   error: string | null;
   preview: string | null;
   result: SourcePrediction | null;

@@ -10,6 +10,28 @@ import time
 import warnings
 from pathlib import Path
 
+MULTIVIEW_POLICY = "three-timed-views-v1"
+
+
+def combine_views(results, hashes):
+    if len(results) != 3 or len(hashes) != 3:
+        raise ValueError("Automatic analysis requires three views")
+    accepted = {digest: result["sourcePrediction"] for result, digest in zip(results, hashes, strict=True)
+                if not result["recaptureRequested"] and result["analysisOutcome"] == "CLASSIFIED" and result["sourcePrediction"]}
+    labels = set(accepted.values())
+    prediction = next(iter(labels)) if len(accepted) >= 2 and len(labels) == 1 else None
+    reasons = [] if prediction else ["MULTIVIEW_DISAGREEMENT" if len(labels) > 1 else "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS"]
+    # Keep scores and quality measurements attached to their individual view, never invent a combined probability.
+    result = {key: results[0][key] for key in ("modelId", "modelReleaseId", "registrySha256", "modelSha256",
+              "isSimulated", "operationalOutcome", "operationalUseAuthorized", "authority", "limitations")}
+    result.update(sourcePrediction=prediction, analysisOutcome="CLASSIFIED" if prediction else "RECAPTURE_REQUIRED",
+                  recaptureRequested=prediction is None, recaptureReasons=reasons, reviewRequired=False,
+                  inferenceMs=round(sum(view["inferenceMs"] for view in results), 3),
+                  multiView={"policy": MULTIVIEW_POLICY, "capture": "timed_rotating_holder", "anglesVerified": False,
+                             "acceptedDistinctViews": len(accepted),
+                             "views": [{**view, "imageHash": digest} for view, digest in zip(results, hashes, strict=True)]})
+    return result
+
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
@@ -44,7 +66,7 @@ def preprocess(body, config):
     return np.ascontiguousarray(values.transpose(2, 0, 1)[None])
 
 
-class ModelBusyError(Exception):
+class ModelBusyError(RuntimeError):
     pass
 
 
@@ -222,3 +244,11 @@ class ModelService:
     def close(self):
         self.models.clear()
         self.analysis_model_id = None
+
+    def predict_views(self, model_id, bodies):
+        if len(bodies) != 3:
+            raise ValueError("Automatic analysis requires three views")
+        if self.models[model_id]["policy"] is None:
+            raise ValueError("Multi-view analysis requires selective quality gates")
+        return combine_views([self.predict(model_id, body) for body in bodies],
+                             [hashlib.sha256(body).hexdigest() for body in bodies])

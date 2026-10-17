@@ -1,5 +1,34 @@
 # Automatic ESP32-CAM capture
 
+## Current USB cloud flow (2026-10-17)
+
+The deployed USB flow supersedes the original LAN setup below. After recognizing
+the confirmed empty reference, placement starts a three-view scan automatically.
+The camera captures three fresh views at least 1.5 seconds apart while the holder
+rotates independently. Keep the same egg in place until the saved result appears.
+The UI shows capture progress; no manual start or capture button is required.
+These are timed views, not measured angles or verified full-turn coverage.
+
+Each view passes the unchanged sealed model's quality and uncertainty gates.
+At least two distinct accepted JPEGs must agree, and any accepted contradictory
+view forces recapture. Repeated identical JPEGs do not count as separate votes.
+The result keeps each view's evidence hash and decision; raw model scores are
+never presented as a combined probability. One scan creates one history record.
+The policy is `three-timed-views-v1`; it has not been validated for biological age.
+
+Partial scans persist between Vercel requests. Removal, pause, reconnect, framing
+change, or a scan exceeding 20 seconds cancels the partial set and requires an
+empty-box recheck. Completed sets persist before inference and retry with the
+same identity. Legacy single-image pending captures remain recoverable.
+Cloud state and all three evidence images use the existing Supabase storage.
+
+Three views add capture time. The previously measured camera takes about two
+seconds per JPEG; this change does not provide 60 FPS. Exposure tuning is a
+separate firmware and physical-image check. Actual Day 16/Day 18 accuracy still
+requires held-out eggs with verified incubation records.
+
+## Original LAN flow
+
 The web and Android apps now offer **Automatic** and **Attach photo** inside Analyze. Automatic mode uses the laptop to watch the ESP32-CAM snapshot endpoint, process a steady scene change, and save the result. Both clients read the same camera state and prediction history.
 
 **Status:** software implemented and tested with an isolated camera feed and the real retained model. The user's ESP32-CAM address, firmware, lighting, and physical detection behavior have not been tested. No presence sensor or lid switch was confirmed.

@@ -116,6 +116,7 @@ class SavedBox(AutomaticBox):
         if not self.reference_ready():
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=self.frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
+        self.config.pop("collection", None)
         self.config.pop("awaitingEmpty", None)
         self.config.pop("referenceDeadline", None)
         self.config.pop("resultId", None)

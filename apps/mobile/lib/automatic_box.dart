@@ -174,6 +174,13 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
                 'Awtomatikong mase-save ang resulta.',
               ),
             ),
+            'capturing_views' => (
+              t('Capturing three views.', 'Kumukuha ng tatlong larawan.'),
+              t(
+                'Leave the egg rotating. Keep your hands clear until the result appears.',
+                'Hayaang umikot ang itlog. Ilayo ang mga kamay hanggang lumabas ang resulta.',
+              ),
+            ),
             'remove_egg' => (
               t('Result saved.', 'Nai-save ang resulta.'),
               t(

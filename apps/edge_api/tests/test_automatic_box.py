@@ -62,6 +62,13 @@ def test_camera_preview_preserves_native_detail_and_bounds_large_images():
         assert image.size == (240, 320) and not image.getexif()
 
 
+@pytest.fixture
+def camera_clock(monkeypatch):
+    now = [1000.0]
+    monkeypatch.setattr("balut_api.automatic_box.time.time", lambda: now[0])
+    return now
+
+
 def make_box(tmp_path, fail_first=False, prediction_class="DAY_16"):
     database = Database(tmp_path / "box.db")
     database.initialize()
@@ -73,6 +80,7 @@ def make_box(tmp_path, fail_first=False, prediction_class="DAY_16"):
             predictions.append("interrupted")
             raise OSError("test interruption")
         predictions.append(key)
+        body = body[0] if isinstance(body, list) else body
         result = {"modelId": "test-only", "modelReleaseId": "synthetic-software-test", "sourcePrediction": prediction_class,
                   "analysisOutcome": "CLASSIFIED", "recaptureRequested": False, "recaptureReasons": [], "reviewRequired": False,
                   "operationalOutcome": "NOT_AUTHORIZED", "operationalUseAuthorized": False, "captureSource": "iot_box"}
@@ -104,11 +112,13 @@ def test_camera_framing_rotates_light_to_bottom_and_preserves_both_edges_for_pre
 
 
 @pytest.mark.parametrize("prediction_class", ["DAY_16", "DAY_18", "REJECT"])
-def test_stable_capture_once_removal_rearms_and_restart_does_not_duplicate(tmp_path, prediction_class):
+def test_stable_capture_once_removal_rearms_and_restart_does_not_duplicate(tmp_path, prediction_class, camera_clock):
     async def scenario():
         box, calls = make_box(tmp_path, prediction_class=prediction_class)
         body = frame()
-        async def fetch(_): return body
+        async def fetch(_):
+            camera_clock[0] += 2
+            return body
         box.fetch = fetch
         await box.connect("http://192.168.1.50")
         await box.calibrate()
@@ -135,11 +145,13 @@ def test_stable_capture_once_removal_rearms_and_restart_does_not_duplicate(tmp_p
     asyncio.run(scenario())
 
 
-def test_preview_refreshes_before_calibration_and_while_paused_without_analysis(tmp_path):
+def test_preview_refreshes_before_calibration_and_while_paused_without_analysis(tmp_path, camera_clock):
     async def scenario():
         box, calls = make_box(tmp_path)
         body = frame()
-        async def fetch(_): return body
+        async def fetch(_):
+            camera_clock[0] += 2
+            return body
         box.fetch = fetch
         await box.connect("http://192.168.1.50")
         first = box.preview
@@ -159,11 +171,13 @@ def test_preview_refreshes_before_calibration_and_while_paused_without_analysis(
 
 
 @pytest.mark.parametrize("moving", [False, True])
-def test_capture_has_bounded_wait_for_rotation_but_ignores_brief_scene_changes(tmp_path, moving):
+def test_capture_has_bounded_wait_for_rotation_but_ignores_brief_scene_changes(tmp_path, moving, camera_clock):
     async def scenario():
         box, calls = make_box(tmp_path)
         body = frame()
-        async def fetch(_): return body
+        async def fetch(_):
+            camera_clock[0] += 2
+            return body
         box.fetch = fetch
         await box.connect("http://192.168.1.50")
         await box.calibrate()
@@ -178,17 +192,21 @@ def test_capture_has_bounded_wait_for_rotation_but_ignores_brief_scene_changes(t
             await box.tick()
             if index == 0:
                 assert not calls
+        assert not calls and box.state == "capturing_views"
+        for _ in range(2): await box.tick()
         assert len(calls) == 1 and box.state == "remove_egg"
         for _ in range(5): await box.tick()
         assert len(calls) == 1
     asyncio.run(scenario())
 
 
-def test_saved_capture_recovers_after_interruption_and_pause_preserves_latch(tmp_path):
+def test_saved_capture_recovers_after_interruption_and_pause_preserves_latch(tmp_path, camera_clock):
     async def scenario():
         box, calls = make_box(tmp_path, fail_first=True)
         body = frame()
-        async def fetch(_): return body
+        async def fetch(_):
+            camera_clock[0] += 2
+            return body
         box.fetch = fetch
         await box.connect("http://192.168.1.50")
         await box.calibrate()

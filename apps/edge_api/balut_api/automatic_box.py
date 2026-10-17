@@ -9,6 +9,7 @@ import ipaddress
 import logging
 import statistics
 import sqlite3
+import time
 from urllib.parse import urlsplit
 from uuid import uuid4
 
@@ -23,6 +24,8 @@ from .model_service import decode_jpeg
 
 MAX_IMAGE = 10 * 1024 * 1024
 CAMERA_FRAMING_VERSION = 2
+CAPTURE_VIEWS = 3
+VIEW_INTERVAL = 1.5
 PRIVATE_NETWORKS = tuple(ipaddress.ip_network(value) for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"))
 
 
@@ -98,6 +101,7 @@ class AutomaticBox:
         if self.config.get("resultId"):
             self.result = self.database.get_prediction(self.config["resultId"])
         if self.config.get("reference"):
+            self.config.pop("collection", None)
             self.config["awaitingEmpty"] = True
             self.save()
         self.http = httpx.AsyncClient(timeout=httpx.Timeout(11), follow_redirects=False, trust_env=False)
@@ -120,6 +124,7 @@ class AutomaticBox:
         return {"cameraUrl": self.config.get("cameraUrl", ""), "enabled": bool(self.config.get("enabled")),
                 "connected": self.connected, "calibrated": bool(self.config.get("reference")),
                 "state": self.state, "error": self.error, "preview": self.preview, "result": self.result,
+                "capturedViews": len(self.config.get("collection", {}).get("imageHashes", [])), "targetViews": CAPTURE_VIEWS,
                 "detection": "camera_scene_change", "controlsMotion": False}
 
     async def fetch(self, origin):
@@ -171,6 +176,7 @@ class AutomaticBox:
         if max(difference(frames[0], sample) for sample in frames[1:]) > .015:
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
+        self.config.pop("collection", None)
         self.config.pop("awaitingEmpty", None)
         self.config.pop("resultId", None)
         self.result, self.previous, self.error = None, None, None
@@ -182,12 +188,15 @@ class AutomaticBox:
         if enabled and not self.config.get("reference"):
             raise ValueError("Save the empty-box view first.")
         self.config["enabled"] = enabled
+        if self.config.pop("collection", None):
+            self.config["awaitingEmpty"] = True
         self.previous = None
         self.occupied_frames = self.empty_frames = 0
         self.state, self.error = ("connecting" if enabled else "paused"), None
         self.save()
 
     def require_new_reference(self):
+        self.config.pop("collection", None)
         self.config.pop("reference", None)
         self.config.pop("awaitingEmpty", None)
         self.config["enabled"] = False
@@ -199,16 +208,37 @@ class AutomaticBox:
         pending = self.config["pending"]
         self.state = "analyzing"
         # The persisted image and event key recover one record after timeouts/restarts.
-        if not self.evidence.contains(pending["imageHash"]):
+        hashes = pending.get("imageHashes", [pending["imageHash"]])
+        if not all(self.evidence.contains(digest) for digest in hashes):
             raise ValueError("Pending capture evidence is unavailable.")
-        image_path = self.evidence.path_for(pending["imageHash"])
-        body = image_path.read_bytes()
-        result = await run_in_threadpool(self.predict, body, pending["key"])
+        bodies = [self.evidence.path_for(digest).read_bytes() for digest in hashes]
+        result = await run_in_threadpool(self.predict, bodies if "imageHashes" in pending else bodies[0], pending["key"])
         self.config.update(resultId=result["predictionId"], latched=True)
         self.config.pop("pending", None)
         self.result = result
         self.state = "recapture" if result["recaptureRequested"] else "remove_egg"
         self.save()
+
+    async def collect_view(self, body):
+        now = time.time()
+        collection = self.config.get("collection")
+        if collection and now - collection["lastViewAt"] < VIEW_INTERVAL:
+            return
+        image_hash = hashlib.sha256(body).hexdigest()
+        await run_in_threadpool(self.evidence.store_jpeg, body, image_hash)
+        if collection is None:
+            collection = {"key": "box-" + uuid4().hex, "startedAt": now, "imageHashes": []}
+            self.config["collection"] = collection
+        collection["imageHashes"].append(image_hash)
+        collection["lastViewAt"] = now
+        self.state = "capturing_views"
+        if len(collection["imageHashes"]) == CAPTURE_VIEWS:
+            self.config.update(latched=True, pending={"key": collection["key"],
+                "imageHash": collection["imageHashes"][0], "imageHashes": collection["imageHashes"]})
+            self.config.pop("collection")
+        self.save()
+        if self.config.get("pending"):
+            await self.finish_pending()
 
     async def tick(self):
         if (self.config.get("reference") and self.config.get("framingVersion") != CAMERA_FRAMING_VERSION
@@ -231,6 +261,16 @@ class AutomaticBox:
         # Startup exposure can wash out the scene; brightness must also match the confirmed empty view.
         empty = changed <= .025 and abs(statistics.median(samples) - statistics.median(self.config["reference"])) <= 25
         self.empty_frames = self.empty_frames + 1 if empty else 0
+        if collection := self.config.get("collection"):
+            elapsed = time.time() - collection["startedAt"]
+            if changed < .08 or not 0 <= elapsed <= 20:
+                self.config.pop("collection")
+                self.config["awaitingEmpty"] = True
+                self.state = "checking_empty"
+                self.save()
+                return
+            await self.collect_view(body)
+            return
         if self.config.get("latched") or self.config.get("awaitingEmpty"):
             self.state = ("checking_empty" if self.config.get("awaitingEmpty") else
                           "recapture" if self.result and self.result["recaptureRequested"] else "remove_egg")
@@ -246,11 +286,7 @@ class AutomaticBox:
         self.state = "settling" if changed >= .08 else "waiting" if empty else "checking_empty"
         # A rotating holder may never stop; prefer a steady pair, otherwise capture the third occupied frame.
         if self.occupied_frames >= 2 and (motion <= .015 or self.occupied_frames >= 3):
-            image_hash = hashlib.sha256(body).hexdigest()
-            await run_in_threadpool(self.evidence.store_jpeg, body, image_hash)
-            self.config.update(latched=True, pending={"key": "box-" + uuid4().hex, "imageHash": image_hash})
-            self.save()
-            await self.finish_pending()
+            await self.collect_view(body)
 
     async def run(self):
         while True:
@@ -258,6 +294,9 @@ class AutomaticBox:
                 async with self.lock:
                     await self.tick()
             except (httpx.HTTPError, OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
+                if self.config.pop("collection", None):
+                    self.config["awaitingEmpty"] = True
+                    self.save()
                 self.state = "error" if self.config.get("pending") else "offline"
                 self.error = ("Analysis interrupted. Retrying the saved capture." if self.config.get("pending")
                               else "Camera unavailable. Check camera power and connection.")

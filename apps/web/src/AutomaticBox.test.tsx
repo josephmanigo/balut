@@ -11,6 +11,14 @@ const prediction: SourcePrediction = { predictionId: "auto-test", modelId: "egg-
 
 describe("automatic camera capture", () => {
   beforeEach(() => vi.resetAllMocks());
+  it("shows automatic multi-view progress without a capture button", async () => {
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, calibrated: true, connected: true,
+      enabled: true, state: "capturing_views", capturedViews: 2, targetViews: 3 });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByRole("heading", { name: "Capturing three views." })).toBeInTheDocument();
+    expect(screen.getByText("Views captured · 2 / 3")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /capture|analyze|start/i })).not.toBeInTheDocument();
+  });
   it("offers USB capture without a manual cloud setup or start button", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", state: "offline" });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);

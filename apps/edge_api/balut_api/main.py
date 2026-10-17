@@ -35,7 +35,7 @@ from .simulator import build_simulated_ingest
 from .evidence import EvidenceStore
 from .http_guard import HttpGuard
 from .browser_auth import BrowserSessions, browser_auth_router
-from .model_service import ModelService, ModelBusyError
+from .model_service import ModelService, ModelBusyError, MULTIVIEW_POLICY
 from .automatic_box import AutomaticBox, box_router
 from .supabase_store import CloudStorageError, Supabase, SupabaseDatabase, SupabaseEvidence
 
@@ -53,19 +53,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     models = ModelService()
 
     def persist_prediction(model_id, body, actor, key, source=None):
-        image_hash = hashlib.sha256(body).hexdigest()
-        request_hash = canonical_sha256({"modelId": model_id, "registrySha256": models.registry_sha256, "imageSha256": image_hash})
+        multiview = isinstance(body, list)
+        bodies = body if multiview else [body]
+        hashes = [hashlib.sha256(view).hexdigest() for view in bodies]
+        image_hash = hashes[0]
+        identity = {"modelId": model_id, "registrySha256": models.registry_sha256, "imageSha256": image_hash}
+        if multiview:
+            identity.update(imageHashes=hashes, multiViewPolicy=MULTIVIEW_POLICY)
+        request_hash = canonical_sha256(identity)
         replay = database.prediction_replay(actor, key, request_hash)
         if replay is not None:
-            if not evidence_store.contains(image_hash):
+            if not all(evidence_store.contains(digest) for digest in hashes):
                 raise OSError("Evidence for the earlier result is unavailable")
             return replay
         if shutil.disk_usage(resolved_settings.evidence_path).free < 100 * 1024 * 1024:
             raise OSError("Insufficient evidence storage")
-        result = models.predict(model_id, body)
+        result = models.predict_views(model_id, bodies) if multiview else models.predict(model_id, body)
         if source:
             result = {**result, "captureSource": source}
-        evidence_store.store_jpeg(body, image_hash)
+        for view, digest in zip(bodies, hashes, strict=True):
+            evidence_store.store_jpeg(view, digest)
         return database.record_prediction(result, image_hash, actor, key, request_hash)
 
     def predict_box(body, key):
