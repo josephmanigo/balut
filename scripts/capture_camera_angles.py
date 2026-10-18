@@ -11,11 +11,11 @@ from balut_api.automatic_box import prepare_camera_frame
 from balut_api.model_service import decode_jpeg
 if __package__:
     from .camera_usb_bridge import open_camera
-    from .capture_camera_pilot import partition_for
+    from .camera_egg_ids import partition_for
     from .spinner_control import open_spinner, capture_views
 else:
     from camera_usb_bridge import open_camera
-    from capture_camera_pilot import partition_for
+    from camera_egg_ids import partition_for
     from spinner_control import open_spinner, capture_views
 
 OUTPUT = ROOT / "output/physical-multiangle-20261019"

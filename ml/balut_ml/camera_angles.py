@@ -8,7 +8,7 @@ import shutil
 
 from PIL import Image
 from balut_api.selective_gate import image_quality
-from scripts.capture_camera_pilot import partition_for
+from scripts.camera_egg_ids import partition_for
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / "data/local/retained-camera-20261018"

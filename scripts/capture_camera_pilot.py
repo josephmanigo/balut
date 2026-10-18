@@ -16,19 +16,12 @@ from balut_api.automatic_box import prepare_camera_frame
 from balut_api.model_service import decode_jpeg
 if __package__:
     from .camera_usb_bridge import open_camera, read_fresh_snapshot
+    from .camera_egg_ids import partition_for
 else:
     from camera_usb_bridge import open_camera, read_fresh_snapshot
+    from camera_egg_ids import partition_for
 
 OUTPUT = ROOT / "output/physical-pilot-20261018"
-
-
-def partition_for(egg_id):
-    match = re.fullmatch(r"(16|18)-([1-9]|1[0-5])", egg_id)
-    if not match:
-        raise ValueError("Expected a distinct egg ID from 16-1..16-15 or 18-1..18-15")
-    age, index = map(int, match.groups())
-    # Keep the originally reserved fifth egg untouched as the pilot expands.
-    return age, "test" if index in (5, 12, 13, 14, 15) else "train" if index in (1, 2, 3, 6, 7) else "validation"
 
 
 def main():
