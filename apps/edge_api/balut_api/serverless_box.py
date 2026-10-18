@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
-from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, empty_view_matches, CAMERA_FRAMING_VERSION
+from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, empty_view_matches, prepare_camera_frame, CAMERA_FRAMING_VERSION
 from .model_service import decode_jpeg
 from .remote_camera import USB_ORIGIN
 from .security import require_box_operator, require_idempotency_key
@@ -30,6 +30,7 @@ class SavedBox(AutomaticBox):
         self.connected = bool(self.received and time.time() - self.received <= 12)
         self.body = None
         self.stationary_frame = False
+        self.stationary_views = None
         self.committed = deepcopy(self.snapshot())
 
     def snapshot(self):
@@ -91,17 +92,27 @@ class SavedBox(AutomaticBox):
             self.error = previous_error
         if self.state != "settling":
             self.config.pop("stationaryRequested", None)
+            self.config.pop("stationaryRequestedAt", None)
 
     async def capture_frame(self, body):
         if self.config.get("stationaryCapture") and not self.stationary_frame:
             self.config["stationaryRequested"] = True
+            self.config.setdefault("stationaryRequestedAt", time.time())
             return
         self.config.pop("stationaryRequested", None)
-        await super().capture_frame(body, stationary=self.stationary_frame)
+        self.config.pop("stationaryRequestedAt", None)
+        views = [prepare_camera_frame(view) for view in self.stationary_views] if self.stationary_views else body
+        await super().capture_frame(views, stationary=self.stationary_frame)
 
     def status(self):
         result = super().status()
         result["cloudCapture"] = True
+        if self.config.get("stationaryCapture"):
+            result["targetViews"] = 3
+        if (self.config.get("stationaryRequested") and self.config.get("enabled")
+                and 0 <= time.time() - self.config.get("stationaryRequestedAt", 0) <= 90):
+            result.update(state="capturing_views", connected=True, targetViews=3)
+            return result
         if not self.connected:
             result.update(state="offline", error="Start the USB cloud connector to receive fresh camera frames.", preview=None)
         return result
@@ -168,21 +179,32 @@ class ServerlessBox:
         return await run_in_threadpool(self.receive_frame, body, key, camera_session)
 
     def receive_frame(self, body, key, camera_session="signed-usb"):
-        motor_frame = re.fullmatch(r"usb-motor-(preview|still)-([0-9a-f]{32})-[1-9][0-9]*", key)
+        motor_frame = re.fullmatch(r"usb-motor-(preview|still|views)-([0-9a-f]{32})-[1-9][0-9]*", key)
         if key.startswith("usb-motor-"):
             if not motor_frame or camera_session != "signed-usb":
                 raise HTTPException(400, "Motor capture requires the signed local USB connector")
             camera_session += "-motor-" + motor_frame[2]
-        if not 4 < len(body) <= 128 * 1024:
+        multiview = bool(motor_frame and motor_frame[1] == "views")
+        bodies = body if isinstance(body, list) else [body]
+        if multiview != isinstance(body, list) or multiview and len(bodies) != 3:
+            raise HTTPException(400, "Send exactly three paused views for a multiangle scan")
+        if any(not isinstance(view, bytes) or not 4 < len(view) <= 128 * 1024 for view in bodies):
             raise HTTPException(413, "USB frame exceeds 128 KB")
+        if multiview and len({hashlib.sha256(view).digest() for view in bodies}) != 3:
+            raise HTTPException(400, "Multiangle scan requires three distinct camera frames")
         try:
-            with decode_jpeg(body) as image:
-                source_size = list(image.size)
-                if image.size not in {(640, 480), (800, 600)}:
-                    raise ValueError("Expected a 640 by 480 or 800 by 600 box camera frame")
+            sizes = []
+            for view in bodies:
+                with decode_jpeg(view) as image:
+                    sizes.append(list(image.size))
+                    if image.size not in {(640, 480), (800, 600)}:
+                        raise ValueError("Expected a 640 by 480 or 800 by 600 box camera frame")
+            source_size = sizes[0]
+            if any(size != source_size for size in sizes):
+                raise ValueError("All camera views must have the same dimensions")
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        digest = hashlib.sha256(body).hexdigest()
+        digest = hashlib.sha256(b"".join(len(view).to_bytes(4, "big") + view for view in bodies)).hexdigest() if multiview else hashlib.sha256(body).hexdigest()
 
         def process(box):
             def response(repeated):
@@ -203,9 +225,14 @@ class ServerlessBox:
                 raise HTTPException(429, "Send at most five frames per second")
             if box.config.get("pending"):
                 asyncio.run(box.finish_pending())
+            expected_views = (multiview and box.config.get("stationaryRequested") and box.config.get("enabled")
+                              and box.config.get("cameraSession") == camera_session
+                              and 0 <= now - box.config.get("stationaryRequestedAt", 0) <= 90)
+            if multiview and not expected_views:
+                raise HTTPException(409, "Scan expired or was not requested; remove the egg before retrying")
             framing_changed = (box.config.get("sourceSize", [640, 480]) != source_size
                                or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION)
-            if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12:
+            if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12 and not expected_views:
                 if not framing_changed and box.config.get("reference"):
                     # Reuse only a confirmed view, and require fresh empty matches before capturing again.
                     box.config["awaitingEmpty"] = True
@@ -217,11 +244,13 @@ class ServerlessBox:
             box.config["sourceSize"] = source_size
             box.config["framingVersion"] = CAMERA_FRAMING_VERSION
             box.config["stationaryCapture"] = bool(motor_frame)
-            box.stationary_frame = bool(motor_frame and motor_frame[1] == "still")
-            box.body, box.received, box.connected = body, now, True
-            asyncio.run(box.tick())
+            box.stationary_frame = bool(motor_frame and motor_frame[1] in {"still", "views"})
+            box.stationary_views = bodies if multiview else None
+            box.body, box.received, box.connected = bodies[0], now, True
             # 256 entries cover the entire 30-second signature window at the maximum frame rate.
             box.seen = (box.seen + [[key, digest]])[-256:]
+            # Save the upload identity with durable pending evidence before inference can fail.
+            asyncio.run(box.tick())
             return response(False)
 
         return self.mutate(process)

@@ -23,5 +23,5 @@ app = create_app(Settings(
     model_registry_sha256=(registry.parent / "registry.sha256").read_text().split()[0],
     web_dist_path=root / "apps/web/dist",
     cloud_origin=os.getenv("BALUT_CLOUD_ORIGIN") or "https://" + os.environ["VERCEL_PROJECT_PRODUCTION_URL"], serverless=True,
-    max_request_bytes=160 * 1024, supabase_url=os.environ["SUPABASE_URL"], supabase_secret_key=os.environ["SUPABASE_SECRET_KEY"],
+    max_request_bytes=600 * 1024, supabase_url=os.environ["SUPABASE_URL"], supabase_secret_key=os.environ["SUPABASE_SECRET_KEY"],
 ))

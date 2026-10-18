@@ -20,7 +20,7 @@ from balut_api.supabase_store import Supabase, CloudStorageError
 from test_automatic_box import make_box
 from test_production import settings_for
 from test_supabase_store import provider, URL, SECRET
-from scripts.upload_box_frames import frame_headers, render_origin
+from scripts.upload_box_frames import frame_headers, render_origin, VIEWS_PATH
 
 ORIGIN = "https://balut-test.vercel.app"
 
@@ -101,6 +101,95 @@ def test_browser_cannot_claim_the_signed_motor_capture_protocol(tmp_path, shared
     with pytest.raises(HTTPException) as error:
         worker.receive_frame(camera_frame(), "usb-motor-still-" + "a" * 32 + "-1", "browser-session")
     assert error.value.status_code == 400
+
+
+def test_three_paused_views_are_one_durable_scan_after_capture_gap(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def worker(): return ServerlessBox(local.database, local.evidence, local.predict, Supabase(URL, SECRET))
+    sequence = 0
+    def preview(occupied=False):
+        nonlocal sequence
+        sequence += 1
+        now[0] += 2
+        return worker().receive_frame(camera_frame(occupied), f'usb-motor-preview-{"a" * 32}-{sequence}')
+    for _ in range(3): preview()
+    worker().mutate(lambda box: box.calibrate_saved())
+    for _ in range(3): response = preview(True)
+    assert response["captureRequested"] and not predictions
+    now[0] += 25
+    assert worker().status()["state"] == "capturing_views"
+    views = [camera_frame(True, brightness=brightness) for brightness in (40, 42, 44)]
+    key = 'usb-motor-views-' + 'a' * 32 + '-8'
+    assert worker().receive_frame(views, key)["captureRequested"] is False
+    assert len(predictions) == 1 and predictions[0].startswith("box-views-")
+    assert len(local.database.list_predictions()) == 1
+    assert worker().receive_frame(views, key)["repeated"]
+    assert len(predictions) == 1
+
+
+@pytest.mark.parametrize("mode", ["browser", "unrequested", "duplicate", "two_views"])
+def test_invalid_multiangle_groups_do_not_run_inference(tmp_path, shared, mode):
+    local, predictions = make_box(tmp_path)
+    worker = ServerlessBox(local.database, local.evidence, local.predict, Supabase(URL, SECRET))
+    views = [camera_frame(True, brightness=n) for n in (40, 42, 44)]
+    if mode == "duplicate": views[2] = views[0]
+    if mode == "two_views": views.pop()
+    session = "browser-session" if mode == "browser" else "signed-usb"
+    with pytest.raises(HTTPException):
+        worker.receive_frame(views, 'usb-motor-views-' + 'a' * 32 + '-1', session)
+    assert not predictions
+
+
+def test_multiangle_route_verifies_device_signature_and_payload(tmp_path, shared, provider, monkeypatch):
+    provider["account"] = {"username": "classroom", "password_hash": "not-used-by-this-test"}
+    settings = settings_for(tmp_path, cloud_origin=ORIGIN, serverless=True, supabase_url=URL, supabase_secret_key=SECRET)
+    application = create_app(settings)
+    accepted = []
+    async def receive(_, bodies, key, camera_session="signed-usb"):
+        accepted.append((bodies, key))
+        return {"accepted": True, "captureRequested": False}
+    monkeypatch.setattr(ServerlessBox, "receive", receive)
+    bodies = [camera_frame(True, brightness=n) for n in (40, 42, 44)]
+    payload = json.dumps({"views": [base64.b64encode(view).decode() for view in bodies]}).encode()
+    key = 'usb-motor-views-' + 'a' * 32 + '-1'
+    headers = frame_headers(payload, settings.device_shared_secret, key, int(time.time()), VIEWS_PATH, "application/json")
+    with TestClient(application, base_url=ORIGIN) as client:
+        assert client.post(VIEWS_PATH, content=payload).status_code == 401
+        wrong = frame_headers(payload, settings.device_shared_secret, key, int(time.time()))
+        assert client.post(VIEWS_PATH, content=payload, headers=wrong).status_code == 401
+        assert client.post(VIEWS_PATH, content=payload + b" ", headers=headers).status_code == 401
+        assert client.post(VIEWS_PATH, content=payload, headers=headers).status_code == 200
+        assert accepted == [(bodies, key)]
+        for bad in (b'{}', b'{"views":["bad","bad","bad"]}', b'[]'):
+            headers = frame_headers(bad, settings.device_shared_secret, key, int(time.time()), VIEWS_PATH, "application/json")
+            assert client.post(VIEWS_PATH, content=bad, headers=headers).status_code == 400
+        assert len(accepted) == 1
+
+
+def test_three_view_pending_capture_recovers_same_upload_after_inference_failure(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path, fail_first=True)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def worker(): return ServerlessBox(local.database, local.evidence, local.predict, Supabase(URL, SECRET))
+    for index in range(3):
+        now[0] += 2
+        worker().receive_frame(camera_frame(), f'usb-motor-preview-{"a" * 32}-{index + 1}')
+    worker().mutate(lambda box: box.calibrate_saved())
+    for index in range(3):
+        now[0] += 2
+        worker().receive_frame(camera_frame(True), f'usb-motor-preview-{"a" * 32}-{index + 4}')
+    views = [camera_frame(True, brightness=n) for n in (40, 42, 44)]
+    key = 'usb-motor-views-' + 'a' * 32 + '-7'
+    now[0] += 25
+    with pytest.raises(OSError, match="interruption"):
+        worker().receive_frame(views, key)
+    assert len(shared["camera"]["config"]["pending"]["imageHashes"]) == 3
+    now[0] += 2
+    assert worker().receive_frame(views, key)["repeated"]
+    assert len(local.database.list_predictions()) == 1 and not shared["camera"]["config"].get("pending")
+    assert len(predictions) == 2 and predictions[0] == "interrupted" and predictions[1].startswith("box-views-")
 
 
 def test_sessions_cross_instances_logout_expiry_rate_limit_and_fail_closed(tmp_path, shared, provider, monkeypatch):

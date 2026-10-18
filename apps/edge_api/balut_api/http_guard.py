@@ -58,7 +58,7 @@ class HttpGuard:
                     cloud_routes = {"/", "/health", "/ready", "/api/v1/models", "/api/v1/model-predictions",
                                     "/api/v1/auth/session", "/api/v1/auth/login", "/api/v1/auth/logout",
                                     "/api/v1/box/status", "/api/v1/box/connect", "/api/v1/box/reference", "/api/v1/box/frame",
-                                    "/api/v1/box/enabled", "/api/v1/device/box/frame"}
+                                    "/api/v1/box/enabled", "/api/v1/device/box/frame", "/api/v1/device/box/views"}
                     if request.url.path not in cloud_routes and not request.url.path.startswith("/assets/") and not re.fullmatch(r"/api/v1/model-predictions/records/[a-z0-9-]{1,80}", request.url.path):
                         return await reject(404, "Route unavailable")
                 elif self.settings.https_origin:

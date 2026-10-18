@@ -35,10 +35,14 @@ def read_snapshot(port):
     body = bytearray()
     while len(body) < length and time.monotonic() < deadline:
         body.extend(port.read(length - len(body)))
-    if len(body) != length or zlib.crc32(body) != checksum:
-        raise ValueError("Incomplete or corrupt USB image")
+    if len(body) != length:
+        raise ValueError(f"Incomplete USB image: received {len(body)} of {length} bytes")
+    if zlib.crc32(body) != checksum:
+        raise ValueError("Corrupt USB image: checksum mismatch")
     if not body.startswith(b"\xff\xd8") or not body.endswith(b"\xff\xd9"):
         raise ValueError("Camera did not return a JPEG")
+    if port.read(1) != b"\n":
+        raise ValueError("Camera frame terminator is missing")
     return bytes(body)
 
 

@@ -1,6 +1,5 @@
 import pytest
 from scripts import spinner_control
-from scripts import upload_box_frames
 
 
 class Port:
@@ -48,22 +47,24 @@ def test_capture_failure_still_resumes(monkeypatch):
     assert port.commands == ["HOLD", "RUN"] and port.state == "RUNNING"
 
 
-def test_connector_reads_fresh_camera_frame_while_held_and_returns_after_resume(monkeypatch):
+def test_three_views_pause_for_each_frame_and_advance_between_them(monkeypatch):
     monkeypatch.setattr(spinner_control.time, "sleep", lambda _: None)
-    port = Port()
-    def read(camera):
-        assert camera == "camera" and port.state == "HELD"
-        return b"fresh frame"
-    monkeypatch.setattr(upload_box_frames, "read_fresh_snapshot", read)
-    assert upload_box_frames.read_upload_frame("camera", spinner_control.Spinner(port), True) == b"fresh frame"
-    assert port.commands == ["HOLD", "STATUS", "RUN"] and port.state == "RUNNING"
-
-
-def test_preview_does_not_pause_motor(monkeypatch):
-    port = Port()
-    monkeypatch.setattr(upload_box_frames, "read_fresh_snapshot", lambda _: b"preview")
-    assert upload_box_frames.read_upload_frame("camera", spinner_control.Spinner(port), False) == b"preview"
-    assert not port.commands
+    class MovingPort(Port):
+        def write(self, body):
+            if body.startswith(b"STATUS") and self.state == "RUNNING":
+                self.steps += 683
+            super().write(body)
+    port = MovingPort()
+    captures = []
+    def read(_):
+        assert port.state == "HELD"
+        captures.append(port.steps)
+        return f"frame-{port.steps}".encode()
+    monkeypatch.setattr(spinner_control, "read_fresh_snapshot", read)
+    views = spinner_control.capture_views("camera", spinner_control.Spinner(port))
+    assert captures == [12, 695, 1378]
+    assert len(views) == 3 and port.commands.count("HOLD") == port.commands.count("RUN") == 3
+    assert port.state == "RUNNING"
 
 
 @pytest.mark.parametrize("drift,fail_hold", [(True, False), (False, True)])

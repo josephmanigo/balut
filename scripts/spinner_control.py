@@ -1,10 +1,56 @@
 """Local, bounded capture hold for the identified spinner; no cloud motion endpoint."""
 from contextlib import contextmanager
+from datetime import datetime, timezone
+import hashlib
 import re
 import time
 from uuid import uuid4
 
+if __package__:
+    from .camera_usb_bridge import read_fresh_snapshot
+else:
+    from camera_usb_bridge import read_fresh_snapshot
+
 MOTOR_MAC = "3c:8a:1f:09:88:8c"
+STEPS_PER_VIEW = 683  # Approximately 120 degrees with the recovered 2048-step gearing.
+
+
+def next_angle(spinner, previous_steps):
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        state, steps = spinner.command("STATUS")
+        if state != "RUNNING":
+            raise ValueError("Holder did not resume between angles")
+        if ((steps - previous_steps) & 0xffffffff) >= STEPS_PER_VIEW:
+            return
+        time.sleep(.03)
+    raise ValueError("Holder did not advance to the next angle")
+
+
+def capture_views(camera, spinner):
+    views = []
+    for index in range(3):
+        if views:
+            next_angle(spinner, views[-1][1]["motor_steps"])
+        for attempt in range(5):
+            try:
+                with spinner.capture_hold():
+                    _, steps = spinner.command("STATUS")
+                    print(f"Angle {index + 1}/3: holder paused; reading fresh camera frame.", flush=True)
+                    body = read_fresh_snapshot(camera)
+                    captured_at = datetime.now(timezone.utc).isoformat()
+                break
+            except ValueError as exc:
+                print(f"Capture discarded: {exc}", flush=True)
+                if attempt == 4:
+                    raise
+                time.sleep(.5)
+        views.append((body, {"view_index": index + 1, "motor_steps": steps, "captured_at": captured_at,
+                             "sha256": hashlib.sha256(body).hexdigest()}))
+        print(f"Angle {index + 1}/3 captured; holder resumed.", flush=True)
+    if len({view[1]["sha256"] for view in views}) != 3:
+        raise ValueError("Duplicate camera frames; discard this capture")
+    return views
 
 
 class Spinner:

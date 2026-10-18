@@ -227,10 +227,15 @@ class AutomaticBox:
         self.save()
 
     async def capture_frame(self, body, *, stationary=False):
-        image_hash = hashlib.sha256(body).hexdigest()
-        await run_in_threadpool(self.evidence.store_jpeg, body, image_hash)
-        prefix = "box-still-" if stationary else "box-"
-        self.config.update(latched=True, pending={"key": prefix + uuid4().hex, "imageHash": image_hash})
+        bodies = body if isinstance(body, list) else [body]
+        hashes = [hashlib.sha256(view).hexdigest() for view in bodies]
+        for view, digest in zip(bodies, hashes, strict=True):
+            await run_in_threadpool(self.evidence.store_jpeg, view, digest)
+        prefix = "box-views-" if isinstance(body, list) else "box-still-" if stationary else "box-"
+        pending = {"key": prefix + uuid4().hex, "imageHash": hashes[0]}
+        if isinstance(body, list):
+            pending["imageHashes"] = hashes
+        self.config.update(latched=True, pending=pending)
         self.save()
         await self.finish_pending()
 

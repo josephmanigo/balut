@@ -49,12 +49,18 @@ def jpeg():
 
 def packet(body, checksum=None):
     checksum = zlib.crc32(body) if checksum is None else checksum
-    return f"BALUT_JPEG {len(body)} {checksum:08x}\n".encode() + body
+    return f"BALUT_JPEG {len(body)} {checksum:08x}\n".encode() + body + b"\n"
 
 
 def test_usb_image_survives_boot_messages_and_fragmented_reads():
     body = jpeg()
     assert bridge.read_snapshot(CameraPort(b"booting\nBALUT_USB_READY\n" + packet(body))) == body
+
+
+def test_snapshot_consumes_frame_terminator_before_requesting_another_image():
+    camera = CameraPort(packet(jpeg()))
+    bridge.read_snapshot(camera)
+    assert camera.stream.read() == b""
 
 
 def test_fresh_capture_discards_the_queued_frame():

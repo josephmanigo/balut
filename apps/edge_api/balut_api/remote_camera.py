@@ -1,6 +1,9 @@
 """Receive signed USB frames; never opens a camera URL on the cloud server."""
 import asyncio
+import base64
+import binascii
 import hashlib
+import json
 import time
 from collections import OrderedDict
 
@@ -89,5 +92,30 @@ def remote_camera_router(camera, settings):
         if request.headers.get("X-Image-SHA256") != hashlib.sha256(body).hexdigest():
             raise HTTPException(400, "Image checksum mismatch")
         return await camera.receive(body, require_idempotency_key(request))
+
+    @router.post("/api/v1/device/box/views")
+    async def upload_views(request: Request):
+        if not settings.serverless:
+            raise HTTPException(404, "Multiangle capture requires the Vercel USB connector")
+        device = await verify_device_signature(request, settings)
+        if device != "BOX-USB-1" or request.url.query or request.headers.get("Content-Type") != "application/json":
+            raise HTTPException(400, "Invalid USB multiangle request")
+        if abs(int(time.time()) - int(request.headers["X-Device-Timestamp"])) > 30:
+            raise HTTPException(401, "Camera clock differs by more than 30 seconds; sync Windows time")
+        body = await request.body()
+        if request.headers.get("X-Image-SHA256") != hashlib.sha256(body).hexdigest():
+            raise HTTPException(400, "Capture checksum mismatch")
+        try:
+            payload = json.loads(body)
+            if (not isinstance(payload, dict) or set(payload) != {"views"} or not isinstance(payload["views"], list)
+                    or len(payload["views"]) != 3 or any(not isinstance(view, str) for view in payload["views"])):
+                raise ValueError("Expected three camera views")
+            views = [base64.b64decode(view, validate=True) for view in payload["views"]]
+        except (ValueError, binascii.Error) as exc:
+            raise HTTPException(400, "Send exactly three base64-encoded camera views") from exc
+        key = require_idempotency_key(request)
+        if not key.startswith("usb-motor-views-"):
+            raise HTTPException(400, "Multiangle capture requires its signed event key")
+        return await camera.receive(views, key)
 
     return router

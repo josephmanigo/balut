@@ -1,5 +1,7 @@
 # Pause the holder during a live capture
 
+This records the first single-frame implementation. The user subsequently requested three angles; the current sequence and dataset collection are described in `MULTIANGLE_CAPTURE_2026-10-19.md`.
+
 The Vercel app now distinguishes rotating preview frames from the single stationary frame used for analysis. Once the existing empty-view state machine detects an occupied holder, the signed USB connector requests a local motor hold, waits 300 ms, discards the queued camera frame, reads one fresh frame, verifies that the controller's step counter has not changed, and resumes rotation. Upload and inference happen after rotation resumes. No photo button, manual upload, or multiple-angle collection is required.
 
 The controller is the identified ESP32 at MAC `3c:8a:1f:09:88:8c`, connected through the CP210x adapter. Its firmware preserves the recovered pin order 18/21/19/22, 2048 steps per revolution, and 10 RPM. The candling light is not controlled by this firmware. The camera remains on its separate identified FTDI adapter. Both USB cables must remain connected to the laptop, and `scripts/upload_box_frames.py` must remain running.

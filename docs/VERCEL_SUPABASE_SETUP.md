@@ -78,9 +78,10 @@ The existing `Connect Cloud Box.cmd` remains an alternative for a prepared lapto
 It uses `deployment/private/cloud-device.json`; copy only this device profile if
 moving that connector to another laptop. Never copy the Supabase server secret.
 On the identified box with capture-control firmware, this Python connector also
-pauses the holder for one fresh camera acquisition and resumes rotation before
-upload and analysis. Keep both USB cables connected. The browser-only USB path
-does not control the motor. See `STATIONARY_CAPTURE_2026-10-19.md`.
+captures three angles, pausing the holder for each fresh image and spinning
+between angles. Rotation resumes before upload and analysis. Keep both USB cables
+connected. The browser-only USB path does not control the motor. See
+`MULTIANGLE_CAPTURE_2026-10-19.md`.
 
 Capture runs inside each frame-upload request; there is no cloud background loop.
 A database lease prevents two Vercel instances from changing capture state at the
