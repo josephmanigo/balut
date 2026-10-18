@@ -28,12 +28,12 @@ describe("automatic camera capture", () => {
     expect(screen.queryByText("Image too blurry · check camera focus, then replace the egg.")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
   });
-  it("shows automatic multi-view progress without a capture button", async () => {
+  it("shows capture without asking for multiple angles", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, calibrated: true, connected: true,
       enabled: true, state: "capturing_views", capturedViews: 2, targetViews: 3 });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByRole("heading", { name: "Capturing three views." })).toBeInTheDocument();
-    expect(screen.getByText("Views captured · 2 / 3")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Capturing image." })).toBeInTheDocument();
+    expect(screen.queryByText(/Views captured|three views|Leave the egg rotating/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /capture|analyze|start/i })).not.toBeInTheDocument();
   });
   it("offers USB capture without a manual cloud setup or start button", async () => {

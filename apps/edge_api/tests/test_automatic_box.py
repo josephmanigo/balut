@@ -108,7 +108,7 @@ def test_camera_preview_preserves_native_detail_and_bounds_large_images():
 @pytest.fixture
 def camera_clock(monkeypatch):
     now = [1000.0]
-    monkeypatch.setattr("balut_api.automatic_box.time.time", lambda: now[0])
+    monkeypatch.setattr("time.time", lambda: now[0])
     return now
 
 
@@ -235,9 +235,9 @@ def test_capture_has_bounded_wait_for_rotation_but_ignores_brief_scene_changes(t
             await box.tick()
             if index == 0:
                 assert not calls
-        assert not calls and box.state == "capturing_views"
-        for _ in range(2): await box.tick()
         assert len(calls) == 1 and box.state == "remove_egg"
+        assert box.status()["targetViews"] == 1
+        assert not box.config.get("collection")
         for _ in range(5): await box.tick()
         assert len(calls) == 1
     asyncio.run(scenario())
@@ -257,6 +257,7 @@ def test_saved_capture_recovers_after_interruption_and_pause_preserves_latch(tmp
         with pytest.raises(OSError):
             for _ in range(4): await box.tick()
         pending = box.database.box_config()["pending"]
+        assert "imageHashes" not in pending
         assert box.evidence.contains(pending["imageHash"])
         box.config.pop("framingVersion")
         box.enable(False)
@@ -272,6 +273,28 @@ def test_saved_capture_recovers_after_interruption_and_pause_preserves_latch(tmp
         for _ in range(6): await box.tick()
         assert len(box.database.list_predictions()) == 1
         assert not box.config.get("reference") and not box.config["enabled"]
+    asyncio.run(scenario())
+
+
+def test_legacy_completed_multiview_recovers_without_capturing_more_images(tmp_path):
+    async def scenario():
+        box, calls = make_box(tmp_path)
+        bodies = [frame(True, offset=offset) for offset in (-8, 0, 8)]
+        hashes = [__import__('hashlib').sha256(body).hexdigest() for body in bodies]
+        for body, digest in zip(bodies, hashes, strict=True):
+            box.evidence.store_jpeg(body, digest)
+        box.config = {"enabled": True, "latched": True,
+                      "pending": {"key": "legacy-completed", "imageHash": hashes[0], "imageHashes": hashes}}
+        original = box.predict
+        def predict(body, key):
+            assert body == bodies
+            return original(body, key)
+        box.predict = predict
+        async def no_capture(_): raise AssertionError("A saved scan must not take another image")
+        box.read_frame = no_capture
+        await box.tick()
+        assert calls == ["legacy-completed"] and "pending" not in box.config
+        assert len(box.database.list_predictions()) == 1
     asyncio.run(scenario())
 
 

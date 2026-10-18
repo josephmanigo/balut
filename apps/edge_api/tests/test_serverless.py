@@ -118,9 +118,9 @@ def test_capture_survives_new_instances_and_failed_prediction_without_duplicate(
     for _ in range(3): send()
     new().mutate(lambda box: box.calibrate_saved())
     send(True)
-    for _ in range(2): send(True)
     with pytest.raises(OSError, match="interruption"): send(True)
     assert shared["camera"]["config"]["pending"]
+    assert "imageHashes" not in shared["camera"]["config"]["pending"]
     send(True)
     assert len(local.database.list_predictions()) == 1
     assert not shared["camera"]["config"].get("pending")
@@ -158,8 +158,8 @@ def test_failed_evidence_upload_rolls_back_frame_and_shared_lease_blocks_other_i
     with pytest.raises(ValueError): render_origin(ORIGIN + ".evil.example")
 
 
-@pytest.mark.parametrize("interruption", ["empty", "session", "gap", "pause", "timeout"])
-def test_partial_views_are_spaced_durable_and_never_mixed_after_interruption(tmp_path, shared, monkeypatch, interruption):
+@pytest.mark.parametrize("interruption", ["frame", "session", "gap", "pause"])
+def test_old_partial_multiview_is_discarded_before_single_capture(tmp_path, shared, monkeypatch, interruption):
     local, predictions = make_box(tmp_path)
     cloud = Supabase(URL, SECRET)
     now = [time.time()]
@@ -173,26 +173,22 @@ def test_partial_views_are_spaced_durable_and_never_mixed_after_interruption(tmp
         return new().receive_frame(camera_frame(occupied), f"views-{sequence}", session)
     for _ in range(3): send()
     new().mutate(lambda box: box.calibrate_saved())
-    send(True)
-    send(True)
-    assert new().status()["state"] == "capturing_views" and new().status()["capturedViews"] == 1
-    send(True, seconds=.25)
-    assert new().status()["capturedViews"] == 1 and not predictions
-    send(True)
-    assert new().status()["capturedViews"] == 2
-    collection = copy.deepcopy(shared["camera"]["config"]["collection"])
-    assert all(local.evidence.contains(digest) for digest in collection["imageHashes"])
-    if interruption == "empty": send()
+    shared["camera"]["config"]["collection"] = {"key": "legacy-partial", "startedAt": now[0],
+        "lastViewAt": now[0], "imageHashes": ["old-view"]}
+    if interruption == "frame": send(True)
     elif interruption == "session": send(True, session="second")
     elif interruption == "gap": send(True, seconds=13)
     elif interruption == "pause": new().mutate(lambda box: box.enable(False))
-    else:
-        # Keep connection fresh but expire a scan whose preceding view is too old.
-        shared["camera"]["config"]["collection"]["startedAt"] -= 21
-        send(True)
     assert not shared["camera"]["config"].get("collection")
     assert shared["camera"]["config"]["awaitingEmpty"]
     assert not predictions and not local.database.list_predictions()
+    if interruption == "pause": new().mutate(lambda box: box.enable(True))
+    for _ in range(2): send()
+    send(True)
+    assert not predictions
+    send(True)
+    assert len(predictions) == len(local.database.list_predictions()) == 1
+    assert new().status()["targetViews"] == 1
 
 
 @pytest.mark.parametrize("cached_occupied", [False, True])

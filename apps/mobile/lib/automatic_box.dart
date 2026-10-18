@@ -163,8 +163,8 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
             'settling' => (
               t('Preparing to capture.', 'Naghahanda sa pagkuha.'),
               t(
-                'Keep your hands clear. Capture continues while the holder rotates.',
-                'Ilayo ang mga kamay. Kukunan kahit umiikot ang lalagyan.',
+                'Keep your hands clear. One image will be analyzed automatically.',
+                'Ilayo ang mga kamay. Awtomatikong susuriin ang isang larawan.',
               ),
             ),
             'analyzing' => (
@@ -175,10 +175,10 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
               ),
             ),
             'capturing_views' => (
-              t('Capturing three views.', 'Kumukuha ng tatlong larawan.'),
+              t('Capturing image.', 'Kinukunan ang larawan.'),
               t(
-                'Leave the egg rotating. Keep your hands clear until the result appears.',
-                'Hayaang umikot ang itlog. Ilayo ang mga kamay hanggang lumabas ang resulta.',
+                'Keep your hands clear until the result appears.',
+                'Ilayo ang mga kamay hanggang lumabas ang resulta.',
               ),
             ),
             'remove_egg' => (

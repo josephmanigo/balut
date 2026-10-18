@@ -9,7 +9,6 @@ import ipaddress
 import logging
 import statistics
 import sqlite3
-import time
 from urllib.parse import urlsplit
 from uuid import uuid4
 
@@ -24,8 +23,6 @@ from .model_service import decode_jpeg
 
 MAX_IMAGE = 10 * 1024 * 1024
 CAMERA_FRAMING_VERSION = 2
-CAPTURE_VIEWS = 3
-VIEW_INTERVAL = 1.5
 PRIVATE_NETWORKS = tuple(ipaddress.ip_network(value) for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"))
 
 
@@ -134,7 +131,7 @@ class AutomaticBox:
         return {"cameraUrl": self.config.get("cameraUrl", ""), "enabled": bool(self.config.get("enabled")),
                 "connected": self.connected, "calibrated": bool(self.config.get("reference")),
                 "state": self.state, "error": self.error, "preview": self.preview, "result": self.result,
-                "capturedViews": len(self.config.get("collection", {}).get("imageHashes", [])), "targetViews": CAPTURE_VIEWS,
+                "capturedViews": 0, "targetViews": 1,
                 "detection": "camera_scene_change", "controlsMotion": False}
 
     async def fetch(self, origin):
@@ -229,26 +226,12 @@ class AutomaticBox:
         self.state = "recapture" if result["recaptureRequested"] else "remove_egg"
         self.save()
 
-    async def collect_view(self, body):
-        now = time.time()
-        collection = self.config.get("collection")
-        if collection and now - collection["lastViewAt"] < VIEW_INTERVAL:
-            return
+    async def capture_frame(self, body):
         image_hash = hashlib.sha256(body).hexdigest()
         await run_in_threadpool(self.evidence.store_jpeg, body, image_hash)
-        if collection is None:
-            collection = {"key": "box-" + uuid4().hex, "startedAt": now, "imageHashes": []}
-            self.config["collection"] = collection
-        collection["imageHashes"].append(image_hash)
-        collection["lastViewAt"] = now
-        self.state = "capturing_views"
-        if len(collection["imageHashes"]) == CAPTURE_VIEWS:
-            self.config.update(latched=True, pending={"key": collection["key"],
-                "imageHash": collection["imageHashes"][0], "imageHashes": collection["imageHashes"]})
-            self.config.pop("collection")
+        self.config.update(latched=True, pending={"key": "box-" + uuid4().hex, "imageHash": image_hash})
         self.save()
-        if self.config.get("pending"):
-            await self.finish_pending()
+        await self.finish_pending()
 
     async def tick(self):
         if (self.config.get("reference") and self.config.get("framingVersion") != CAMERA_FRAMING_VERSION
@@ -264,22 +247,16 @@ class AutomaticBox:
         if self.config.get("pending"):
             await self.finish_pending()
             return
+        # Discard an incomplete pre-upgrade multi-view scan; keep durable pending results recoverable.
+        if self.config.pop("collection", None):
+            self.config["awaitingEmpty"] = True
+            self.save()
         body, samples = await self.read_frame(self.config["cameraUrl"])
         changed = difference(samples, self.config["reference"])
         motion = difference(samples, self.previous) if self.previous else 1.0
         self.previous = samples
         empty = empty_view_matches(samples, self.config["reference"])
         self.empty_frames = self.empty_frames + 1 if empty else 0
-        if collection := self.config.get("collection"):
-            elapsed = time.time() - collection["startedAt"]
-            if empty or changed < .08 or not 0 <= elapsed <= 20:
-                self.config.pop("collection")
-                self.config["awaitingEmpty"] = True
-                self.state = "checking_empty"
-                self.save()
-                return
-            await self.collect_view(body)
-            return
         if self.config.get("latched") or self.config.get("awaitingEmpty"):
             self.state = ("checking_empty" if self.config.get("awaitingEmpty") else
                           "recapture" if self.result and self.result["recaptureRequested"] else "remove_egg")
@@ -296,7 +273,7 @@ class AutomaticBox:
         self.state = "settling" if occupied else "waiting" if empty else "checking_empty"
         # A rotating holder may never stop; prefer a steady pair, otherwise capture the third occupied frame.
         if self.occupied_frames >= 2 and (motion <= .015 or self.occupied_frames >= 3):
-            await self.collect_view(body)
+            await self.capture_frame(body)
 
     async def run(self):
         while True:
