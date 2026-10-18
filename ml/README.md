@@ -8,7 +8,11 @@ export.
 Public candling datasets and exploratory trained checkpoints are available;
 see the [accuracy comparison](../docs/ACCURACY_RESULTS_2026-09-12.md) and
 [original measured results](../docs/TRAINING_RESULTS_2026-09-12.md). There is **no
-validated operational Balut model or identified physical-egg dataset**.
+validated operational Balut model**. The numbered 30-egg camera collection has
+user-reported farm ages; incubation records and batch identities remain unverified.
+The [retained dataset extension](../docs/RETAINED_CAMERA_DATASET_2026-10-18.md)
+adds these scans to the original dataset with their train/validation/test roles
+preserved and records the resulting three-class adaptation.
 The strict physical-data training entry point fails closed
 unless the physical dataset manifest is valid, image files exist, train and
 validation partitions exist, and a prospective-test partition has been
