@@ -123,7 +123,7 @@ describe("automatic camera capture", () => {
       render(<AutomaticBox locale="en" onSaved={saved} />);
       await act(async () => { await Promise.resolve(); });
       expect(screen.getByRole("heading", { name: "Saving the empty view." })).toBeInTheDocument();
-      expect(screen.getByText(/Waiting up to 20 seconds/)).toBeInTheDocument();
+      expect(screen.getByText(/Waiting up to 45 seconds/)).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /empty.*start|saving empty/i })).not.toBeInTheDocument();
       expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();

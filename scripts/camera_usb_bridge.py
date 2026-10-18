@@ -112,6 +112,8 @@ def open_camera():
     camera.dtr = camera.rts = False
     camera.port = find_camera_port(list_ports.comports())
     camera.open()
+    if hasattr(camera, "set_buffer_size"):
+        camera.set_buffer_size(rx_size=2 * MAX_IMAGE, tx_size=4096)
     return camera
 
 

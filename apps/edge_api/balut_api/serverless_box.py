@@ -71,7 +71,7 @@ class SavedBox(AutomaticBox):
             raise ValueError("Reconnect the camera before saving the empty view.")
         self.require_new_reference()
         # Cached frames can still contain the egg removed just before confirmation.
-        self.config["referenceDeadline"] = time.time() + 20
+        self.config["referenceDeadline"] = time.time() + 45
         self.config["framingVersion"] = CAMERA_FRAMING_VERSION
         self.frames = []
         self.state, self.result = "calibrating", None
@@ -232,7 +232,10 @@ class ServerlessBox:
                 raise HTTPException(409, "Scan expired or was not requested; remove the egg before retrying")
             framing_changed = (box.config.get("sourceSize", [640, 480]) != source_size
                                or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION)
-            if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12 and not expected_views:
+            expected_reference = (motor_frame and box.config.get("cameraSession") == camera_session
+                                  and now <= box.config.get("referenceDeadline", 0))
+            # USB retries can exceed the preview timeout while collecting three fresh confirmed-empty frames.
+            if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12 and not (expected_views or expected_reference):
                 if not framing_changed and box.config.get("reference"):
                     # Reuse only a confirmed view, and require fresh empty matches before capturing again.
                     box.config["awaitingEmpty"] = True

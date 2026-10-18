@@ -8,7 +8,7 @@ const states: Record<string, [string, string, string, string]> = {
   not_connected: ["Connect your box.", "Ikonekta ang kahon.", "Set up the camera once. Then place an egg.", "I-setup ang camera. Ilagay ang itlog pagkatapos."],
   connecting: ["Finding your camera…", "Hinahanap ang camera…", "Keep the box powered on.", "Panatilihing nakabukas ang kahon."],
   needs_reference: ["Start with an empty box.", "Magsimula sa bakanteng kahon.", "Remove the egg. Keep normal candling light on.", "Alisin ang itlog. Gamitin ang karaniwang ilaw."],
-  calibrating: ["Saving the empty view.", "Sine-save ang bakanteng kuha.", "Leave the box empty. Waiting up to 20 seconds for a steady image.", "Panatilihing bakante ang kahon. Maghihintay nang hanggang 20 segundo para sa hindi gumagalaw na kuha."],
+  calibrating: ["Saving the empty view.", "Sine-save ang bakanteng kuha.", "Leave the box empty. Waiting up to 45 seconds for a steady image.", "Panatilihing bakante ang kahon. Maghihintay nang hanggang 45 segundo para sa hindi gumagalaw na kuha."],
   checking_empty: ["Waiting for an empty view.", "Hinihintay ang bakanteng kuha.", "The camera has not matched the saved empty view. Remove the egg and keep your hands clear.", "Hindi pa tumutugma ang camera sa naka-save na bakanteng kuha. Alisin ang itlog at ilayo ang mga kamay."],
   waiting: ["Ready for an egg.", "Handa para sa itlog.", "Box is empty. Place one egg and keep your hands clear.", "Bakante ang kahon. Maglagay ng isang itlog at ilayo ang mga kamay."],
   settling: ["Scanning egg.", "Ini-scan ang itlog.", "Keep your hands clear. The camera analyzes the egg automatically.", "Ilayo ang mga kamay. Awtomatikong sinusuri ng camera ang itlog."],

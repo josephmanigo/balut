@@ -338,6 +338,25 @@ def test_empty_reference_waits_for_fresh_stable_frames_across_instances(tmp_path
     assert "referenceDeadline" not in shared["camera"]["config"]
 
 
+def test_confirmed_empty_reference_survives_slow_usb_retries_without_using_cached_frames(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def new(): return ServerlessBox(local.database, local.evidence, local.predict, Supabase(URL, SECRET))
+    def send(index):
+        new().receive_frame(camera_frame(), f'usb-motor-preview-{"b" * 32}-{index}')
+    send(1)
+    new().mutate(lambda box: box.request_reference())
+    for index in range(2, 5):
+        now[0] += 13
+        assert not new().status()["connected"]
+        send(index)
+        status = new().status()
+        assert status["calibrated"] == (index == 4)
+        assert status["state"] == ("waiting" if index == 4 else "calibrating")
+    assert not predictions
+
+
 def test_wider_camera_frames_reset_reference_and_keep_full_preview_detail(tmp_path, shared, monkeypatch):
     local, predictions = make_box(tmp_path)
     cloud = Supabase(URL, SECRET)
@@ -445,7 +464,7 @@ def test_waiting_reference_expires_or_cancels_on_camera_change(tmp_path, shared,
     new().mutate(lambda box: box.request_reference())
     assert new().status()["state"] == "calibrating"
     if interruption == "timeout":
-        for index in range(1, 5):
+        for index in range(1, 9):
             now[0] += 6
             new().receive_frame(camera_frame(index % 2 == 0), f"moving-{index}")
         assert new().status()["state"] == "needs_reference"
