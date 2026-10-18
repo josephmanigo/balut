@@ -183,7 +183,7 @@ class AutomaticBox:
             _, samples = await self.read_frame(self.config["cameraUrl"])
             frames.append(samples)
             await asyncio.sleep(.25)
-        if max(difference(frames[0], sample) for sample in frames[1:]) > .015:
+        if not all(empty_view_matches(sample, frames[0]) for sample in frames[1:]):
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
         self.config.pop("collection", None)

@@ -139,7 +139,7 @@ describe("automatic camera capture", () => {
       vi.mocked(boxRequest).mockResolvedValue(current);
       render(<AutomaticBox locale="en" onSaved={saved} />);
       await act(async () => { await Promise.resolve(); });
-      expect(screen.getByRole("heading", { name: "Checking the empty box." })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Waiting for an empty view." })).toBeInTheDocument();
       expect(screen.queryByText("Box setup")).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /empty.*start/i })).not.toBeInTheDocument();
       vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "waiting" });
@@ -161,6 +161,18 @@ describe("automatic camera capture", () => {
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
     await waitFor(() => expect(screen.getByRole("heading", { name: "Connection interrupted." })).toBeInTheDocument());
     expect(screen.queryByText("Ready for an egg.")).not.toBeInTheDocument();
+  });
+  it.each(["checking_empty", "needs_reference"])("recovers %s only after the operator confirms an empty box", async state => {
+    const user = userEvent.setup();
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, connected: true, state });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    await user.click(await screen.findByText("Box is empty but still waiting?"));
+    expect(boxRequest).not.toHaveBeenCalledWith("reference", expect.anything());
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, connected: true, state: "calibrating" });
+    await user.click(screen.getByRole("button", { name: "Box is empty — update reference" }));
+    expect(boxRequest).toHaveBeenCalledWith("reference", { emptyConfirmed: true });
+    expect(await screen.findByRole("heading", { name: "Saving the empty view." })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Box is empty — update reference" })).not.toBeInTheDocument();
   });
   it("updates the live preview while automatic analysis is paused", async () => {
     vi.useFakeTimers();

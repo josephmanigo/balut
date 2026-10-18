@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import time
 
 import httpx
 import pytest
@@ -57,6 +58,18 @@ def test_empty_holder_rearms_after_two_frames_despite_background_and_exposure_ch
             obstructed[y * 48 + 8:y * 48 + 40] = [50] * 32
         assert not empty_view_matches(obstructed, reference)
         samples = [220] * (48 * 30) + [int(value * .7 + 10) for value in reference[48 * 30:]]
+        calibration_frames = iter([reference, samples, reference])
+        async def calibration_read(_): return b"", next(calibration_frames)
+        box.config = {"cameraUrl": "http://192.168.1.50"}
+        box.read_frame = calibration_read
+        await box.calibrate()
+        assert box.state == "waiting"
+        from balut_api.serverless_box import SavedBox
+        cloud_box = SavedBox(box.database, box.evidence, box.predict, None, {
+            "config": box.config, "received": time.time(), "frames": [reference, samples, reference]})
+        assert cloud_box.reference_ready()
+        cloud_box.frames = [reference, obstructed, reference]
+        assert not cloud_box.reference_ready()
         box.config = {"cameraUrl": "http://192.168.1.50", "reference": reference,
                       "enabled": True, "latched": True, "awaitingEmpty": True, "framingVersion": 2}
         async def read(_): return b"", samples

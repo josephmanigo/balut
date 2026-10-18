@@ -147,10 +147,10 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
           )
         : switch (status?.state) {
             'checking_empty' => (
-              t('Checking the empty box.', 'Sinusuri ang bakanteng kahon.'),
+              t('Waiting for an empty view.', 'Hinihintay ang bakanteng kuha.'),
               t(
-                'Remove any egg. We’ll show Ready when the empty view is recognized.',
-                'Alisin ang itlog. Lalabas ang Handa kapag nakilala ang bakanteng tanawin.',
+                'The camera has not matched the saved empty view. Remove the egg and keep your hands clear.',
+                'Hindi pa tumutugma ang camera sa naka-save na bakanteng kuha. Alisin ang itlog at ilayo ang mga kamay.',
               ),
             ),
             'waiting' => (

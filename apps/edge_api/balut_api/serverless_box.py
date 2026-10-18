@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
-from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, difference, CAMERA_FRAMING_VERSION
+from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, empty_view_matches, CAMERA_FRAMING_VERSION
 from .model_service import decode_jpeg
 from .remote_camera import USB_ORIGIN
 from .security import require_box_operator, require_idempotency_key
@@ -53,8 +53,8 @@ class SavedBox(AutomaticBox):
         return body, samples
 
     def reference_ready(self):
-        return self.config.get("framingVersion") == CAMERA_FRAMING_VERSION and self.connected and len(self.frames) == 3 and max(
-            difference(self.frames[0], samples) for samples in self.frames[1:]) <= .015
+        return self.config.get("framingVersion") == CAMERA_FRAMING_VERSION and self.connected and len(self.frames) == 3 and all(
+            empty_view_matches(samples, self.frames[0]) for samples in self.frames[1:])
 
     def require_new_reference(self):
         self.config.pop("referenceDeadline", None)
@@ -66,11 +66,8 @@ class SavedBox(AutomaticBox):
             raise ValueError("Finish the pending analysis before resetting the empty view.")
         if not self.connected:
             raise ValueError("Reconnect the camera before saving the empty view.")
-        if self.reference_ready():
-            self.calibrate_saved()
-            return
         self.require_new_reference()
-        # Wait for fresh uploads without holding the shared camera lease between frames.
+        # Cached frames can still contain the egg removed just before confirmation.
         self.config["referenceDeadline"] = time.time() + 20
         self.config["framingVersion"] = CAMERA_FRAMING_VERSION
         self.frames = []

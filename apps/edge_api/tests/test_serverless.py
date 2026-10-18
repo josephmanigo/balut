@@ -195,7 +195,8 @@ def test_partial_views_are_spaced_durable_and_never_mixed_after_interruption(tmp
     assert not predictions and not local.database.list_predictions()
 
 
-def test_empty_reference_waits_for_fresh_stable_frames_across_instances(tmp_path, shared, monkeypatch):
+@pytest.mark.parametrize("cached_occupied", [False, True])
+def test_empty_reference_waits_for_fresh_stable_frames_across_instances(tmp_path, shared, monkeypatch, cached_occupied):
     local, predictions = make_box(tmp_path)
     cloud = Supabase(URL, SECRET)
     now = [time.time()]
@@ -207,9 +208,7 @@ def test_empty_reference_waits_for_fresh_stable_frames_across_instances(tmp_path
         sequence[0] += 1
         new().receive_frame(camera_frame(occupied), f"reference-{sequence[0]:03}", session)
 
-    send()
-    send(True)
-    send()
+    for _ in range(3): send(cached_occupied)
     new().mutate(lambda box: box.request_reference())
     assert new().status()["state"] == "calibrating"
     assert not new().status()["enabled"]
@@ -371,7 +370,12 @@ def test_browser_usb_frames_require_session_origin_valid_images_and_empty_rechec
             assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).json()["accepted"]
         assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).json()["repeated"]
         status = client.post("/api/v1/box/reference", headers={"Origin": ORIGIN, "X-Balut-Origin": "local"}, json={"emptyConfirmed": True}).json()
-        assert status["connected"] and status["calibrated"]
+        assert status["connected"] and status["state"] == "calibrating" and not status["calibrated"]
+        for index in range(3):
+            now[0] += 2
+            headers["Idempotency-Key"] = f"fresh-reference-{index:03}"
+            assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).json()["accepted"]
+        assert client.get("/api/v1/box/status", headers={"X-Balut-Origin": "local"}).json()["calibrated"]
         now[0] += 2
         headers.update({"Idempotency-Key": "new-browser-frame", "X-Balut-Camera-Session": "aeae26c7-3d4b-41bd-9db2-2eec3a3fb3a7"})
         assert client.post("/api/v1/box/frame", headers=headers, content=camera_frame()).status_code == 200
