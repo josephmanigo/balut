@@ -1,0 +1,15 @@
+# Fifty views per numbered egg
+
+This collection adds 50 new real camera photos for each of the existing 30 eggs: 1,500 new views. The operator confirmed that the shells have no age/ID writing. Each egg keeps its original physical ID, cohort label and train/validation/closed-test partition. Capture timestamps are recorded; cohort labels do not independently establish current elapsed incubation age.
+
+Run `.venv-serving/Scripts/python.exe -u scripts/capture_camera_sweep.py 16-1` only after the operator confirms that exact egg is in place and hands are clear. Stop the matching `upload_box_frames.py` launcher and child first: collection needs exclusive camera and spinner ports. The live cloud camera feed is unavailable while local collection owns those ports. Keep both USB cables connected and normal candling lighting unchanged. The model is not used to label or select these photos.
+
+The identified spinner pauses for every capture. Two camera requests discard the queued sensor frame and obtain a fresh frame. CRC, JPEG decoding, unchanged 600 by 800 framing, frozen image-quality gates, and exact byte/pixel duplicate checks must pass. The motor step counter must stay unchanged throughout the hold. The holder resumes automatically after capture or failure. Ten consecutive failed captures, or two minutes without a new accepted view, stop collection with earlier photos preserved.
+
+The collector fills 50 distinct bins of the controller's approximate 2,048-step revolution. Bins are checked after HOLD, so processing delays and USB retries cannot silently count a repeated commanded position. Actual optical angles are not measured: there is no encoder, and missed physical steps, gear play or egg slippage remain possible. This is one rotation axis, not a complete 3D surface scan.
+
+Each photo and SHA/pixel hash are saved immediately. `record.json` is replaced atomically after each photo. Do not overwrite old files. `--resume` requires the same egg to remain undisturbed and the spinner to stay powered; a detected counter reset or a JPEG without a committed record requires review before continuing. Commanded counters alone cannot prove that the controller was never restarted or the egg never moved.
+
+Capture files are in `output/physical-50views-20261019/<egg-id>`. The importer appends verified views to `data/local/retained-camera-50views-20261019/manifest.jsonl`, preserving the previous 2,181 rows from `data/local/retained-camera-angles-20261019`. Interrupted collections are explicitly marked `COLLECTION_IN_PROGRESS`. Finalization requires all 30 eggs to have 50 distinct views and preserves closed test roles. The collection does not change or retrain the active app model.
+
+Expected duration is approximately 5–8 minutes per egg with the current camera, and 2.5–4 hours for all 30 plus handling. Record actual times and progress rather than promising this estimate. Repeat views still represent the same 30 physical eggs and cannot establish 99% performance on unseen eggs or batches.
