@@ -1,11 +1,13 @@
 """Record one user-identified egg for an isolated camera pilot, never active training."""
 import argparse
+import base64
 from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
 import re
 import sys
+import time
 from uuid import UUID
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,9 +37,12 @@ def main():
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--source", type=Path, help="Import an image for audit only; excluded from candidate fitting")
     source.add_argument("--prediction", help="Record the single frame from a confirmed live automatic scan")
+    source.add_argument("--live", action="store_true", help="Record a fresh frame from the running camera stream")
     args = parser.parse_args()
     age, partition = partition_for(args.egg_id)
     OUTPUT.mkdir(exist_ok=True)
+    if partition == "test" and not (OUTPUT / "candidate/selection-lock.json").is_file():
+        raise ValueError("Lock the candidate before recording final-test eggs")
     plan = {"scope": "EXPLORATORY_USER_REPORTED_PHYSICAL_EGGS", "images_per_egg": 1,
             "split": {f"{day}-{i}": partition_for(f"{day}-{i}")[1] for day in (16, 18) for i in range(1, 16)},
             "label_authority": "User reports uncooked farm eggs with confirmed incubation dates; exact records not supplied",
@@ -54,11 +59,32 @@ def main():
     if image_path.exists() or record_path.exists():
         raise ValueError("This egg is already recorded; do not overwrite or relabel it")
     prediction = None
-    if args.prediction:
+    live = None
+    if args.prediction or args.live:
         from balut_api.supabase_store import Supabase
-        prediction_id = str(UUID(args.prediction))
         profile = json.loads((ROOT / "deployment/private/supabase.json").read_text(encoding="utf-8-sig"))
         cloud = Supabase(profile["url"], profile["secret_key"])
+    if args.live:
+        marker, advances = None, 0
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            live = cloud.request("GET", "/rest/v1/balut_camera", params={"id": "eq.1", "select": "value"}).json()[0]["value"]
+            received = live.get("received", 0)
+            if marker is not None and received > marker:
+                advances += 1
+            marker = received
+            # Two updates clear any upload already in flight when recording began.
+            if advances >= 2:
+                break
+            time.sleep(1)
+        else:
+            raise ValueError("Live camera did not supply fresh frames")
+        if (live["config"].get("cameraSession") != "signed-usb" or live["config"].get("sourceSize") != [800, 600]
+                or live["config"].get("framingVersion") != 2 or live["config"].get("pending")):
+            raise ValueError("Expected the identified USB camera stream")
+        body = base64.b64decode(live["preview"], validate=True)
+    elif args.prediction:
+        prediction_id = str(UUID(args.prediction))
         response = cloud.request("GET", "/rest/v1/balut_predictions", params={"id": f"eq.{prediction_id}", "select": "response"}).json()
         if len(response) != 1:
             raise ValueError("Live prediction not found")
@@ -91,12 +117,15 @@ def main():
     record = {"egg_id": args.egg_id, "reported_age_days": age, "partition": partition,
               "label_authority": plan["label_authority"], "image": image_path.name, "sha256": digest,
               "recorded_at": datetime.now(timezone.utc).isoformat(),
-              "capture_source": f"live_prediction:{args.prediction}" if prediction else str(args.source.resolve()) if args.source else "identified USB box camera",
-              "freshness": "live_single_frame_prediction" if prediction else "source_import" if args.source else "queued_frame_discarded",
+              "capture_source": "live_camera_stream" if live else f"live_prediction:{args.prediction}" if prediction else str(args.source.resolve()) if args.source else "identified USB box camera",
+              "freshness": "live_stream_refreshed" if live else "live_single_frame_prediction" if prediction else "source_import" if args.source else "queued_frame_discarded",
               "model_used_for_label": False, "motor_commands": 0}
     if prediction:
         record["prediction_id"] = prediction["predictionId"]
         record["captured_at"] = prediction["createdAt"]
+    if live:
+        record["captured_at"] = datetime.fromtimestamp(live["received"], timezone.utc).isoformat()
+        record["stream_frame_key"] = live["seen"][-1][0]
     with image_path.open("xb") as handle:
         handle.write(body)
     with record_path.open("x") as handle:

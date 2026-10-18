@@ -2,7 +2,7 @@
 
 The user reports 15 uncooked Day 16 eggs and 15 uncooked Day 18 eggs from a balut farm, with ages confirmed by incubation dates. Exact incubation records, species, and batch IDs have not been supplied. This is an exploratory single-camera pilot, not population accuracy or grading authorization.
 
-**Current status: collecting verified live scans. No candidate trained.** Ten initial records were quarantined under `excluded/unverified-frame-freshness` because intermittent USB acquisition did not drain the camera's queued frame. Their image-to-egg pairing is not established. They must not contribute to training or accuracy metrics. The fresh collection starts with actual automatic scans of 16-4 and 18-4. Count only root-level egg records; excluded diagnostics never count.
+**Current status: all 30 verified live samples recorded; one candidate trained, locked, and tested once. Candidate not activated.** Ten initial records were quarantined under `excluded/unverified-frame-freshness` because intermittent USB acquisition did not drain the camera's queued frame. Their image-to-egg pairing is not established. They do not contribute to training or accuracy metrics. The fresh collection started with actual automatic scans of 16-4 and 18-4. Count only root-level egg records; excluded diagnostics never count.
 
 Each egg contributes one retained image. The previously examined eggs are number 1 of each age. The initial five-per-age plan was expanded before recording the pilot; egg 5 remains reserved for the final test.
 
@@ -18,11 +18,28 @@ Alternate ages during collection. Keep the same holder, camera framing, and ligh
 
 For the live workflow, use `--prediction UUID` to copy the evidence of an actual automatic camera result into the pilot. The importer verifies the result identity, real IoT-box origin, single-frame format, JPEG dimensions, and evidence hash. The user-confirmed egg ID supplies the age label, never the model's prediction. Confirm a new result after an observed empty-to-occupied transition before associating it with an egg. Test freshness uses the prediction's capture time, not the later import time.
 
+For calibration without repeated empty-holder cycles, use `--live` after the user confirms the numbered egg is in place. This waits for two advancing camera updates, clearing any upload already in flight, then retains one frame from the running signed USB stream. It checks source dimensions, framing version, and absence of pending inference before accepting the current preview. The full-size preview is the same prepared camera frame used by inference. No previous prediction is relabeled, and no production prediction is fabricated. Capture time and the stream's frame key are recorded.
+
 `ml/balut_ml/camera_pilot.py` fits one predefined binary logistic head (`C=10`, balanced classes) on the retained frozen fused features. Only training eggs fit the head. Validation reports compare raw candidate age correctness against the existing model, including that model's accepted accuracy, coverage, and correct predictions over all inputs. The candidate is diagnostic and issues no authorized classifications.
 
 From the repository root in PowerShell, set `$env:PYTHONPATH = 'ml;apps/edge_api'`, then run `.venv-ml/Scripts/python.exe -m balut_ml.camera_pilot fit` after all development eggs are recorded. The script verifies the active registry and known-answer fixtures through `ModelService`, saves a portable head, checks numerical parity, and locks the artifacts, development-image hashes, plan, and evaluation script. Capture final-test eggs only after this lock. Run the same module with `test` once; changes to locked files or reuse of development images fail closed.
 
-No active classifier or uncertainty threshold is changed by this pilot. No reject-class eggs are available. Ten held-out eggs from this collection cannot establish accuracy across farms, batches, lighting conditions, or future camera sessions. Report the count correct for each age and every abstention; do not describe training or validation performance as final-test accuracy.
+## Measured results
+
+The candidate was locked at `2026-10-18T14:41:04.064832+00:00`, before any final-test capture. It was fitted on the ten training eggs only. The final test ran once after all ten reserved eggs were recorded; no model or threshold was adjusted from its results.
+
+| Evaluation | Candidate raw age correct | Day 16 correct | Day 18 correct | Existing model raw correct |
+| --- | --- | --- | --- | --- |
+| Validation: 10 eggs | 9/10 | 5/5 | 4/5 | 6/10 |
+| Final test: 10 untouched eggs | 10/10 | 5/5 | 5/5 | 4/10 |
+
+The validation mistake was egg `18-4`, predicted as Day 16. The existing model issued no accepted classification on either evaluation: coverage was 0/10, correct classifications over all inputs was 0/10, and accepted accuracy was undefined because it abstained on every egg. The candidate's figures are raw binary age guesses, not accepted production classifications or calibrated confidence.
+
+Evidence is saved in `output/physical-pilot-20261018/candidate/validation-report.json`, `test-report.json`, and `selection-lock.json`. The portable learned head is `age-head.npz`; the active feature encoder remains the verified retained release. The lock records the head, evaluation code, registry, plan, and all development-image hashes. The recorder rejects final-test capture before this lock exists.
+
+**Deployment decision: retain the candidate for further physical validation.** No active classifier or uncertainty threshold is changed by this pilot. The default serving model requires Day 16, Day 18, and Reject support; this candidate was tested only on Day 16 and Day 18. No reject-class eggs or acceptance calibration for the new camera domain are available. Integration also needs a verified serving/export contract rather than substituting an unregistered binary head.
+
+Ten held-out eggs from this collection cannot establish accuracy across farms, batches, lighting conditions, or future camera sessions. The measured improvement is promising for this setup, but the live app still uses the original classifier and can still report unfamiliar appearance. The next evidence should come from a separately documented batch/session and include reject/review examples; these 30 eggs are now development/evaluation evidence, not a fresh test set for another tuned candidate.
 
 The deployed automatic flow separately changed to one analyzed JPEG per egg in commit `8025ba2`. Physical accuracy remains under investigation.
 

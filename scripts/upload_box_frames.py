@@ -75,8 +75,8 @@ def main():
                         camera = None
                     print("USB disconnected. Waiting for the identified camera adapter.", flush=True)
                     time.sleep(2)
-                except ValueError:
-                    print("Camera frame unavailable. Check the USB cable and close other camera programs.", flush=True)
+                except ValueError as error:
+                    print(f"Camera frame unavailable: {error}. Check the USB cable and close other camera programs.", flush=True)
                     time.sleep(2)
                 except httpx.HTTPError:
                     print("Network unavailable. Reconnecting without resending old frames.", flush=True)

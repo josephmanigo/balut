@@ -35,7 +35,7 @@ def records(partitions):
         if partition not in partitions:
             continue
         row = json.loads((DATA / f"{egg}.json").read_text())
-        if (row.get("freshness") not in {"queued_frame_discarded", "live_single_frame_prediction"}
+        if (row.get("freshness") not in {"queued_frame_discarded", "live_single_frame_prediction", "live_stream_refreshed"}
                 or row["egg_id"] != egg or row["partition"] != partition or row["image"] != f"{egg}.jpg"
                 or row["reported_age_days"] != int(egg.split("-")[0]) or row["sha256"] != sha(DATA / row["image"])):
             raise ValueError("Pilot image or identity changed")

@@ -1,6 +1,7 @@
 import pytest
 import hashlib
 import json
+import base64
 from PIL import Image
 from types import SimpleNamespace
 
@@ -32,8 +33,12 @@ def test_import_records_original_bytes_and_rejects_overwrites_or_duplicate_eggs(
     assert record["model_used_for_label"] is False and record["partition"] == "train"
     with pytest.raises(ValueError, match="already recorded"):
         capture_camera_pilot.main()
-    monkeypatch.setattr("sys.argv", ["capture", "18-5", "--source", str(source)])
+    monkeypatch.setattr("sys.argv", ["capture", "18-3", "--source", str(source)])
     with pytest.raises(ValueError, match="Identical image"):
+        capture_camera_pilot.main()
+    assert not (output / "18-3.jpg").exists()
+    monkeypatch.setattr("sys.argv", ["capture", "18-5", "--source", str(source)])
+    with pytest.raises(ValueError, match="Lock the candidate"):
         capture_camera_pilot.main()
     assert not (output / "18-5.jpg").exists()
 
@@ -68,3 +73,29 @@ def test_live_scan_import_verifies_evidence_and_rejects_multi_view(tmp_path, mon
     with pytest.raises(ValueError, match="one real automatic"):
         capture_camera_pilot.main()
     assert not (tmp_path / "pilot/18-4.jpg").exists()
+
+
+def test_stream_recording_waits_for_two_new_updates(tmp_path, monkeypatch):
+    from balut_api import supabase_store
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (600, 800), "gray").save(source, "JPEG")
+    body = source.read_bytes()
+    profile = tmp_path / "deployment/private"
+    profile.mkdir(parents=True)
+    (profile / "supabase.json").write_text(json.dumps({"url": "unused", "secret_key": "unused"}))
+    received = iter([100, 100, 101, 101, 102])
+    def request(*_, **kwargs):
+        stamp = next(received)
+        value = {"received": stamp, "config": {"cameraSession": "signed-usb", "sourceSize": [800, 600], "framingVersion": 2},
+                 "preview": base64.b64encode(body).decode(), "seen": [[str(stamp), "raw_hash"]]}
+        return SimpleNamespace(json=lambda: [{"value": value}])
+    monkeypatch.setattr(supabase_store, "Supabase", lambda *_: SimpleNamespace(request=request))
+    monkeypatch.setattr(capture_camera_pilot, "ROOT", tmp_path)
+    monkeypatch.setattr(capture_camera_pilot, "OUTPUT", tmp_path / "pilot")
+    monkeypatch.setattr(capture_camera_pilot.time, "sleep", lambda *_: None)
+    monkeypatch.setattr("sys.argv", ["capture", "18-1", "--live"])
+    capture_camera_pilot.main()
+    record = json.loads((tmp_path / "pilot/18-1.json").read_text())
+    assert record["stream_frame_key"] == "102"
+    assert record["freshness"] == "live_stream_refreshed"
+    assert (tmp_path / "pilot/18-1.jpg").read_bytes() == body
