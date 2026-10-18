@@ -357,6 +357,26 @@ def test_confirmed_empty_reference_survives_slow_usb_retries_without_using_cache
     assert not predictions
 
 
+@pytest.mark.parametrize("gap,new_session,request_capture", [(13, False, True), (46, False, False), (13, True, False)])
+def test_motor_preview_retry_gap_preserves_ready_but_long_gap_or_new_camera_requires_empty(tmp_path, shared, monkeypatch, gap, new_session, request_capture):
+    local, predictions = make_box(tmp_path)
+    now, sequence = [time.time()], [0]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def new(): return ServerlessBox(local.database, local.evidence, local.predict, Supabase(URL, SECRET))
+    def send(occupied=False, session="a"):
+        sequence[0] += 1
+        now[0] += 2
+        new().receive_frame(camera_frame(occupied), f'usb-motor-preview-{session * 32}-{sequence[0]}')
+    for _ in range(3): send()
+    new().mutate(lambda box: box.calibrate_saved())
+    assert new().status()["state"] == "waiting"
+    now[0] += gap
+    assert not new().status()["connected"]
+    for _ in range(3): send(True, "b" if new_session else "a")
+    assert bool(shared["camera"]["config"].get("stationaryRequested")) == request_capture
+    assert not predictions
+
+
 def test_wider_camera_frames_reset_reference_and_keep_full_preview_detail(tmp_path, shared, monkeypatch):
     local, predictions = make_box(tmp_path)
     cloud = Supabase(URL, SECRET)

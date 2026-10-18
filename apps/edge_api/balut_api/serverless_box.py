@@ -232,10 +232,9 @@ class ServerlessBox:
                 raise HTTPException(409, "Scan expired or was not requested; remove the egg before retrying")
             framing_changed = (box.config.get("sourceSize", [640, 480]) != source_size
                                or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION)
-            expected_reference = (motor_frame and box.config.get("cameraSession") == camera_session
-                                  and now <= box.config.get("referenceDeadline", 0))
-            # USB retries can exceed the preview timeout while collecting three fresh confirmed-empty frames.
-            if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > 12 and not (expected_views or expected_reference):
+            # Keep the armed state through short USB retry gaps; status still reports missing previews after 12 seconds.
+            reconnect_seconds = 45 if motor_frame else 12
+            if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > reconnect_seconds and not expected_views:
                 if not framing_changed and box.config.get("reference"):
                     # Reuse only a confirmed view, and require fresh empty matches before capturing again.
                     box.config["awaitingEmpty"] = True
