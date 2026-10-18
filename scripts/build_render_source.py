@@ -5,13 +5,15 @@ from pathlib import Path
 import zipfile
 
 from build_school_kit import ROOT, OUT, pack, sha, tree
+from assemble_render_model import active_registry
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     chunks = ROOT / "deployment/runtime/render-model-parts-build"
     chunks.mkdir(parents=True, exist_ok=True)
-    model = ROOT / "deployment/releases/automatic-recapture-20260912/egg-grade/best.onnx"
+    release = active_registry(ROOT).parent.relative_to(ROOT).as_posix()
+    model = ROOT / release / "egg-grade/best.onnx"
     manifest = {"bytes": model.stat().st_size, "sha256": sha(model), "parts": []}
     with model.open("rb") as stream:
         index = 0
@@ -23,13 +25,13 @@ def main():
             index += 1
     (chunks / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     files = {name: ROOT / name for name in ["Dockerfile", ".dockerignore", "render.yaml", "package.json", "package-lock.json",
-                                          "scripts/assemble_render_model.py", "deployment/requirements-serving.lock.txt"]}
+                                          "scripts/assemble_render_model.py", "deployment/requirements-serving.lock.txt", "deployment/active-release.txt"]}
     tree(files, "apps/edge_api/balut_api", "apps/edge_api/balut_api")
     tree(files, "apps/web/src", "apps/web/src")
     for name in ["index.html", "package.json", "tsconfig.json", "tsconfig.app.json", "tsconfig.node.json", "vite.config.ts"]:
         files["apps/web/" + name] = ROOT / "apps/web" / name
-    tree(files, "deployment/releases/automatic-recapture-20260912", "deployment/releases/automatic-recapture-20260912")
-    files.pop("deployment/releases/automatic-recapture-20260912/egg-grade/best.onnx")
+    tree(files, release, release)
+    files.pop(release + "/egg-grade/best.onnx")
     for part in chunks.iterdir():
         if part.name == "manifest.json" or part.name in {entry["name"] for entry in manifest["parts"]}:
             files["deployment/model-parts/" + part.name] = part

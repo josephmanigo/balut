@@ -25,6 +25,8 @@ type JsonObject = Record<string, unknown>;
 
 export interface SourceModelCatalog {
   releaseId: string | null;
+  experimental?: boolean;
+  displayName?: string | null;
   analysisModelId: string | null;
   models: Array<{ id: string; classOrder: string[]; input: string }>;
 }
@@ -33,6 +35,7 @@ export interface SourcePrediction {
   predictionId: string;
   sourcePrediction: string | null;
   modelId: string;
+  modelReleaseId?: string;
   operationalOutcome: "NOT_AUTHORIZED";
   analysisOutcome: "CLASSIFIED" | "RECAPTURE_REQUIRED";
   recaptureRequested: boolean;

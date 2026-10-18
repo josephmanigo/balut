@@ -5,16 +5,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from build_school_kit import ROOT, OUT, pack, tree
+from assemble_render_model import active_registry
 
 
 def main():
     files = {name: ROOT / name for name in (
         "app.py", "vercel.json", ".python-version", "package.json", "package-lock.json",
-        "requirements.txt", "scripts/assemble_render_model.py")}
+        "requirements.txt", "scripts/assemble_render_model.py", "deployment/active-release.txt")}
+    release = active_registry(ROOT).parent.relative_to(ROOT).as_posix()
     for directory in ("apps/edge_api/balut_api", "apps/web/src", "deployment/model-parts",
-                      "deployment/releases/automatic-recapture-20260912"):
+                      release):
         tree(files, directory, directory)
-    files.pop("deployment/releases/automatic-recapture-20260912/egg-grade/best.onnx")
+    files.pop(release + "/egg-grade/best.onnx")
     for name in ("index.html", "package.json", "tsconfig.json", "tsconfig.app.json", "tsconfig.node.json", "vite.config.ts"):
         files["apps/web/" + name] = ROOT / "apps/web" / name
     stage = ROOT / "deployment/runtime" / ("vercel-source-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"))

@@ -13,8 +13,9 @@ os.environ.update({"BALUT_ENV": "production", "BALUT_ALLOW_SIMULATOR": "false", 
 
 from balut_api.config import Settings
 from balut_api.main import create_app
+from balut_api.model_service import active_registry
 
-registry = root / "deployment/releases/automatic-recapture-20260912/registry.json"
+registry = active_registry(root)
 app = create_app(Settings(
     environment="production", database_path=Path("/tmp/balut/balut.db"), evidence_path=Path("/tmp/balut/evidence"),
     local_admin_token=os.environ["BALUT_LOCAL_ADMIN_TOKEN"], device_shared_secret=os.environ["BALUT_DEVICE_SHARED_SECRET"],

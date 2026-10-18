@@ -1,7 +1,11 @@
 """Reassemble the sealed model from GitHub-uploadable chunks and verify its original hash."""
 import hashlib
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps/edge_api"))
+from balut_api.model_service import active_registry
 
 
 def sha(path):
@@ -10,7 +14,7 @@ def sha(path):
 
 
 def assemble(root):
-    release = root / "deployment/releases/automatic-recapture-20260912"
+    release = active_registry(root).parent
     entry = json.loads((release / "registry.json").read_text())["models"][0]["model"]
     assert entry["path"] == "egg-grade/best.onnx"
     target = release / entry["path"]

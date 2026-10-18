@@ -3,9 +3,10 @@ import os
 from pathlib import Path
 
 from .config import Settings
+from .model_service import active_registry
 
 root = Path(__file__).resolve().parents[3]
-registry = root / "deployment/releases/automatic-recapture-20260912/registry.json"
+registry = active_registry(root)
 data = Path(os.getenv("BALUT_RENDER_DATA", "/tmp/balut"))
 # The shared module also creates its loopback app at import; keep that initialization in writable demo storage.
 os.environ.update({"BALUT_ENV": "production", "BALUT_ALLOW_SIMULATOR": "false", "BALUT_CORS_ORIGINS": "",

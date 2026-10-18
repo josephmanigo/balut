@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, LoaderCircle, Pause, Play, Radio, Settings2 } from "lucide-react";
-import { boxRequest } from "./api";
-import type { BoxStatus } from "./api";
+import { boxRequest, getSourceModels } from "./api";
+import type { BoxStatus, SourceModelCatalog } from "./api";
 import { UsbCameraConnect } from "./UsbCameraConnect";
 
 const states: Record<string, [string, string, string, string]> = {
@@ -24,6 +24,7 @@ const states: Record<string, [string, string, string, string]> = {
 export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" | "fil"; onSaved: () => void; active?: boolean }) {
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
   const [status, setStatus] = useState<BoxStatus | null>(null);
+  const [catalog, setCatalog] = useState<SourceModelCatalog | null>(null);
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -36,6 +37,12 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   const addressLoaded = useRef(false);
   const alive = useRef(true);
   const livePanel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15_000);
+    getSourceModels(controller.signal).then(value => { if (!controller.signal.aborted) setCatalog(value); }).catch(() => {});
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, []);
   useEffect(() => {
     if (active && status?.result && window.matchMedia?.("(max-width: 700px)").matches) {
       livePanel.current?.scrollIntoView({ block: "start" });
@@ -98,6 +105,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: t("Reject — suspected", "Posibleng reject") }[result?.sourcePrediction ?? ""]);
 
   return <section className="automatic-box" aria-label={t("Automatic box", "Awtomatikong kahon")}>
+    {catalog?.experimental && <p className="experimental-model" role="note"><strong>{t("Camera model · experimental", "Modelo ng camera · eksperimental")}</strong><span>{t("Live test using the 30-egg dataset. Accuracy is still being evaluated.", "Live na pagsubok gamit ang dataset ng 30 itlog. Sinusuri pa ang katumpakan.")}</span></p>}
     <div className="box-status-line"><span><Radio size={17} />{cameraLive ? t("Camera connected", "Konektado ang camera") : t("Camera not connected", "Hindi konektado ang camera")}</span>
       {status?.calibrated && <button type="button" className="quiet-button" disabled={busy} onClick={() => void change("enabled", { enabled: !status.enabled })}>{status.enabled ? <Pause size={16} /> : <Play size={16} />}{status.enabled ? t("Pause", "I-pause") : t("Resume", "Ituloy")}</button>}
     </div>
@@ -115,7 +123,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         <p>{unreachable ? t("Check the Balut server. Reconnecting automatically.", "Suriin ang Balut server. Kokonekta muli.") : copy[locale === "en" ? 2 : 3]}</p>
         {status?.cloudCapture && <UsbCameraConnect locale={locale} onPreview={setLocalPreview} />}
         {(status?.state === "analyzing" || status?.state === "capturing_views" || calibrating) && <LoaderCircle className="spin" size={24} />}
-        {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? recaptureHelp : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p>{result.recaptureRequested && unfamiliar && blurry && <p>{t("Some views also have low detail. Check lens focus and reduce vibration.", "Kulang din sa detalye ang ilang kuha. Suriin ang focus ng lens at bawasan ang pagyanig.")}</p>}<time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
+        {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? recaptureHelp : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p>{catalog?.experimental && <p>{result.modelReleaseId === catalog.releaseId ? t("Current experimental camera model", "Kasalukuyang eksperimental na modelo") : t("Earlier model result · place a new egg to test the camera model.", "Resulta ng dating modelo · maglagay ng bagong itlog upang subukan.")}</p>}{result.recaptureRequested && unfamiliar && blurry && <p>{t("Some views also have low detail. Check lens focus and reduce vibration.", "Kulang din sa detalye ang ilang kuha. Suriin ang focus ng lens at bawasan ang pagyanig.")}</p>}<time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
       </div>
     </div>
     {setupError && <p className="inline-error" role="alert">{setupError}</p>}

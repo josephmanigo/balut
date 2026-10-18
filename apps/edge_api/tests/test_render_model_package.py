@@ -4,6 +4,7 @@ import json
 import pytest
 
 from scripts.assemble_render_model import assemble
+from balut_api.model_service import active_registry
 
 
 @pytest.mark.parametrize("fault", [None, "corrupt", "path"])
@@ -28,3 +29,14 @@ def test_chunk_assembly_verifies_bytes_and_never_leaves_a_partial_model(tmp_path
         assert target.read_bytes() == body
         assemble(tmp_path)
     assert not target.with_suffix(".assembling").exists()
+
+
+def test_active_release_pointer_selects_a_version_and_rejects_path_escape(tmp_path):
+    assert active_registry(tmp_path).parent.name == "automatic-recapture-20260912"
+    pointer = tmp_path / "deployment/active-release.txt"
+    pointer.parent.mkdir()
+    pointer.write_text("camera-trial-20261018\n")
+    assert active_registry(tmp_path) == tmp_path / "deployment/releases/camera-trial-20261018/registry.json"
+    pointer.write_text("../../private")
+    with pytest.raises(ValueError, match="Invalid active"):
+        active_registry(tmp_path)

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "release": "camera-trial-20261018",
+  "registry_sha256": "909b08a19e0af651eb7076264b109e709c6919221bc9298a24f00a6379af090e",
+  "onnx_sha256": "8189d47fc25d357c5efb2e4abf4d714fe644c5356ec8c775e4addc679c635253",
+  "development_images_compared": 20,
+  "maximum_score_error": 6.67572021484375e-06,
+  "software_fixtures": 4,
+  "test_images_opened": 0
+}

@@ -1,11 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { Workspace } from "./Workspace";
-import { boxRequest } from "./api";
+import { boxRequest, getSourceModels } from "./api";
 
-vi.mock("./api", () => ({ boxRequest: vi.fn(), getPredictionHistory: vi.fn() }));
+vi.mock("./api", () => ({ boxRequest: vi.fn(), getPredictionHistory: vi.fn(), getSourceModels: vi.fn() }));
 
-beforeEach(() => vi.mocked(boxRequest).mockResolvedValue({ cameraUrl: "http://192.168.2.2:8767", enabled: true, connected: true, calibrated: true, state: "waiting", error: null, preview: null, result: null }));
+beforeEach(() => {
+  vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "retained", analysisModelId: "egg-grade", models: [] });
+  vi.mocked(boxRequest).mockResolvedValue({ cameraUrl: "http://192.168.2.2:8767", enabled: true, connected: true, calibrated: true, state: "waiting", error: null, preview: null, result: null });
+});
 
 it.each(["en", "fil"] as const)("opens directly into automatic capture in %s without a photo picker", async locale => {
   const { container } = render(<Workspace locale={locale} setLocale={() => {}} onSignOut={() => {}} signingOut={false} notice="" />);

@@ -1,11 +1,11 @@
 {
   "bytes": 104839470,
-  "sha256": "21becfa01438ce8fc89dd232eee6c3b1a029e8938ce81a60df0de9386c0651bd",
+  "sha256": "8189d47fc25d357c5efb2e4abf4d714fe644c5356ec8c775e4addc679c635253",
   "parts": [
     {
       "name": "best.onnx.part00",
       "bytes": 20971520,
-      "sha256": "9585576ec9eb94b8ae8235e507358692caf4991f963453cf23679449aa8f69eb"
+      "sha256": "0236a0ad4ab52dcf9e2580d52293f981f89e424c35d104bfa810896595711168"
     },
     {
       "name": "best.onnx.part01",

@@ -13,6 +13,14 @@ from pathlib import Path
 MULTIVIEW_POLICY = "three-timed-views-v1"
 
 
+def active_registry(root: Path) -> Path:
+    pointer = root / "deployment/active-release.txt"
+    release = pointer.read_text().strip() if pointer.exists() else "automatic-recapture-20260912"
+    if not re.fullmatch(r"[A-Za-z0-9_.-]{3,80}", release) or release in {".", ".."}:
+        raise ValueError("Invalid active model release")
+    return root / "deployment/releases" / release / "registry.json"
+
+
 def combine_views(results, hashes):
     if len(results) != 3 or len(hashes) != 3:
         raise ValueError("Automatic analysis requires three views")
@@ -202,7 +210,9 @@ class ModelService:
         self.analysis_model_id = analysis_id
 
     def describe(self):
+        analysis = self.models.get(self.analysis_model_id, {}).get("config", {})
         return {"releaseId": self.release_id, "registrySha256": self.registry_sha256,
+                "experimental": analysis.get("experimental", False), "displayName": analysis.get("display_name"),
                 "scope": "SOURCE_LABEL_SHADOW_ONLY", "operationalUseAuthorized": False,
                 "analysisModelId": self.analysis_model_id,
                 "models": [{"id": key, "modelSha256": value["entry"]["model"]["sha256"],

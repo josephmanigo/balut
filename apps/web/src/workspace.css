@@ -200,6 +200,8 @@
 .capture-modes button { padding: 12px 20px; min-height: 46px; border: 1px solid var(--rule); background: transparent; border-radius: 4px; color: var(--ink); font: inherit; cursor: pointer; }
 .capture-modes button[aria-pressed="true"] { color: var(--paper); background: var(--ink); border-color: var(--ink); }
 .box-status-line { display: flex; align-items: center; justify-content: space-between; min-height: 58px; border-block: 1px solid var(--rule); gap: 12px; }
+.experimental-model { display: grid; gap: 5px; margin: 0 0 18px; padding: 12px 15px; border: 1px solid var(--rule); border-radius: 4px; font-size: 13px; line-height: 1.5; }
+.experimental-model span { color: var(--muted); }
 .box-status-line > span, .box-result > span { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); }
 .box-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; padding-block: 32px; }
 .box-camera { margin: 0; align-self: start; background: #101b17; color: #e7eee8; border: 1px solid #34483e; border-radius: 12px; overflow: hidden; }

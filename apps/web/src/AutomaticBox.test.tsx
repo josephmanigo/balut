@@ -2,15 +2,30 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutomaticBox } from "./AutomaticBox";
-import { boxRequest, uploadBoxFrame } from "./api";
+import { boxRequest, uploadBoxFrame, getSourceModels } from "./api";
 import type { BoxStatus, SourcePrediction } from "./api";
 
-vi.mock("./api", () => ({ boxRequest: vi.fn(), uploadBoxFrame: vi.fn() }));
+vi.mock("./api", () => ({ boxRequest: vi.fn(), uploadBoxFrame: vi.fn(), getSourceModels: vi.fn() }));
 const blank: BoxStatus = { cameraUrl: "", enabled: false, calibrated: false, connected: false, state: "not_connected", error: null, preview: null, result: null };
 const prediction: SourcePrediction = { predictionId: "auto-test", modelId: "egg-grade", sourcePrediction: "DAY_16", analysisOutcome: "CLASSIFIED", recaptureRequested: false, recaptureReasons: [], operationalOutcome: "NOT_AUTHORIZED", operationalUseAuthorized: false, reviewRequired: false, createdAt: "2026-10-14T10:00:00Z" };
 
 describe("automatic camera capture", () => {
-  beforeEach(() => vi.resetAllMocks());
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "retained", analysisModelId: "egg-grade", models: [] });
+  });
+  it("identifies the experimental model and distinguishes earlier saved results", async () => {
+    vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "camera-trial-20261018", experimental: true, analysisModelId: "egg-grade", models: [] });
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "remove_egg", result: { ...prediction, modelReleaseId: "retained" } });
+    const { unmount } = render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByText("Camera model · experimental")).toBeInTheDocument();
+    expect(screen.getByText("Earlier model result · place a new egg to test the camera model.")).toBeInTheDocument();
+    unmount();
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "remove_egg", result: { ...prediction, modelReleaseId: "camera-trial-20261018" } });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByText("Current experimental camera model")).toBeInTheDocument();
+    expect(screen.queryByText("Earlier model result · place a new egg to test the camera model.")).not.toBeInTheDocument();
+  });
   it("explains a blurry multi-view recapture without inventing an age", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "recapture", result: { ...prediction,
       sourcePrediction: null, recaptureRequested: true, analysisOutcome: "RECAPTURE_REQUIRED", recaptureReasons: ["IMAGE_TOO_BLURRY"] } });
