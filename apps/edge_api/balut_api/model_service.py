@@ -21,7 +21,7 @@ def active_registry(root: Path) -> Path:
     return root / "deployment/releases" / release / "registry.json"
 
 
-def combine_views(results, hashes):
+def view_consensus(results, hashes):
     if len(results) != 3 or len(hashes) != 3:
         raise ValueError("Automatic analysis requires three views")
     accepted = {digest: result["sourcePrediction"] for result, digest in zip(results, hashes, strict=True)
@@ -31,6 +31,11 @@ def combine_views(results, hashes):
     reasons = [] if prediction else ["MULTIVIEW_DISAGREEMENT" if len(labels) > 1 else "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS"]
     if prediction is None:
         reasons += sorted({reason for view in results for reason in view["recaptureReasons"]})
+    return prediction, reasons, len(accepted)
+
+
+def combine_views(results, hashes):
+    prediction, reasons, accepted = view_consensus(results, hashes)
     # Keep scores and quality measurements attached to their individual view, never invent a combined probability.
     result = {key: results[0][key] for key in ("modelId", "modelReleaseId", "registrySha256", "modelSha256",
               "isSimulated", "operationalOutcome", "operationalUseAuthorized", "authority", "limitations")}
@@ -38,7 +43,7 @@ def combine_views(results, hashes):
                   recaptureRequested=prediction is None, recaptureReasons=reasons, reviewRequired=False,
                   inferenceMs=round(sum(view["inferenceMs"] for view in results), 3),
                   multiView={"policy": MULTIVIEW_POLICY, "capture": "timed_rotating_holder", "anglesVerified": False,
-                             "acceptedDistinctViews": len(accepted),
+                             "acceptedDistinctViews": accepted,
                              "views": [{**view, "imageHash": digest} for view, digest in zip(results, hashes, strict=True)]})
     return result
 

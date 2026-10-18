@@ -1,5 +1,6 @@
 """Seal the learned three-class camera head for an explicitly experimental live trial."""
 import hashlib
+import argparse
 import json
 from pathlib import Path
 import shutil
@@ -7,23 +8,25 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/edge_api"))
-from balut_api.model_service import ModelService, decode_jpeg, preprocess, sha256_file
+from balut_api.model_service import ModelService, decode_jpeg, preprocess, sha256_file, view_consensus
 from balut_api.selective_gate import CLASSES, decide
 
 
-def main():
+def main(multiangle=False):
     import numpy as np
     import onnx
     import onnxruntime as ort
     from onnx import numpy_helper
     from PIL import Image
     base = ROOT / "deployment/releases/automatic-recapture-20260912"
-    run = ROOT / "ml/runs/retained-camera-20261018"
-    release = ROOT / "deployment/releases/camera-trial-20261018"
+    run = ROOT / "ml/runs" / ("retained-multiangle-20261019" if multiangle else "retained-camera-20261018")
+    release = ROOT / "deployment/releases" / ("camera-multiangle-trial-20261019" if multiangle else "camera-trial-20261018")
     if release.exists():
         raise FileExistsError("Preserve the prepared camera trial release")
     read = lambda path: json.loads(path.read_text())
     lock, adapted = read(run / "selection-lock.json"), read(run / "config.json")
+    if multiangle and (not lock.get("admission_passed") or not read(run / "metrics.json").get("admission_passed")):
+        raise ValueError("Multiangle candidate did not meet the predeclared comparison requirements")
     for name, digest in lock["artifacts"].items():
         if sha256_file(run / name) != digest:
             raise ValueError("Locked adaptation artifact changed")
@@ -66,9 +69,11 @@ def main():
     with np.load(model_dir / "training-references.npz", allow_pickle=False) as bank:
         references, labels = bank["features"], bank["labels"]
     dataset = [json.loads(line) for line in Path(adapted["dataset_manifest"]).read_text().splitlines()]
-    development = [r for r in dataset if r.get("source_dataset") == "physical-camera-20261018" and r["partition"] != "test"]
+    development = [r for r in dataset if (r.get("physical_egg_id") or "").startswith("physical-camera-20261018:") and r["partition"] in {"train", "validation"}]
     expected = read(run / "camera-validation-outcomes.json")
-    outcomes = iter(expected)
+    expected_views = expected["views_after"] if multiangle else expected
+    outcomes = {row["image_path"]: row for row in expected_views}
+    grouped = {}
     maximum_error = 0.0
     for row in development:
         body = Path(row["image_path"]).read_bytes()
@@ -81,11 +86,20 @@ def main():
         np.testing.assert_allclose(scores, wanted, atol=1e-4, rtol=1e-4)
         maximum_error = max(maximum_error, float(np.abs(scores - wanted).max()))
         if row["partition"] == "validation":
-            prior = next(outcomes)
+            prior = outcomes[row["image_path"]]
             with decode_jpeg(body) as image:
                 actual = decide(scores[0], features[0], image, policy, references, labels)
             assert actual["sourcePrediction"] == prior["sourcePrediction"]
             assert actual["recaptureReasons"] == prior["recaptureReasons"]
+            if multiangle and row["source_dataset"] == "physical-multiangle-20261019":
+                grouped.setdefault(row["physical_egg_id"], []).append((row["source_sha256"], actual))
+    if multiangle:
+        expected_eggs = {row["egg_id"]: row for row in expected["after"]}
+        assert set(grouped) == set(expected_eggs) and len(grouped) == 10
+        for egg, views in grouped.items():
+            prediction, reasons, _ = view_consensus([result for _, result in views], [digest for digest, _ in views])
+            assert prediction == expected_eggs[egg]["sourcePrediction"]
+            assert reasons == expected_eggs[egg]["recaptureReasons"]
     examples = []
     artifact = lambda p: {"path": p.relative_to(release).as_posix(), "sha256": sha256_file(p)}
 
@@ -97,7 +111,7 @@ def main():
 
     for label in CLASSES:
         for row in dataset:
-            if row["partition"] != "validation" or row["source_label"] != label or row.get("source_dataset") == "physical-camera-20261018":
+            if row["partition"] != "validation" or row["source_label"] != label or row.get("physical_egg_id"):
                 continue
             body = Path(row["image_path"]).read_bytes()
             assert hashlib.sha256(body).hexdigest() == row["source_sha256"]
@@ -125,7 +139,7 @@ def main():
                 "config": artifact(model_dir / "config.json"), "gate_policy": artifact(model_dir / "gate-policy.json"),
                 "training_references": artifact(model_dir / "training-references.npz"), "known_answer": examples[0]["file"],
                 "expected_scores": examples[0]["expected_scores"], "expected_prediction": "DAY_16",
-                "input_description": "Single live camera frame; experimental three-class camera model"}], "software_test_examples": examples}
+                "input_description": "Three paused live camera views; experimental camera model" if multiangle else "Single live camera frame; experimental three-class camera model"}], "software_test_examples": examples}
     (release / "registry.json").write_text(json.dumps(registry, indent=2) + "\n")
     (release / "registry.sha256").write_text(sha256_file(release / "registry.json") + "\n")
     shutil.copytree(base / "licenses", release / "licenses")
@@ -136,9 +150,13 @@ def main():
     report = {"passed": True, "release": release.name, "registry_sha256": sha256_file(release / "registry.json"),
               "onnx_sha256": sha256_file(model_dir / "best.onnx"), "development_images_compared": len(development),
               "maximum_score_error": maximum_error, "software_fixtures": len(examples), "test_images_opened": 0}
+    if multiangle:
+        report["validation_groups_compared"] = len(grouped)
     (release / "verification.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report))
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--multiangle", action="store_true")
+    main(parser.parse_args().multiangle)
