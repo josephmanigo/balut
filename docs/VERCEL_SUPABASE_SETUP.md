@@ -77,13 +77,17 @@ page or signing out stops its USB capture. No motor or lighting commands are sen
 The existing `Connect Cloud Box.cmd` remains an alternative for a prepared laptop.
 It uses `deployment/private/cloud-device.json`; copy only this device profile if
 moving that connector to another laptop. Never copy the Supabase server secret.
+On the identified box with capture-control firmware, this Python connector also
+pauses the holder for one fresh camera acquisition and resumes rotation before
+upload and analysis. Keep both USB cables connected. The browser-only USB path
+does not control the motor. See `STATIONARY_CAPTURE_2026-10-19.md`.
 
 Capture runs inside each frame-upload request; there is no cloud background loop.
 A database lease prevents two Vercel instances from changing capture state at the
 same time. Durable pending images and event keys recover interrupted analysis.
 A camera gap longer than 12 seconds requires a fresh empty reference. Requests
 are limited to 120 seconds; the lease expires after 150 seconds if a worker dies.
-No motor or lighting commands are sent.
+The Python connector's bounded motor hold runs locally. The candling light stays on.
 
 ## Phones and other laptops
 

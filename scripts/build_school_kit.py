@@ -49,7 +49,7 @@ def main():
         ("deployment/drivers/cp210x/package", "deployment/drivers/cp210x/package"),
     ]:
         tree(school, source, target)
-    for name in ["SchoolBox.ps1", "Initialize-Serving.ps1", "Start-Balut.ps1", "camera_usb_bridge.py", "prepare_render_account.py", "upload_box_frames.py", "backup_serving.py", "migrate_supabase.py"]:
+    for name in ["SchoolBox.ps1", "Initialize-Serving.ps1", "Start-Balut.ps1", "camera_usb_bridge.py", "spinner_control.py", "prepare_render_account.py", "upload_box_frames.py", "backup_serving.py", "migrate_supabase.py"]:
         school["scripts/" + name] = ROOT / "scripts" / name
     for name in ["Start School Box.cmd", "Stop School Box.cmd", "Start Vercel Connector.cmd", "Copy Vercel Key.cmd", "Install USB Drivers.cmd", "Prepare Render Account.cmd", "Connect Render Box.cmd", "Connect Cloud Box.cmd"]:
         school[name] = ROOT / name
