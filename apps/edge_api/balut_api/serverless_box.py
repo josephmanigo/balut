@@ -1,6 +1,7 @@
 """Run the existing capture state machine per upload, under a shared database lease."""
 import asyncio
 import hashlib
+import re
 import time
 from copy import deepcopy
 from uuid import UUID, uuid4
@@ -28,6 +29,7 @@ class SavedBox(AutomaticBox):
         self.seen = snapshot.get("seen", [])
         self.connected = bool(self.received and time.time() - self.received <= 12)
         self.body = None
+        self.stationary_frame = False
         self.committed = deepcopy(self.snapshot())
 
     def snapshot(self):
@@ -87,6 +89,15 @@ class SavedBox(AutomaticBox):
                 self.state = "calibrating"
         elif not self.config.get("enabled"):
             self.error = previous_error
+        if self.state != "settling":
+            self.config.pop("stationaryRequested", None)
+
+    async def capture_frame(self, body):
+        if self.config.get("stationaryCapture") and not self.stationary_frame:
+            self.config["stationaryRequested"] = True
+            return
+        self.config.pop("stationaryRequested", None)
+        await super().capture_frame(body, stationary=self.stationary_frame)
 
     def status(self):
         result = super().status()
@@ -157,6 +168,11 @@ class ServerlessBox:
         return await run_in_threadpool(self.receive_frame, body, key, camera_session)
 
     def receive_frame(self, body, key, camera_session="signed-usb"):
+        motor_frame = re.fullmatch(r"usb-motor-(preview|still)-([0-9a-f]{32})-[1-9][0-9]*", key)
+        if key.startswith("usb-motor-"):
+            if not motor_frame or camera_session != "signed-usb":
+                raise HTTPException(400, "Motor capture requires the signed local USB connector")
+            camera_session += "-motor-" + motor_frame[2]
         if not 4 < len(body) <= 128 * 1024:
             raise HTTPException(413, "USB frame exceeds 128 KB")
         try:
@@ -169,13 +185,19 @@ class ServerlessBox:
         digest = hashlib.sha256(body).hexdigest()
 
         def process(box):
+            def response(repeated):
+                result = {"accepted": True, "repeated": repeated}
+                if motor_frame:
+                    result["captureRequested"] = bool(box.config.get("stationaryRequested"))
+                return result
+
             seen = dict(box.seen)
             if key in seen:
                 if seen[key] != digest:
                     raise HTTPException(409, "Frame key already used for different bytes")
                 if box.config.get("pending"):
                     asyncio.run(box.finish_pending())
-                return {"accepted": True, "repeated": True}
+                return response(True)
             now = time.time()
             if box.received and now - box.received < .2:
                 raise HTTPException(429, "Send at most five frames per second")
@@ -194,11 +216,13 @@ class ServerlessBox:
             box.config["cameraSession"] = camera_session
             box.config["sourceSize"] = source_size
             box.config["framingVersion"] = CAMERA_FRAMING_VERSION
+            box.config["stationaryCapture"] = bool(motor_frame)
+            box.stationary_frame = bool(motor_frame and motor_frame[1] == "still")
             box.body, box.received, box.connected = body, now, True
             asyncio.run(box.tick())
             # 256 entries cover the entire 30-second signature window at the maximum frame rate.
             box.seen = (box.seen + [[key, digest]])[-256:]
-            return {"accepted": True, "repeated": False}
+            return response(False)
 
         return self.mutate(process)
 

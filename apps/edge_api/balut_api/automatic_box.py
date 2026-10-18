@@ -226,10 +226,11 @@ class AutomaticBox:
         self.state = "recapture" if result["recaptureRequested"] else "remove_egg"
         self.save()
 
-    async def capture_frame(self, body):
+    async def capture_frame(self, body, *, stationary=False):
         image_hash = hashlib.sha256(body).hexdigest()
         await run_in_threadpool(self.evidence.store_jpeg, body, image_hash)
-        self.config.update(latched=True, pending={"key": "box-" + uuid4().hex, "imageHash": image_hash})
+        prefix = "box-still-" if stationary else "box-"
+        self.config.update(latched=True, pending={"key": prefix + uuid4().hex, "imageHash": image_hash})
         self.save()
         await self.finish_pending()
 

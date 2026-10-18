@@ -16,4 +16,6 @@ Release verification compared all 20 camera development frames against the saved
 
 The live page identifies the active model as “Camera model · experimental.” A saved result from an earlier release is labeled as an earlier model result until a fresh placement produces a result. History displays the release ID. Refresh the app, leave the holder empty until Ready, then place one egg and keep hands clear. The app still analyzes a single fresh frame automatically.
 
-The original retained release and training run are preserved locally. Reverting the activation commit restores the prior active selection and deployment model chunks. Restoring only the selection without restoring matching chunks is insufficient for a clean cloud build. The autonomous holder still rotates; no firmware or motor control changes were made.
+The original retained release and training run are preserved locally. Reverting the activation commit restores the prior active selection and deployment model chunks. Restoring only the selection without restoring matching chunks is insufficient for a clean cloud build.
+
+The subsequent capture-control change is documented in `docs/STATIONARY_CAPTURE_2026-10-19.md`. It adds a bounded local motor pause around one fresh camera acquisition, followed by immediate rotation, without changing the model or its uncertainty thresholds.

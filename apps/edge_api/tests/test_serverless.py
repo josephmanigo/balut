@@ -72,6 +72,37 @@ def camera_frame(occupied=False, size=(640, 480), brightness=40):
     return output.getvalue()
 
 
+def test_motion_preview_requests_a_separate_held_frame_before_inference(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    cloud = Supabase(URL, SECRET)
+    now, sequence = [time.time()], [0]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    def worker(): return ServerlessBox(local.database, local.evidence, local.predict, cloud)
+    def send(occupied=False, mode="preview"):
+        sequence[0] += 1
+        now[0] += 2
+        return worker().receive_frame(camera_frame(occupied), f'usb-motor-{mode}-{"a" * 32}-{sequence[0]}')
+    for _ in range(3): send()
+    worker().mutate(lambda box: box.calibrate_saved())
+    for _ in range(3): response = send(True)
+    assert response["captureRequested"] is True
+    assert predictions == [] and local.database.list_predictions() == []
+    send(True, "still")
+    assert len(local.database.list_predictions()) == 1 and predictions[0].startswith("box-still-")
+    for _ in range(3): send(True)
+    assert len(predictions) == 1
+    for _ in range(3): response = send()
+    assert not response["captureRequested"] and worker().status()["state"] == "waiting"
+
+
+def test_browser_cannot_claim_the_signed_motor_capture_protocol(tmp_path, shared):
+    local, _ = make_box(tmp_path)
+    worker = ServerlessBox(local.database, local.evidence, local.predict, Supabase(URL, SECRET))
+    with pytest.raises(HTTPException) as error:
+        worker.receive_frame(camera_frame(), "usb-motor-still-" + "a" * 32 + "-1", "browser-session")
+    assert error.value.status_code == 400
+
+
 def test_sessions_cross_instances_logout_expiry_rate_limit_and_fail_closed(tmp_path, shared, provider, monkeypatch):
     provider["account"] = {"username": "classroom", "password_hash": hash_password("shared-test-password")}
     def app(name):

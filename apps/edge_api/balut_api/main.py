@@ -71,6 +71,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         result = models.predict_views(model_id, bodies) if multiview else models.predict(model_id, body)
         if source:
             result = {**result, "captureSource": source}
+        if source == "iot_box" and key.startswith("box-still-"):
+            result["captureProtocol"] = "local-motor-hold-v1"
         for view, digest in zip(bodies, hashes, strict=True):
             evidence_store.store_jpeg(view, digest)
         return database.record_prediction(result, image_hash, actor, key, request_hash)
