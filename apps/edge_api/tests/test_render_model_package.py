@@ -1,5 +1,7 @@
 import hashlib
 import json
+from pathlib import Path
+import subprocess
 
 import pytest
 
@@ -40,3 +42,17 @@ def test_active_release_pointer_selects_a_version_and_rejects_path_escape(tmp_pa
     pointer.write_text("../../private")
     with pytest.raises(ValueError, match="Invalid active"):
         active_registry(tmp_path)
+
+
+def test_git_preserves_sealed_release_bytes(tmp_path):
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+    attributes = Path(__file__).resolve().parents[3] / ".gitattributes"
+    (tmp_path / ".gitattributes").write_bytes(attributes.read_bytes())
+    relative = "deployment/releases/camera-trial-test/registry.json"
+    path = tmp_path / relative
+    path.parent.mkdir(parents=True)
+    body = b'{\r\n  "sealed": true\r\n}\r\n'
+    path.write_bytes(body)
+    subprocess.run(["git", "-c", "core.autocrlf=true", "add", "."], cwd=tmp_path, check=True, capture_output=True)
+    stored = subprocess.check_output(["git", "show", ":" + relative], cwd=tmp_path)
+    assert stored == body
