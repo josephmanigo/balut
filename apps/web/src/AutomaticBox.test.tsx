@@ -32,7 +32,7 @@ describe("automatic camera capture", () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, calibrated: true, connected: true,
       enabled: true, state: "capturing_views", capturedViews: 2, targetViews: 3 });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByRole("heading", { name: "Capturing image." })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Scanning egg." })).toBeInTheDocument();
     expect(screen.queryByText(/Views captured|three views|Leave the egg rotating/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /capture|analyze|start/i })).not.toBeInTheDocument();
   });

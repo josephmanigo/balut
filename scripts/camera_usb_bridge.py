@@ -42,6 +42,12 @@ def read_snapshot(port):
     return bytes(body)
 
 
+def read_fresh_snapshot(port):
+    # GC2145 uses one WHEN_EMPTY buffer; the first frame may predate this request.
+    read_snapshot(port)
+    return read_snapshot(port)
+
+
 class CameraHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.client_address[0] != self.server.server_address[0]:
@@ -56,7 +62,7 @@ class CameraHandler(BaseHTTPRequestHandler):
                     try:
                         if self.server.camera is None:
                             self.server.camera = self.server.camera_factory()
-                        body = read_snapshot(self.server.camera)
+                        body = read_fresh_snapshot(self.server.camera)
                         break
                     except OSError:
                         if self.server.camera is not None:

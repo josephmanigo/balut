@@ -10,9 +10,9 @@ from uuid import uuid4
 import httpx
 
 if __package__:
-    from .camera_usb_bridge import open_camera, read_snapshot
+    from .camera_usb_bridge import open_camera, read_fresh_snapshot
 else:
-    from camera_usb_bridge import open_camera, read_snapshot
+    from camera_usb_bridge import open_camera, read_fresh_snapshot
 
 FRAME_PATH = "/api/v1/device/box/frame"
 
@@ -58,7 +58,7 @@ def main():
                 try:
                     if camera is None:
                         camera = open_camera()
-                    body = read_snapshot(camera)
+                    body = read_fresh_snapshot(camera)
                     sequence += 1
                     headers = frame_headers(body, profile["secret"], f"usb-{session}-{sequence}", int(time.time()))
                     response = client.post(origin + FRAME_PATH, content=body, headers=headers)

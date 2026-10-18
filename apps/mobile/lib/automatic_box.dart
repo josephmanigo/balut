@@ -161,21 +161,21 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
               ),
             ),
             'settling' => (
-              t('Preparing to capture.', 'Naghahanda sa pagkuha.'),
+              t('Scanning egg.', 'Ini-scan ang itlog.'),
               t(
-                'Keep your hands clear. One image will be analyzed automatically.',
-                'Ilayo ang mga kamay. Awtomatikong susuriin ang isang larawan.',
+                'Keep your hands clear. The camera analyzes the egg automatically.',
+                'Ilayo ang mga kamay. Awtomatikong sinusuri ng camera ang itlog.',
               ),
             ),
             'analyzing' => (
-              t('Taking a closer look.', 'Sinusuri ang larawan.'),
+              t('Analyzing egg.', 'Sinusuri ang itlog.'),
               t(
                 'Your result saves automatically.',
                 'Awtomatikong mase-save ang resulta.',
               ),
             ),
             'capturing_views' => (
-              t('Capturing image.', 'Kinukunan ang larawan.'),
+              t('Scanning egg.', 'Ini-scan ang itlog.'),
               t(
                 'Keep your hands clear until the result appears.',
                 'Ilayo ang mga kamay hanggang lumabas ang resulta.',

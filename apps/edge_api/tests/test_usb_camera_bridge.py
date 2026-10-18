@@ -57,6 +57,20 @@ def test_usb_image_survives_boot_messages_and_fragmented_reads():
     assert bridge.read_snapshot(CameraPort(b"booting\nBALUT_USB_READY\n" + packet(body))) == body
 
 
+def test_fresh_capture_discards_the_queued_frame():
+    old = io.BytesIO()
+    Image.new("RGB", (64, 48), "red").save(old, "JPEG")
+    class BufferedPort(CameraPort):
+        requests = 0
+        def write(self, data):
+            self.requests += 1
+            self.packet = packet(old.getvalue() if self.requests == 1 else jpeg())
+            return super().write(data)
+    camera = BufferedPort(b"")
+    assert bridge.read_fresh_snapshot(camera) == jpeg()
+    assert camera.requests == 2
+
+
 @pytest.mark.parametrize("bad", [b"BALUT_ERROR Capture failed\n", b"BALUT_JPEG 99999999 0\n", b"BALUT_JPEG 12\n", packet(jpeg(), 0), packet(b"not a jpeg")])
 def test_invalid_camera_packets_are_never_returned_as_images(bad):
     with pytest.raises(ValueError):
@@ -126,7 +140,7 @@ def test_http_retries_one_corrupt_frame_and_never_serves_bad_data(camera_server,
 
         def write(self, data):
             self.requests += 1
-            self.packet = packet(jpeg()) if recovers and self.requests == 2 else packet(jpeg(), 0)
+            self.packet = packet(jpeg()) if recovers and self.requests >= 2 else packet(jpeg(), 0)
             return super().write(data)
 
     camera_server.camera = UnreliablePort(b"")
@@ -138,7 +152,7 @@ def test_http_retries_one_corrupt_frame_and_never_serves_bad_data(camera_server,
             assert response.read() == jpeg()
         else:
             assert response.getheader("Content-Type") != "image/jpeg"
-    assert camera_server.camera.requests == 2
+    assert camera_server.camera.requests == (3 if recovers else 2)
 
 
 @pytest.mark.parametrize("other_client, path, expected", [(False, "/private", 404), (True, "/capture", 403)])
