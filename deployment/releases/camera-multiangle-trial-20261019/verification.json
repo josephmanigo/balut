@@ -1,0 +1,223 @@
+{
+  "trial_checks_passed": true,
+  "scope": "DEVELOPMENT_VALIDATION_SERVING_CHECK_ONLY",
+  "single_photo_artifacts_byte_identical": true,
+  "single_photo_validation_views_unchanged": 40,
+  "historical_single_photo_before_and_after": {
+    "raw": {
+      "image_count": 368,
+      "accuracy": 0.9728260869565217,
+      "correct": 358,
+      "balanced_accuracy": 0.8125,
+      "macro_f1": 0.8125,
+      "confusion_matrix": [
+        [
+          11,
+          5,
+          0
+        ],
+        [
+          5,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          332
+        ]
+      ],
+      "per_class": {
+        "DAY_16": {
+          "precision": 0.6875,
+          "recall": 0.6875,
+          "f1-score": 0.6875,
+          "support": 16.0
+        },
+        "DAY_18": {
+          "precision": 0.75,
+          "recall": 0.75,
+          "f1-score": 0.75,
+          "support": 20.0
+        },
+        "REJECT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 332.0
+        },
+        "accuracy": 0.9728260869565217,
+        "macro avg": {
+          "precision": 0.8125,
+          "recall": 0.8125,
+          "f1-score": 0.8125,
+          "support": 368.0
+        },
+        "weighted avg": {
+          "precision": 0.9728260869565217,
+          "recall": 0.9728260869565217,
+          "f1-score": 0.9728260869565217,
+          "support": 368.0
+        }
+      }
+    },
+    "selective": {
+      "images": 368,
+      "classified": 212,
+      "correct_classified": 212,
+      "wrong_classified": 0,
+      "recapture_requested": 156,
+      "coverage": 0.5760869565217391,
+      "accepted_accuracy": 1.0,
+      "correct_of_all_inputs": 0.5760869565217391,
+      "recapture_reasons": {
+        "AMBIGUOUS_APPEARANCE": 20,
+        "IMAGE_TOO_BLURRY": 136,
+        "UNFAMILIAR_APPEARANCE": 5,
+        "IMAGE_TOO_SMALL": 18
+      },
+      "by_true_class": {
+        "DAY_16": {
+          "images": 16,
+          "classified": 7,
+          "correct_classified": 7
+        },
+        "DAY_18": {
+          "images": 20,
+          "classified": 8,
+          "correct_classified": 8
+        },
+        "REJECT": {
+          "images": 332,
+          "classified": 197,
+          "correct_classified": 197
+        }
+      }
+    }
+  },
+  "camera_validation_before": {
+    "physical_eggs": 10,
+    "raw_correct": 10,
+    "classified": 6,
+    "correct_classified": 6,
+    "wrong_classified": 0,
+    "coverage": 0.6,
+    "accepted_accuracy": 1.0,
+    "correct_of_all_inputs": 0.6,
+    "by_true_class": {
+      "DAY_16": {
+        "eggs": 5,
+        "raw_correct": 5,
+        "correct_classified": 1
+      },
+      "DAY_18": {
+        "eggs": 5,
+        "raw_correct": 5,
+        "correct_classified": 5
+      }
+    }
+  },
+  "camera_validation_after": {
+    "physical_eggs": 10,
+    "raw_correct": 10,
+    "classified": 10,
+    "correct_classified": 10,
+    "wrong_classified": 0,
+    "coverage": 1.0,
+    "accepted_accuracy": 1.0,
+    "correct_of_all_inputs": 1.0,
+    "by_true_class": {
+      "DAY_16": {
+        "eggs": 5,
+        "raw_correct": 5,
+        "correct_classified": 5
+      },
+      "DAY_18": {
+        "eggs": 5,
+        "raw_correct": 5,
+        "correct_classified": 5
+      }
+    }
+  },
+  "camera_validation_serving_outcomes": [
+    {
+      "egg_id": "physical-camera-20261018:16-10",
+      "truth": "DAY_16",
+      "sourcePrediction": "DAY_16",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:16-11",
+      "truth": "DAY_16",
+      "sourcePrediction": "DAY_16",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:16-4",
+      "truth": "DAY_16",
+      "sourcePrediction": "DAY_16",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:16-8",
+      "truth": "DAY_16",
+      "sourcePrediction": "DAY_16",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:16-9",
+      "truth": "DAY_16",
+      "sourcePrediction": "DAY_16",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:18-10",
+      "truth": "DAY_18",
+      "sourcePrediction": "DAY_18",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:18-11",
+      "truth": "DAY_18",
+      "sourcePrediction": "DAY_18",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:18-4",
+      "truth": "DAY_18",
+      "sourcePrediction": "DAY_18",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:18-8",
+      "truth": "DAY_18",
+      "sourcePrediction": "DAY_18",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    },
+    {
+      "egg_id": "physical-camera-20261018:18-9",
+      "truth": "DAY_18",
+      "sourcePrediction": "DAY_18",
+      "recaptureReasons": [],
+      "cameraHeadSha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+    }
+  ],
+  "prior_global_candidate_admission_passed": false,
+  "prior_global_candidate_failures": [
+    "Accepted historical validation regressed"
+  ],
+  "test_images_opened": 0,
+  "fresh_independent_test_eggs": 0,
+  "claim_99_percent_supported": false,
+  "registry_sha256": "e8efa5b6236d29022d520a58462316ffaeaed1fdd52584b9512e648efc4f5a5b",
+  "camera_head_sha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d"
+}

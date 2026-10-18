@@ -39,6 +39,9 @@ def combine_views(results, hashes):
     # Keep scores and quality measurements attached to their individual view, never invent a combined probability.
     result = {key: results[0][key] for key in ("modelId", "modelReleaseId", "registrySha256", "modelSha256",
               "isSimulated", "operationalOutcome", "operationalUseAuthorized", "authority", "limitations")}
+    for key in ("cameraHeadSha256", "recapturePolicySha256"):
+        if key in results[0]:
+            result[key] = results[0][key]
     result.update(sourcePrediction=prediction, analysisOutcome="CLASSIFIED" if prediction else "RECAPTURE_REQUIRED",
                   recaptureRequested=prediction is None, recaptureReasons=reasons, reviewRequired=False,
                   inferenceMs=round(sum(view["inferenceMs"] for view in results), 3),
@@ -171,6 +174,35 @@ class ModelService:
                     raise ValueError("Automatic recapture known-answer verification failed")
             loaded[model_id] = {"session": session, "config": config, "entry": entry, "input_name": inputs[0].name,
                                 "policy": policy, "references": references, "reference_labels": reference_labels}
+            camera = entry.get("camera_head")
+            if camera is not None:
+                if not selective or camera.get("capture_contract") != "three-paused-views-v1" or not camera.get("known_answers"):
+                    raise ValueError("Unsupported camera head contract")
+                with np.load(verified(camera["head"]), allow_pickle=False) as bank:
+                    coefficient, intercept = bank["coefficient"], bank["intercept"]
+                if (coefficient.shape != (3, references.shape[1]) or intercept.shape != (3,)
+                        or not np.isfinite(coefficient).all() or not np.isfinite(intercept).all()):
+                    raise ValueError("Invalid camera head")
+                camera_policy = json.loads(verified(camera["gate_policy"]).read_text())
+                with np.load(verified(camera["training_references"]), allow_pickle=False) as bank:
+                    camera_references, camera_labels = bank["features"], bank["labels"]
+                validate_policy(camera_policy, camera_references, camera_labels)
+                if camera_references.shape[1] != references.shape[1]:
+                    raise ValueError("Camera reference embedding mismatch")
+                for answer in camera["known_answers"]:
+                    body = verified(answer["file"]).read_bytes()
+                    embedding = session.run(None, {inputs[0].name: preprocess(body, config)})[1]
+                    scores = embedding @ coefficient.T + intercept
+                    expected = np.asarray(answer["expected_scores"], dtype=np.float32)
+                    if (scores.shape != (1, 3) or expected.shape != (3,) or not np.isfinite(expected).all()
+                            or not np.isfinite(scores).all() or not np.allclose(scores[0], expected, atol=1e-4, rtol=1e-4)):
+                        raise ValueError("Camera known-answer output mismatch")
+                    result = decide(scores[0], embedding[0], decode_jpeg(body), camera_policy, camera_references, camera_labels)
+                    if (result["sourcePrediction"] != answer["expected_prediction"]
+                            or result["recaptureReasons"] != answer["expected_recapture_reasons"]):
+                        raise ValueError("Camera known-answer decision mismatch")
+                loaded[model_id]["camera"] = dict(coefficient=coefficient, intercept=intercept, policy=camera_policy,
+                    references=camera_references, reference_labels=camera_labels, entry=camera)
         analysis_id = registry.get("default_analysis_model")
         if analysis_id is not None:
             if analysis_id not in loaded:
@@ -221,10 +253,14 @@ class ModelService:
                 "scope": "SOURCE_LABEL_SHADOW_ONLY", "operationalUseAuthorized": False,
                 "analysisModelId": self.analysis_model_id,
                 "models": [{"id": key, "modelSha256": value["entry"]["model"]["sha256"],
+                            "cameraHeadSha256": value.get("camera", {}).get("entry", {}).get("head", {}).get("sha256"),
                             "classOrder": value["config"]["class_order"], "input": value["entry"]["input_description"]}
                            for key, value in self.models.items()]}
 
     def predict(self, model_id, body):
+        return self._predict(model_id, body)
+
+    def _predict(self, model_id, body, camera=False):
         import numpy as np
         if model_id not in self.models:
             raise KeyError(model_id)
@@ -235,7 +271,9 @@ class ModelService:
             model = self.models[model_id]
             values = preprocess(body, model["config"])
             outputs = model["session"].run(None, {model["input_name"]: values})
-            output = outputs[0]
+            head = model.get("camera") if camera else None
+            source = head or model
+            output = outputs[1] @ head["coefficient"].T + head["intercept"] if head else outputs[0]
             classes = model["config"]["class_order"]
             if output.shape != (1, len(classes)) or not np.isfinite(output).all():
                 raise RuntimeError("Invalid model output")
@@ -246,13 +284,15 @@ class ModelService:
                     "operationalOutcome": "REVIEW_RECAPTURE", "operationalUseAuthorized": False, "reviewRequired": True,
                     "authority": "SHADOW_ONLY", "inferenceMs": round((time.perf_counter()-started)*1000, 3),
                     "limitations": "Uncalibrated source-label scores. No verified age, viability, food safety, or out-of-distribution acceptance."}
-            if model["policy"] is not None:
+            if source["policy"] is not None:
                 from .selective_gate import decide
-                if outputs[1].shape != (1, model["references"].shape[1]):
+                if outputs[1].shape != (1, source["references"].shape[1]):
                     raise RuntimeError("Invalid embedding output")
-                result.update(decide(scores, outputs[1][0], decode_jpeg(body), model["policy"], model["references"], model["reference_labels"]))
-                result.update(operationalOutcome="NOT_AUTHORIZED", recapturePolicySha256=model["entry"]["gate_policy"]["sha256"],
+                result.update(decide(scores, outputs[1][0], decode_jpeg(body), source["policy"], source["references"], source["reference_labels"]))
+                result.update(operationalOutcome="NOT_AUTHORIZED", recapturePolicySha256=source["entry"]["gate_policy"]["sha256"],
                               limitations="Image appearance only. Recapture gates do not guarantee correct labels. Physical sorting and food-safety decisions are not authorized.")
+            if head:
+                result["cameraHeadSha256"] = head["entry"]["head"]["sha256"]
             result["inferenceMs"] = round((time.perf_counter()-started)*1000, 3)
             return result
         finally:
@@ -267,5 +307,5 @@ class ModelService:
             raise ValueError("Automatic analysis requires three views")
         if self.models[model_id]["policy"] is None:
             raise ValueError("Multi-view analysis requires selective quality gates")
-        return combine_views([self.predict(model_id, body) for body in bodies],
+        return combine_views([self._predict(model_id, body, camera=True) for body in bodies],
                              [hashlib.sha256(body).hexdigest() for body in bodies])

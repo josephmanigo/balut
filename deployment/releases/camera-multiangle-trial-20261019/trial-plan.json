@@ -1,0 +1,37 @@
+{
+  "scope": "EXPERIMENTAL_CAMERA_ONLY_TRIAL_AFTER_DEVELOPMENT_CALIBRATION",
+  "single_photo_contract": "Keep baseline ONNX, quality gates, references and software fixtures byte-identical",
+  "camera_contract": "Use the frozen calibrated head only for three-view analysis; preserve distinct-view consensus",
+  "selection": "No new fit, threshold selection or test evaluation; verify the actual serving path against frozen development outputs",
+  "prior_global_candidate_admission_passed": false,
+  "source_lock_sha256": "f1ec2cd16f8355b2cc2d6c9ec36b60617400e43364dd7b5a55a4e8489775d26c",
+  "dataset_sha256": "09dfba8580c014ac77a4e05f91697db2a67b3a3759862e57fb15bcc048ae194c",
+  "protected_baseline": {
+    "registry.json": "909b08a19e0af651eb7076264b109e709c6919221bc9298a24f00a6379af090e",
+    "registry.sha256": "6ac341ad845972bc6055df84dfcb3222394d5262aeaab32beb38faa5945cd72e",
+    "verification.json": "7f78f8bf063e996fbd3c22a10931537f5b9e513d65819fb7c9c6b1e6ffbbcf65",
+    "egg-grade\\best.onnx": "8189d47fc25d357c5efb2e4abf4d714fe644c5356ec8c775e4addc679c635253",
+    "egg-grade\\config.json": "1198016d68f66a8dd16ed19232a724206617c97f4e5c67658525f67a94d4f889",
+    "egg-grade\\day_16.jpg": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff",
+    "egg-grade\\day_18.jpg": "049c8faafe28d633f08d3c721f755f4a6a91f73ea8cefaca701e3d1acf91c20a",
+    "egg-grade\\gate-policy.json": "35e331bb28c799a76c352983754fdadc1bcd675e96dc213b37e959926753d76a",
+    "egg-grade\\metrics.json": "d0f995af17b5abd0b793cfa0bdc14ecfe174c79a5eb57450d9b9049f3966aabb",
+    "egg-grade\\reject.jpg": "a6a8f2a73201fcaa955e38629fbc8cb31247273340195aca458b54a3a934c6f8",
+    "egg-grade\\selection-lock.json": "febd8e9ff981ebb901b327bce1cf4b467d369a641d2ae07f965e91b3aa457afe",
+    "egg-grade\\too-dark.jpg": "5f02e1a0ffb037db6fcefd4b253d327aa881daaa1a650df63f1d36b3822e6058",
+    "egg-grade\\training-references.npz": "25835156420257e34976b624ab65b5bdb4b4174dc6425593e3d7e25b44bf014a",
+    "licenses\\DINOv2-LICENSE": "600cc67cc4cb2f5ea317dcfc687ad1c74dc4bec8782bbe9db0afd83513b935b7",
+    "licenses\\torchvision-LICENSE": "c06363f9d33627dc5173b13522444cc85fbb4739f63e16d4587d5c0a165b5b1e",
+    "licenses\\pat-balut\\README.dataset.txt": "9c774bc4f3f058dd8db4406175d21cf9c6800e69bd72c308288461f9fab2a095",
+    "licenses\\pat-balut\\README.roboflow.txt": "11d1c97522a0a551f44bbb813be6d8f3d2015149de1569f9fb9821d70548168d",
+    "licenses\\thesis-egg-candling\\README.dataset.txt": "30dd8c2fdfe0edc9aa757690dff33e07f510d043b61f937e94ddd10385628f6a",
+    "licenses\\thesis-egg-candling\\README.roboflow.txt": "d6230a3f000f168093b0bf3847bc6b6dfffb19d65890cfa563b4784dbf60e8a7"
+  },
+  "required": [
+    "All baseline single-photo decisions unchanged",
+    "All 10 new validation groups match frozen outputs",
+    "More correct accepted camera groups, no additional wrong accepted groups, no per-age regression"
+  ],
+  "test_eggs_reopened": false,
+  "supports_99_percent_claim": false
+}

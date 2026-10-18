@@ -1,0 +1,13 @@
+{
+  "scope": "DEVELOPMENT_VALIDATION_CALIBRATION",
+  "head_refitted": false,
+  "original_failed_metrics_sha256": "6e9fd9f96436f2d469aba17ca77bb632b6096bdb14cded128fcd3715cbe5332d",
+  "original_lock_sha256": "e3e53e22a83a986f7a2d4215d8b975a211ceb9155910ec9b52a72feea421188e",
+  "head_sha256": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d",
+  "dataset_sha256": "09dfba8580c014ac77a4e05f91697db2a67b3a3759862e57fb15bcc048ae194c",
+  "rule": "For each wrongly accepted validation label, raise its margin to the maximum offending margin plus 0.0001",
+  "other_gates": "Keep quality, cosine, references and all other thresholds unchanged",
+  "admission": "Apply the original comparison requirements without weakening them",
+  "test_reopened": false,
+  "claim_99_percent_supported": false
+}

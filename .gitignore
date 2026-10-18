@@ -14,6 +14,8 @@ deployment/releases/*
 deployment/releases/automatic-recapture-20260912/egg-grade/best.onnx
 !deployment/releases/camera-trial-20261018/
 deployment/releases/camera-trial-20261018/egg-grade/best.onnx
+!deployment/releases/camera-multiangle-trial-20261019/
+deployment/releases/camera-multiangle-trial-20261019/egg-grade/best.onnx
 deployment/backups/
 deployment/logs/
 deployment/runtime/

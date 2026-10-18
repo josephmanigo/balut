@@ -1,0 +1,294 @@
+{
+  "dataset_rows": 2091,
+  "camera_rows_added": 30,
+  "camera_training_used": 10,
+  "training_counts": {
+    "DAY_16": 50,
+    "DAY_18": 62,
+    "REJECT": 1419
+  },
+  "selected_camera_weight": 20.0,
+  "camera_validation_before": {
+    "raw": {
+      "image_count": 10,
+      "accuracy": 0.6,
+      "correct": 6,
+      "balanced_accuracy": 0.6,
+      "macro_f1": 0.34920634920634924,
+      "confusion_matrix": [
+        [
+          1,
+          4,
+          0
+        ],
+        [
+          0,
+          5,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "per_class": {
+        "DAY_16": {
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1-score": 0.3333333333333333,
+          "support": 5.0
+        },
+        "DAY_18": {
+          "precision": 0.5555555555555556,
+          "recall": 1.0,
+          "f1-score": 0.7142857142857143,
+          "support": 5.0
+        },
+        "REJECT": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 0.0
+        },
+        "accuracy": 0.6,
+        "macro avg": {
+          "precision": 0.5185185185185185,
+          "recall": 0.39999999999999997,
+          "f1-score": 0.34920634920634924,
+          "support": 10.0
+        },
+        "weighted avg": {
+          "precision": 0.7777777777777778,
+          "recall": 0.6,
+          "f1-score": 0.5238095238095238,
+          "support": 10.0
+        }
+      }
+    },
+    "selective": {
+      "images": 10,
+      "classified": 0,
+      "correct_classified": 0,
+      "wrong_classified": 0,
+      "recapture_requested": 10,
+      "coverage": 0.0,
+      "accepted_accuracy": null,
+      "correct_of_all_inputs": 0.0,
+      "recapture_reasons": {
+        "AMBIGUOUS_APPEARANCE": 6,
+        "UNFAMILIAR_APPEARANCE": 10
+      },
+      "by_true_class": {
+        "DAY_16": {
+          "images": 5,
+          "classified": 0,
+          "correct_classified": 0
+        },
+        "DAY_18": {
+          "images": 5,
+          "classified": 0,
+          "correct_classified": 0
+        },
+        "REJECT": {
+          "images": 0,
+          "classified": 0,
+          "correct_classified": 0
+        }
+      }
+    }
+  },
+  "camera_validation_after": {
+    "raw": {
+      "image_count": 10,
+      "accuracy": 0.8,
+      "correct": 8,
+      "balanced_accuracy": 0.8,
+      "macro_f1": 0.5333333333333333,
+      "confusion_matrix": [
+        [
+          4,
+          1,
+          0
+        ],
+        [
+          1,
+          4,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "per_class": {
+        "DAY_16": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1-score": 0.8,
+          "support": 5.0
+        },
+        "DAY_18": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1-score": 0.8,
+          "support": 5.0
+        },
+        "REJECT": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 0.0
+        },
+        "accuracy": 0.8,
+        "macro avg": {
+          "precision": 0.5333333333333333,
+          "recall": 0.5333333333333333,
+          "f1-score": 0.5333333333333333,
+          "support": 10.0
+        },
+        "weighted avg": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1-score": 0.8,
+          "support": 10.0
+        }
+      }
+    },
+    "selective": {
+      "images": 10,
+      "classified": 7,
+      "correct_classified": 7,
+      "wrong_classified": 0,
+      "recapture_requested": 3,
+      "coverage": 0.7,
+      "accepted_accuracy": 1.0,
+      "correct_of_all_inputs": 0.7,
+      "recapture_reasons": {
+        "AMBIGUOUS_APPEARANCE": 3
+      },
+      "by_true_class": {
+        "DAY_16": {
+          "images": 5,
+          "classified": 3,
+          "correct_classified": 3
+        },
+        "DAY_18": {
+          "images": 5,
+          "classified": 4,
+          "correct_classified": 4
+        },
+        "REJECT": {
+          "images": 0,
+          "classified": 0,
+          "correct_classified": 0
+        }
+      }
+    }
+  },
+  "historical_validation_after": {
+    "raw": {
+      "image_count": 368,
+      "accuracy": 0.9728260869565217,
+      "correct": 358,
+      "balanced_accuracy": 0.8125,
+      "macro_f1": 0.8125,
+      "confusion_matrix": [
+        [
+          11,
+          5,
+          0
+        ],
+        [
+          5,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          332
+        ]
+      ],
+      "per_class": {
+        "DAY_16": {
+          "precision": 0.6875,
+          "recall": 0.6875,
+          "f1-score": 0.6875,
+          "support": 16.0
+        },
+        "DAY_18": {
+          "precision": 0.75,
+          "recall": 0.75,
+          "f1-score": 0.75,
+          "support": 20.0
+        },
+        "REJECT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 332.0
+        },
+        "accuracy": 0.9728260869565217,
+        "macro avg": {
+          "precision": 0.8125,
+          "recall": 0.8125,
+          "f1-score": 0.8125,
+          "support": 368.0
+        },
+        "weighted avg": {
+          "precision": 0.9728260869565217,
+          "recall": 0.9728260869565217,
+          "f1-score": 0.9728260869565217,
+          "support": 368.0
+        }
+      }
+    },
+    "selective": {
+      "images": 368,
+      "classified": 212,
+      "correct_classified": 212,
+      "wrong_classified": 0,
+      "recapture_requested": 156,
+      "coverage": 0.5760869565217391,
+      "accepted_accuracy": 1.0,
+      "correct_of_all_inputs": 0.5760869565217391,
+      "recapture_reasons": {
+        "AMBIGUOUS_APPEARANCE": 20,
+        "IMAGE_TOO_BLURRY": 136,
+        "UNFAMILIAR_APPEARANCE": 5,
+        "IMAGE_TOO_SMALL": 18
+      },
+      "by_true_class": {
+        "DAY_16": {
+          "images": 16,
+          "classified": 7,
+          "correct_classified": 7
+        },
+        "DAY_18": {
+          "images": 20,
+          "classified": 8,
+          "correct_classified": 8
+        },
+        "REJECT": {
+          "images": 332,
+          "classified": 197,
+          "correct_classified": 197
+        }
+      }
+    }
+  },
+  "fresh_test_eggs": 0,
+  "test_reopened": false,
+  "active_release_changed": false,
+  "portable_score_parity_passed": true,
+  "protected_files_unchanged": true,
+  "claim_99_percent_supported": false,
+  "limitations": [
+    "One user-reported farm collection and camera session; batch identity unknown",
+    "Incubation records and species not independently verified",
+    "No new Reject examples; retained public Reject examples remain",
+    "Original pilot test is closed; no new independent test for this adaptation"
+  ]
+}

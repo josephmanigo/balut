@@ -1,0 +1,14 @@
+{
+  "evaluator_sha256": "d0b5c5ab2ea4f098f757c638202f82b7efbe23e204de812c0d59e38ce7f95fe9",
+  "admission_passed": false,
+  "artifacts": {
+    "head.npz": "6ce087fce09fd52cd686dd1485e63214ecb9549e81e4417cbbf2149a7393238d",
+    "training-references.npz": "1fc7ad421e4f8afc6555a5819eff4b6bf459aeb439eb4c3934f61d0d672efbb3",
+    "development.npz": "1530352f58299dd7a0f3dd6e57d1a6493d63c3b07a5e31c9c3cb63716790f9c3",
+    "gate-policy.json": "fafd48b1023a16a4d19c36077902c754b8b051df808fb58ba7cac562dadd2605",
+    "config.json": "65fc5e4eb205f89402f40b583c7a2932b5d39522984cb1c4d860b2aeb922aef1",
+    "experiment-plan.json": "0cbe5271145ac813e98a1a96275dc546daf85cfee2b816e98579c5dca942b01f",
+    "metrics.json": "6921516ea35c17030f390ff4c93a11dc7a12d22ed724f664e98f73958daaf567",
+    "camera-validation-outcomes.json": "b24c6b14bdd1659ba4349a11e9d29db3ecde02fb9b9c21a46f7a2e030f11e11c"
+  }
+}
