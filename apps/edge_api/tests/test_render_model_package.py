@@ -10,14 +10,20 @@ from balut_api.model_service import active_registry
 
 
 @pytest.mark.parametrize("fault", [None, "corrupt", "path"])
-def test_chunk_assembly_verifies_bytes_and_never_leaves_a_partial_model(tmp_path, fault):
+@pytest.mark.parametrize("revision", [None, "unfertilized-20261019"])
+def test_chunk_assembly_verifies_bytes_and_never_leaves_a_partial_model(tmp_path, fault, revision):
     body = b"synthetic packaging fixture"
     digest = hashlib.sha256(body).hexdigest()
     release = tmp_path / "deployment/releases/automatic-recapture-20260912"
     parts = tmp_path / "deployment/model-parts"
+    if revision:
+        parts = parts / revision
     release.mkdir(parents=True)
     parts.mkdir(parents=True)
-    (release / "registry.json").write_text(json.dumps({"models": [{"model": {"path": "egg-grade/best.onnx", "sha256": digest}}]}))
+    model = {"path": "egg-grade/best.onnx", "sha256": digest}
+    if revision:
+        model["parts_revision"] = revision
+    (release / "registry.json").write_text(json.dumps({"models": [{"model": model}]}))
     (parts / "best.onnx.part00").write_bytes(body if fault != "corrupt" else b"changed")
     (parts / "manifest.json").write_text(json.dumps({"sha256": digest, "bytes": len(body), "parts": [
         {"name": "best.onnx.part00" if fault != "path" else "../escape", "bytes": len(body), "sha256": digest}]}))
@@ -31,6 +37,16 @@ def test_chunk_assembly_verifies_bytes_and_never_leaves_a_partial_model(tmp_path
         assert target.read_bytes() == body
         assemble(tmp_path)
     assert not target.with_suffix(".assembling").exists()
+
+
+@pytest.mark.parametrize("revision", ["../escape", "/absolute", "Uppercase", True])
+def test_model_part_revision_cannot_escape_the_version_directory(tmp_path, revision):
+    release = tmp_path / "deployment/releases/automatic-recapture-20260912"
+    release.mkdir(parents=True)
+    (release / "registry.json").write_text(json.dumps({"models": [{"model": {
+        "path": "egg-grade/best.onnx", "sha256": "0"*64, "parts_revision": revision}}]}))
+    with pytest.raises(ValueError, match="parts revision"):
+        assemble(tmp_path)
 
 
 def test_active_release_pointer_selects_a_version_and_rejects_path_escape(tmp_path):

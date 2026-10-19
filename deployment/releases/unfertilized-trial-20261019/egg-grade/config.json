@@ -1,0 +1,43 @@
+{
+  "status": "EXPLORATORY_FROZEN_FEATURE_CLASSIFIER",
+  "task": "THREE_CLASS_EGG_APPEARANCE",
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "UNFERTILIZED"
+  ],
+  "selective_inference": true,
+  "operational_use_authorized": false,
+  "input_size": 224,
+  "normalization_mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "normalization_std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "backbones": [
+    "dinov2_vits14",
+    "efficientnet_b0"
+  ],
+  "head": {
+    "kind": "logistic",
+    "feature_dim": 1664,
+    "outputs": 3
+  },
+  "experimental": true,
+  "display_name": "Day 16/18 + Unfertilized \u00b7 experimental",
+  "manifest_sha256": "01478d1619524c383539bf0d7bd3b730be5c5d82aa9f01a51db19e1018300885",
+  "selection_lock_sha256": "135dc7df92318f517280c557c1047b52921b03de7001bf5f25ca3d88d3156293",
+  "gate_policy_sha256": "349ae5b0556090394fd43f029efe4476f9dcba55fd77bf865b35aa82db920d86",
+  "references_sha256": "8e6713afd46977b8ea68eb52f611fc5592ccd3c594e6641fa4f6c4ab53f3244d",
+  "limitations": [
+    "Unfertilized means the explicit source annotation, not verified embryo absence",
+    "Public image families lack physical egg or farm batch identities",
+    "Repeated camera views are correlated; physical test eggs already used in live checks remain excluded from fitting and selection",
+    "No confirmed Unfertilized physical egg is available for a live camera check."
+  ]
+}

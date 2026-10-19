@@ -1,4 +1,5 @@
 # Preserve model chunks byte-for-byte across Windows and Linux checkouts.
 deployment/model-parts/*.part* binary
+deployment/model-parts/**/*.part* binary
 # Release manifests and configuration are also sealed with SHA-256 hashes.
 deployment/releases/** -text

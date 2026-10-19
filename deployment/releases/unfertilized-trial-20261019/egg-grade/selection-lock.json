@@ -1,0 +1,16 @@
+{
+  "scope": "LOCKED_EXPERIMENTAL_UNFERTILIZED_HEAD",
+  "physical_unfertilized_validation_passed": false,
+  "artifacts": {
+    "head.npz": "8c58f3f459c6be31521ba2cb59e2ef92c6409298c027b8f6a8c476539f817235",
+    "training-references.npz": "8e6713afd46977b8ea68eb52f611fc5592ccd3c594e6641fa4f6c4ab53f3244d",
+    "development.npz": "956fcece5eef38a681f6577857b00a102ddce39ffb984cbf68aabe790337c854",
+    "gate-policy.json": "349ae5b0556090394fd43f029efe4476f9dcba55fd77bf865b35aa82db920d86",
+    "config.json": "77731067dc928ea487841f32500092d049665922ec9fbc92d1fe2171780fd01e",
+    "metrics.json": "93dbf128aa9a06973efb3754427504414b2927975145731a0636f0b9b254f967",
+    "candidates.json": "ce4c7f9f62c5d1fe8dd09431397b42c9d4ad1e2ddf8f5662e9a41fc3fd51931c",
+    "validation-outcomes.json": "e14826d5268fd5e81495a5bb5125b86be37bc4f0ffdca5c3d1354fea84c7b4a2",
+    "validation-inputs.json": "fe097761e048b56270d6fe8fa24ef6b636296d5b436da6026420ea552e4815c7",
+    "experiment-plan.json": "0de8024df0c84bc8450245c81c6912520658374443ee3233b9e9f86b7e28ff1e"
+  }
+}

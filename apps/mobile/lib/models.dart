@@ -56,7 +56,7 @@ class Prediction {
     final recapture = json['recaptureRequested'] == true;
     final classified =
         json['analysisOutcome'] == 'CLASSIFIED' &&
-        const ['DAY_16', 'DAY_18', 'REJECT'].contains(label) &&
+        const ['DAY_16', 'DAY_18', 'REJECT', 'UNFERTILIZED'].contains(label) &&
         !recapture;
     final unclassified =
         json['analysisOutcome'] == 'RECAPTURE_REQUIRED' &&
@@ -86,6 +86,7 @@ class Prediction {
       : switch (label) {
           'DAY_16' => 'Day 16',
           'DAY_18' => 'Day 18',
+          'UNFERTILIZED' => filipino ? 'Hindi pertilisado' : 'Unfertilized',
           _ => filipino ? 'Posibleng reject' : 'Reject — suspected',
         };
 

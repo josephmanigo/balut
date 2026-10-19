@@ -26,6 +26,12 @@ void main() {
     expect(result.title(false), 'Another image needed');
     expect(result.nextStep(false), 'Hold steady. Focus on the egg.');
   });
+  test('unfertilized is distinct from historical reject records', () {
+    final result = Prediction.fromJson({...predictionJson(), 'sourcePrediction': 'UNFERTILIZED'});
+    expect(result.title(false), 'Unfertilized');
+    expect(result.title(true), 'Hindi pertilisado');
+    expect(Prediction.fromJson({...predictionJson(), 'sourcePrediction': 'REJECT'}).title(false), 'Reject — suspected');
+  });
   test('unsupported or operational result fails closed', () {
     for (final change in [
       {'operationalUseAuthorized': true},

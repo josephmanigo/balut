@@ -2,7 +2,9 @@
 
 EggGrade IoT is the current product name. Open `Start EggGrade IoT.cmd` for the school box, or run `scripts/Start-EggGrade.ps1 -Supervise` from the source checkout. The current web address is <https://egggradeiot.vercel.app>.
 
-The latest camera dataset includes all 90 earlier views, 1,500 age sweep photos, and 150 vendor-labeled Reject photos. See `docs/REJECT_CAMERA_COLLECTION_20261019.md` for the completed retraining comparison. The new candidate was saved but not activated because validation regressed. The downloadable report is `output/pdf/EggGrade-IoT-Training-Results-20261019.pdf`; the results ZIP is under `output/model-results/`.
+The current experimental model uses **Day 16 / Day 18 / Unfertilized**. Its 3,719-image dataset preserves all 1,620 camera age views and excludes R1/R2/R3 plus the historical Reject examples. Only explicit public Unfertilized annotations supply the third class; Reject was not renamed or relabelled. No confirmed physical Unfertilized egg is available for a camera check. See [the current model and dataset](docs/UNFERTILIZED_MODEL_2026-10-19.md).
+
+The earlier Reject retraining and live check remain documented in `docs/REJECT_CAMERA_COLLECTION_20261019.md`. Its original downloadable report is `output/pdf/EggGrade-IoT-Training-Results-20261019.pdf`; that report describes the earlier Reject experiment, not the current Unfertilized head.
 
 Deploy the **website and AI on Vercel**, with the account, sessions, prediction
 history, camera state and private images in Supabase. See
@@ -22,7 +24,7 @@ installed runtimes, and generated APK/ZIP packages stay local and are excluded
 from Git. The simulator setup below does not require the trained model.
 
 The Windows **software-first model service** is now prepared: authenticated
-manual photo uploads and automatic ESP32-CAM snapshot processing, a single Day 16 / Day 18 / Reject model with automatic recapture for unclear images, durable prediction records,
+manual photo uploads and automatic ESP32-CAM snapshot processing, a single Day 16 / Day 18 / Unfertilized model with automatic recapture for unclear images, durable prediction records,
 offline installation, and backup/restore. Read the
 [2026-10-04 hardening and accuracy comparison](docs/HARDENING_AND_ACCURACY_2026-10-04.md),
 [Windows operating guide](docs/WINDOWS_MODEL_SERVICE.md) and

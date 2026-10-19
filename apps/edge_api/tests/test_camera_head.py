@@ -48,6 +48,37 @@ def test_camera_head_changes_only_three_view_analysis_and_keeps_quality_gates(tm
     assert service.predict("test-model", bodies[0])["sourcePrediction"] == "DAY_16"
 
 
+def test_explicit_unfertilized_camera_contract_is_served_without_relabelling_legacy_models(tmp_path, registry):
+    path = camera_registry(tmp_path, registry)
+    data = json.loads(path.read_text())
+    config_path = tmp_path / "config.json"
+    config = json.loads(config_path.read_text())
+    config["class_order"] = ["DAY_16", "DAY_18", "UNFERTILIZED"]
+    policy_path = tmp_path / "policy.json"
+    policy = json.loads(policy_path.read_text())
+    policy["class_order"] = config["class_order"]
+    for key in ("minimum_margin", "minimum_training_cosine"):
+        policy[key]["UNFERTILIZED"] = policy[key].pop("REJECT")
+    policy_path.write_text(json.dumps(policy))
+    config["gate_policy_sha256"] = sha256_file(policy_path)
+    config_path.write_text(json.dumps(config))
+    entry = data["models"][0]
+    entry["config"]["sha256"] = sha256_file(config_path)
+    entry["gate_policy"]["sha256"] = sha256_file(policy_path)
+    camera = entry["camera_head"]
+    camera["gate_policy"]["sha256"] = sha256_file(policy_path)
+    np.savez(tmp_path / "camera-head.npz", coefficient=np.zeros((3, 3), dtype=np.float32),
+             intercept=np.array([0, 0, 3], dtype=np.float32))
+    camera["head"]["sha256"] = sha256_file(tmp_path / "camera-head.npz")
+    camera["known_answers"][0].update(expected_scores=[0, 0, 3], expected_prediction="UNFERTILIZED")
+    path.write_text(json.dumps(data))
+    service = ModelService()
+    service.load(path, sha256_file(path))
+    assert service.describe()["models"][0]["classOrder"] == config["class_order"]
+    assert service._predict("test-model", (tmp_path / "fixture.jpg").read_bytes(), camera=True)["sourcePrediction"] == "UNFERTILIZED"
+    assert service.predict("test-model", (tmp_path / "fixture.jpg").read_bytes())["sourcePrediction"] == "DAY_16"
+
+
 @pytest.mark.parametrize("mutation", ["checksum", "shape", "nan", "contract", "scores", "decision", "references", "missing_answers"])
 def test_invalid_camera_artifacts_fail_before_serving(tmp_path, registry, mutation):
     path = camera_registry(tmp_path, registry)

@@ -13,7 +13,7 @@ describe("automatic egg analysis", () => {
     vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "test-release", analysisModelId: "egg-grade", models: [{ id: "egg-grade", classOrder: ["DAY_16", "DAY_18", "REJECT"], input: "one egg" }] });
   });
 
-  it.each([["DAY_16", "Day 16"], ["DAY_18", "Day 18"], ["REJECT", "Reject — suspected"]])("automatically displays %s with no model selector", async (prediction, heading) => {
+  it.each([["DAY_16", "Day 16"], ["DAY_18", "Day 18"], ["REJECT", "Reject — suspected"], ["UNFERTILIZED", "Unfertilized"]])("automatically displays %s with no model selector", async (prediction, heading) => {
     const user = userEvent.setup();
     vi.mocked(analyzeEgg).mockResolvedValue({ predictionId: "saved-001", sourcePrediction: prediction, modelId: "egg-grade", operationalOutcome: "NOT_AUTHORIZED", operationalUseAuthorized: false, analysisOutcome: "CLASSIFIED", recaptureRequested: false, recaptureReasons: [], reviewRequired: false, createdAt: "2026-09-12T10:00:00Z" });
     render(<ModelWorkbench />);

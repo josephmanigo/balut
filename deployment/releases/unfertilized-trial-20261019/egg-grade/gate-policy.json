@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "UNFERTILIZED"
+  ],
+  "review_required": false,
+  "on_uncertain": "RECAPTURE_REQUIRED",
+  "minimum_margin": {
+    "DAY_16": 2.687260938644409,
+    "DAY_18": 3.0250211486816405,
+    "UNFERTILIZED": 0.0
+  },
+  "minimum_training_cosine": {
+    "DAY_16": 0.6879082322120667,
+    "DAY_18": 0.6769087910652161,
+    "UNFERTILIZED": 0.7918031215667725
+  },
+  "quality": {
+    "minimum_short_side": 64,
+    "minimum_grayscale_std": 8.0,
+    "minimum_edge_variance": 20.0,
+    "maximum_clipped_fraction": 0.85
+  },
+  "calibration_scope": "Development validation only; not a probability or field accuracy guarantee"
+}

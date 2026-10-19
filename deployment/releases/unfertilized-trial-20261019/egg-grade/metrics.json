@@ -1,0 +1,93 @@
+{
+  "scope": "DEVELOPMENT_VALIDATION_ONLY_NO_PHYSICAL_UNFERTILIZED_CHECK",
+  "training_counts": {
+    "DAY_16": 315,
+    "DAY_18": 327,
+    "UNFERTILIZED": 1614
+  },
+  "validation": {
+    "camera_weight_per_egg": 20,
+    "validation_groups": {
+      "source:DAY_16": {
+        "images": 16,
+        "raw_correct": 12,
+        "classified": 9,
+        "correct_classified": 9,
+        "wrong_classified": 0
+      },
+      "source:DAY_18": {
+        "images": 20,
+        "raw_correct": 15,
+        "classified": 4,
+        "correct_classified": 4,
+        "wrong_classified": 0
+      },
+      "camera:DAY_16": {
+        "images": 270,
+        "raw_correct": 256,
+        "classified": 226,
+        "correct_classified": 226,
+        "wrong_classified": 0
+      },
+      "camera:DAY_18": {
+        "images": 270,
+        "raw_correct": 269,
+        "classified": 263,
+        "correct_classified": 263,
+        "wrong_classified": 0
+      },
+      "source:UNFERTILIZED": {
+        "images": 238,
+        "raw_correct": 238,
+        "classified": 159,
+        "correct_classified": 159,
+        "wrong_classified": 0
+      }
+    },
+    "raw_confusion_matrix": [
+      [
+        268,
+        18,
+        0
+      ],
+      [
+        6,
+        284,
+        0
+      ],
+      [
+        0,
+        0,
+        238
+      ]
+    ],
+    "selective_confusion_matrix": [
+      [
+        235,
+        0,
+        0,
+        51
+      ],
+      [
+        0,
+        267,
+        0,
+        23
+      ],
+      [
+        0,
+        0,
+        159,
+        79
+      ]
+    ],
+    "class_order": [
+      "DAY_16",
+      "DAY_18",
+      "UNFERTILIZED"
+    ]
+  },
+  "source_annotation_only": true,
+  "test_images_opened": 0,
+  "claim_99_percent_supported": false
+}

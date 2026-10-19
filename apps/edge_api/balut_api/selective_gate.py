@@ -9,14 +9,23 @@ import numpy as np
 from PIL import Image
 
 CLASSES = ["DAY_16", "DAY_18", "REJECT"]
+SUPPORTED_CLASS_ORDERS = [CLASSES, ["DAY_16", "DAY_18", "UNFERTILIZED"]]
+
+
+def policy_classes(policy):
+    classes = policy.get("class_order", CLASSES)
+    if classes not in SUPPORTED_CLASS_ORDERS:
+        raise ValueError("Unsupported selective class order")
+    return classes
 
 
 def validate_policy(policy, references, labels):
+    classes = policy_classes(policy)
     if (policy.get("schema_version") != 1 or policy.get("review_required") is not False
             or policy.get("on_uncertain") != "RECAPTURE_REQUIRED"):
         raise ValueError("Unsupported automatic recapture policy")
     for key in ["minimum_margin", "minimum_training_cosine"]:
-        if set(policy[key]) != set(CLASSES):
+        if set(policy[key]) != set(classes):
             raise ValueError("Incomplete recapture thresholds")
         for value in policy[key].values():
             if value is None and key == "minimum_margin":
@@ -63,7 +72,7 @@ def decide(scores, embedding, image, policy, references, labels):
             or not np.isclose(np.linalg.norm(embedding), 1, atol=1e-4)):
         raise RuntimeError("Invalid selective model output")
     winner = int(scores.argmax())
-    label = CLASSES[winner]
+    label = policy_classes(policy)[winner]
     ordered = np.sort(scores)
     margin = float(ordered[-1] - ordered[-2])
     similarity = float((references[labels == winner] @ embedding).max())

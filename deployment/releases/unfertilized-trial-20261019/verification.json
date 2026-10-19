@@ -1,0 +1,23 @@
+{
+  "software_serving_checks_passed": true,
+  "release": "unfertilized-trial-20261019",
+  "registry_sha256": "d83a2fddd1d2bc46f910850cba7f56780e0bbfbcab33479e5a9e40801d64ab04",
+  "model_sha256": "479211e3e587b0bce7d9bb1be1a318c48bdc62f632374f75d980ab1dbceda31e",
+  "camera_head_sha256": "8c58f3f459c6be31521ba2cb59e2ef92c6409298c027b8f6a8c476539f817235",
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "UNFERTILIZED"
+  ],
+  "vendor_reject_eggs_excluded": [
+    "R1",
+    "R2",
+    "R3"
+  ],
+  "vendor_reject_views_excluded": 150,
+  "reject_labels_reinterpreted_as_unfertilized": 0,
+  "test_images_opened": 0,
+  "physical_unfertilized_check_performed": false,
+  "previous_releases_and_model_parts_preserved": true,
+  "claim_99_percent_supported": false
+}

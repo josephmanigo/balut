@@ -23,6 +23,19 @@ def sharp_image():
     return Image.fromarray(np.random.default_rng(42).integers(10,245,(224,224,3),dtype=np.uint8))
 
 
+def test_explicit_unfertilized_policy_does_not_relabel_legacy_reject_outputs():
+    data = policy()
+    assert decide([0,0,3],[0,0,1],sharp_image(),data,np.eye(3),np.arange(3))["sourcePrediction"] == "REJECT"
+    data["class_order"] = ["DAY_16", "DAY_18", "UNFERTILIZED"]
+    for key in ("minimum_margin", "minimum_training_cosine"):
+        data[key]["UNFERTILIZED"] = data[key].pop("REJECT")
+    validate_policy(data,np.eye(3),np.arange(3))
+    assert decide([0,0,3],[0,0,1],sharp_image(),data,np.eye(3),np.arange(3))["sourcePrediction"] == "UNFERTILIZED"
+    data["class_order"] = ["DAY_18", "DAY_16", "UNFERTILIZED"]
+    with pytest.raises(ValueError, match="class order"):
+        validate_policy(data,np.eye(3),np.arange(3))
+
+
 @pytest.mark.parametrize("scores,vector,reason", [([2,1.8,0],[1,0,0],"AMBIGUOUS_APPEARANCE"),([2,0,0],[0,1,0],"UNFAMILIAR_APPEARANCE")])
 def test_uncertain_output_never_contains_a_class(scores,vector,reason):
     result = decide(scores,vector,sharp_image(),policy(),np.eye(3),np.arange(3))

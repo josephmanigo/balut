@@ -33,6 +33,16 @@ describe("automatic camera capture", () => {
     expect(await screen.findByText("Image too blurry · check camera focus, then replace the egg.")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
   });
+  it("shows explicit unfertilized results and the missing live-validation boundary", async () => {
+    vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "unfertilized-trial", experimental: true,
+      displayName: "Day 16/18 + Unfertilized · experimental", analysisModelId: "egg-grade",
+      models: [{id: "egg-grade", classOrder: ["DAY_16", "DAY_18", "UNFERTILIZED"], input: "one egg"}] });
+    vi.mocked(boxRequest).mockResolvedValue({...blank,state:"remove_egg",result:{...prediction,sourcePrediction:"UNFERTILIZED"}});
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    expect(await screen.findByRole("heading",{name:"Unfertilized"})).toBeInTheDocument();
+    expect(await screen.findByText("Unfertilized has not been checked with this camera.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading",{name:"Reject — suspected"})).not.toBeInTheDocument();
+  });
   it("does not present focus as the only fix when the model also rejects unfamiliar views", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "recapture", result: { ...prediction,
       sourcePrediction: null, recaptureRequested: true, analysisOutcome: "RECAPTURE_REQUIRED",

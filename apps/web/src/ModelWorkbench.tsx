@@ -7,6 +7,7 @@ const results: Record<string, { title: string; description: string }> = {
   DAY_16: { title: "Day 16", description: "Appearance matches Day 16 examples." },
   DAY_18: { title: "Day 18", description: "Appearance matches Day 18 examples." },
   REJECT: { title: "Reject — suspected", description: "Appearance matches reject examples. Not a food-safety verdict." },
+  UNFERTILIZED: { title: "Unfertilized", description: "Appearance matches unfertilized examples. Embryo absence is not confirmed." },
 };
 const recaptureHelp: Record<string, [string, string]> = {
   IMAGE_TOO_SMALL: ["Use a larger image.", "Gumamit ng mas malaking larawan."],

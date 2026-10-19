@@ -1,0 +1,31 @@
+{
+  "sha256": "479211e3e587b0bce7d9bb1be1a318c48bdc62f632374f75d980ab1dbceda31e",
+  "bytes": 104839470,
+  "parts": [
+    {
+      "name": "best.onnx.part00",
+      "bytes": 20971520,
+      "sha256": "c1f94d67e07a7e41f4458b90c0248b988579361201130e508e06bb73d475f34e"
+    },
+    {
+      "name": "best.onnx.part01",
+      "bytes": 20971520,
+      "sha256": "91ae770c63b8269c7963209b307258f999af2a0f2044de20b8c295218e92a0db"
+    },
+    {
+      "name": "best.onnx.part02",
+      "bytes": 20971520,
+      "sha256": "e390b0f74e7b8e5f39196037a91ec751d5e3f46e3053cbef71f323bc423a2f4d"
+    },
+    {
+      "name": "best.onnx.part03",
+      "bytes": 20971520,
+      "sha256": "0052d97ed5ca26c7c5c4f0b73062faa30a0ad11e883b195733016827be449224"
+    },
+    {
+      "name": "best.onnx.part04",
+      "bytes": 20953390,
+      "sha256": "d6d952fbe830bb344b96ed179f488674c31efc502a40ed505618874460335899"
+    }
+  ]
+}

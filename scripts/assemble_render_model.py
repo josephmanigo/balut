@@ -1,6 +1,7 @@
 """Reassemble the sealed model from GitHub-uploadable chunks and verify its original hash."""
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -23,6 +24,11 @@ def assemble(root):
             raise ValueError("Existing model differs from the sealed release")
         return
     parts = root / "deployment/model-parts"
+    revision = entry.get("parts_revision")
+    if revision is not None:
+        if not isinstance(revision, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,79}", revision):
+            raise ValueError("Invalid model parts revision")
+        parts = parts / revision
     manifest = json.loads((parts / "manifest.json").read_text())
     if manifest["sha256"] != entry["sha256"] or not 1 <= len(manifest["parts"]) <= 8:
         raise ValueError("Invalid model chunk manifest")

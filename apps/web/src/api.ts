@@ -73,7 +73,7 @@ export async function boxRequest(action = "status", body?: Record<string, unknow
   const value = await response.json() as BoxStatus;
   const result = value.result;
   if (result && (result.operationalOutcome !== "NOT_AUTHORIZED" || result.operationalUseAuthorized !== false || result.reviewRequired !== false || !Array.isArray(result.recaptureReasons)
-    || !(result.analysisOutcome === "CLASSIFIED" && !result.recaptureRequested && ["DAY_16", "DAY_18", "REJECT"].includes(result.sourcePrediction ?? "")
+    || !(result.analysisOutcome === "CLASSIFIED" && !result.recaptureRequested && ["DAY_16", "DAY_18", "REJECT", "UNFERTILIZED"].includes(result.sourcePrediction ?? "")
       || result.analysisOutcome === "RECAPTURE_REQUIRED" && result.recaptureRequested && result.sourcePrediction === null))) {
     throw new Error("Unsupported box result. No class has been assigned.");
   }

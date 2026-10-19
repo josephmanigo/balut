@@ -236,6 +236,8 @@ class ResultContent extends StatelessWidget {
                     ? 'Tantiya batay sa hitsura. Hindi pagsusuri ng kaligtasan ng pagkain.'
                     : prediction.label == 'REJECT'
                     ? 'Appearance matches reject examples. Not a food-safety verdict.'
+                    : prediction.label == 'UNFERTILIZED'
+                    ? 'Appearance matches unfertilized examples. Embryo absence is not confirmed.'
                     : 'Appearance matches ${prediction.title(false)} examples.'),
         ),
         const SizedBox(height: 28),

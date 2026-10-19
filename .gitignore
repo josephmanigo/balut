@@ -20,6 +20,10 @@ deployment/releases/camera-multiangle-trial-20261019/egg-grade/best.onnx
 !deployment/releases/camera-retrained-trial-20261019/
 
 deployment/releases/camera-retrained-trial-20261019/egg-grade/best.onnx
+
+!deployment/releases/unfertilized-trial-20261019/
+
+deployment/releases/unfertilized-trial-20261019/egg-grade/best.onnx
 deployment/backups/
 deployment/logs/
 deployment/runtime/

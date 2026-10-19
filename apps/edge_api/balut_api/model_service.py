@@ -138,14 +138,14 @@ class ModelService:
                 raise ValueError("Incomplete selective inference contract")
             policy, references, reference_labels = None, None, None
             if selective:
-                from .selective_gate import CLASSES, validate_policy
-                if classes != CLASSES:
-                    raise ValueError("Selective model class mapping mismatch")
+                from .selective_gate import policy_classes, validate_policy
                 policy_path, reference_path = verified(entry["gate_policy"]), verified(entry["training_references"])
                 if (sha256_file(policy_path) != config["gate_policy_sha256"]
                         or sha256_file(reference_path) != config["references_sha256"]):
                     raise ValueError("Recapture artifacts differ from the trained model contract")
                 policy = json.loads(policy_path.read_text())
+                if classes != policy_classes(policy):
+                    raise ValueError("Selective model class mapping mismatch")
                 with np.load(reference_path, allow_pickle=False) as bank:
                     references, reference_labels = bank["features"], bank["labels"]
                 validate_policy(policy, references, reference_labels)
@@ -184,6 +184,8 @@ class ModelService:
                         or not np.isfinite(coefficient).all() or not np.isfinite(intercept).all()):
                     raise ValueError("Invalid camera head")
                 camera_policy = json.loads(verified(camera["gate_policy"]).read_text())
+                if policy_classes(camera_policy) != classes:
+                    raise ValueError("Camera head class mapping mismatch")
                 with np.load(verified(camera["training_references"]), allow_pickle=False) as bank:
                     camera_references, camera_labels = bank["features"], bank["labels"]
                 validate_policy(camera_policy, camera_references, camera_labels)
@@ -208,8 +210,9 @@ class ModelService:
             if analysis_id not in loaded:
                 raise ValueError("Default egg analysis model is missing")
             config = loaded[analysis_id]["config"]
-            if config.get("task") != "THREE_CLASS_EGG_APPEARANCE" or config["class_order"] != ["DAY_16", "DAY_18", "REJECT"]:
-                raise ValueError("Default egg analysis model must support Day 16, Day 18, and Reject")
+            from .selective_gate import SUPPORTED_CLASS_ORDERS
+            if config.get("task") != "THREE_CLASS_EGG_APPEARANCE" or config["class_order"] not in SUPPORTED_CLASS_ORDERS:
+                raise ValueError("Default egg analysis model must support Day 16, Day 18 and either Reject or Unfertilized")
         examples = registry.get("software_test_examples", [])
         if examples:
             if analysis_id is None:
@@ -240,7 +243,7 @@ class ModelService:
                     if prediction != example["expected_prediction"]:
                         raise ValueError("Software test example prediction mismatch")
                     covered.add(prediction)
-            required = {"DAY_16", "DAY_18", "REJECT", None} if model["policy"] is not None else {"DAY_16", "DAY_18", "REJECT"}
+            required = set(model["config"]["class_order"]) | ({None} if model["policy"] is not None else set())
             if covered != required:
                 raise ValueError("Software test examples must cover every class and recapture")
         self.models, self.release_id, self.registry_sha256 = loaded, registry["release_id"], digest

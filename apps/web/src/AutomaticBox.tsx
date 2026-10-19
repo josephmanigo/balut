@@ -102,10 +102,10 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     : t("Unclassified · adjust the view and replace the egg.", "Walang klasipikasyon · ayusin ang kuha at ilagay muli.");
   const cameraLive = !!localPreview || !!status?.connected && !unreachable;
   const label = result?.recaptureRequested ? t("Another image needed", "Kailangan ng ibang larawan")
-    : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: t("Reject — suspected", "Posibleng reject") }[result?.sourcePrediction ?? ""]);
+    : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: t("Reject — suspected", "Posibleng reject"), UNFERTILIZED: t("Unfertilized", "Hindi pertilisado") }[result?.sourcePrediction ?? ""]);
 
   return <section className="automatic-box" aria-label={t("Automatic box", "Awtomatikong kahon")}>
-    {catalog?.experimental && <p className="experimental-model" role="note"><strong>{t("Camera model · experimental", "Modelo ng camera · eksperimental")}</strong><span>{t("Live test using the 30-egg dataset. Accuracy is still being evaluated.", "Live na pagsubok gamit ang dataset ng 30 itlog. Sinusuri pa ang katumpakan.")}</span></p>}
+    {catalog?.experimental && <p className="experimental-model" role="note"><strong>{catalog.displayName ?? t("Camera model · experimental", "Modelo ng camera · eksperimental")}</strong><span>{catalog.models.some(model => model.classOrder.includes("UNFERTILIZED")) ? t("Unfertilized has not been checked with this camera.", "Hindi pa nasusuri ang Unfertilized gamit ang kamerang ito.") : t("Live test using the 30-egg dataset. Accuracy is still being evaluated.", "Live na pagsubok gamit ang dataset ng 30 itlog. Sinusuri pa ang katumpakan.")}</span></p>}
     <div className="box-status-line"><span><Radio size={17} />{cameraLive ? t("Camera connected", "Konektado ang camera") : t("Camera not connected", "Hindi konektado ang camera")}</span>
       {status?.calibrated && <button type="button" className="quiet-button" disabled={busy} onClick={() => void change("enabled", { enabled: !status.enabled })}>{status.enabled ? <Pause size={16} /> : <Play size={16} />}{status.enabled ? t("Pause", "I-pause") : t("Resume", "Ituloy")}</button>}
     </div>

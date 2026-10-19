@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "scope": "SOURCE_LABEL_SHADOW_ONLY",
+  "release_id": "unfertilized-trial-20261019",
+  "default_analysis_model": "egg-grade",
+  "models": [
+    {
+      "id": "egg-grade",
+      "model": {
+        "path": "egg-grade/best.onnx",
+        "sha256": "479211e3e587b0bce7d9bb1be1a318c48bdc62f632374f75d980ab1dbceda31e",
+        "parts_revision": "unfertilized-20261019"
+      },
+      "config": {
+        "path": "egg-grade/config.json",
+        "sha256": "c3786f9bd6c62930a0932f77b9a894fd637fc2409e40dab7c74aaaaf668e3775"
+      },
+      "gate_policy": {
+        "path": "egg-grade/gate-policy.json",
+        "sha256": "349ae5b0556090394fd43f029efe4476f9dcba55fd77bf865b35aa82db920d86"
+      },
+      "training_references": {
+        "path": "egg-grade/training-references.npz",
+        "sha256": "8e6713afd46977b8ea68eb52f611fc5592ccd3c594e6641fa4f6c4ab53f3244d"
+      },
+      "known_answer": {
+        "path": "egg-grade/day_16.jpg",
+        "sha256": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff"
+      },
+      "expected_scores": [
+        5.555535793304443,
+        -0.5363039374351501,
+        -5.018909931182861
+      ],
+      "expected_prediction": "DAY_16",
+      "input_description": "Day 16, Day 18 and explicitly source-labelled Unfertilized; three paused live camera views or one attached photo",
+      "camera_head": {
+        "capture_contract": "three-paused-views-v1",
+        "head": {
+          "path": "egg-grade/head.npz",
+          "sha256": "8c58f3f459c6be31521ba2cb59e2ef92c6409298c027b8f6a8c476539f817235"
+        },
+        "gate_policy": {
+          "path": "egg-grade/gate-policy.json",
+          "sha256": "349ae5b0556090394fd43f029efe4476f9dcba55fd77bf865b35aa82db920d86"
+        },
+        "training_references": {
+          "path": "egg-grade/training-references.npz",
+          "sha256": "8e6713afd46977b8ea68eb52f611fc5592ccd3c594e6641fa4f6c4ab53f3244d"
+        },
+        "known_answers": [
+          {
+            "file": {
+              "path": "egg-grade/day_16.jpg",
+              "sha256": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff"
+            },
+            "expected_scores": [
+              5.555535793304443,
+              -0.5363039374351501,
+              -5.018909931182861
+            ],
+            "expected_prediction": "DAY_16",
+            "expected_recapture_reasons": []
+          },
+          {
+            "file": {
+              "path": "egg-grade/day_18.jpg",
+              "sha256": "049c8faafe28d633f08d3c721f755f4a6a91f73ea8cefaca701e3d1acf91c20a"
+            },
+            "expected_scores": [
+              0.6494369506835938,
+              3.690261125564575,
+              -4.339388847351074
+            ],
+            "expected_prediction": "DAY_18",
+            "expected_recapture_reasons": []
+          },
+          {
+            "file": {
+              "path": "egg-grade/unfertilized.jpg",
+              "sha256": "8abe73a6f4ab9d2a065baabfdc2217f054672f43033ccf5a8400a9f9b8726067"
+            },
+            "expected_scores": [
+              -4.468921184539795,
+              -1.126481533050537,
+              5.5957159996032715
+            ],
+            "expected_prediction": "UNFERTILIZED",
+            "expected_recapture_reasons": []
+          },
+          {
+            "file": {
+              "path": "egg-grade/too-dark.jpg",
+              "sha256": "5f02e1a0ffb037db6fcefd4b253d327aa881daaa1a650df63f1d36b3822e6058"
+            },
+            "expected_scores": [
+              1.752465844154358,
+              -2.427931308746338,
+              0.6757504940032959
+            ],
+            "expected_prediction": null,
+            "expected_recapture_reasons": [
+              "LOW_CONTRAST",
+              "IMAGE_TOO_BLURRY",
+              "EXPOSURE_CLIPPED",
+              "AMBIGUOUS_APPEARANCE",
+              "UNFAMILIAR_APPEARANCE"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "software_test_examples": [
+    {
+      "file": {
+        "path": "egg-grade/day_16.jpg",
+        "sha256": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff"
+      },
+      "expected_scores": [
+        5.555535793304443,
+        -0.5363039374351501,
+        -5.018909931182861
+      ],
+      "expected_prediction": "DAY_16",
+      "expected_analysis_outcome": "CLASSIFIED",
+      "expected_recapture_reasons": [],
+      "partition": "development validation software fixture"
+    },
+    {
+      "file": {
+        "path": "egg-grade/day_18.jpg",
+        "sha256": "049c8faafe28d633f08d3c721f755f4a6a91f73ea8cefaca701e3d1acf91c20a"
+      },
+      "expected_scores": [
+        0.6494369506835938,
+        3.690261125564575,
+        -4.339388847351074
+      ],
+      "expected_prediction": "DAY_18",
+      "expected_analysis_outcome": "CLASSIFIED",
+      "expected_recapture_reasons": [],
+      "partition": "development validation software fixture"
+    },
+    {
+      "file": {
+        "path": "egg-grade/unfertilized.jpg",
+        "sha256": "8abe73a6f4ab9d2a065baabfdc2217f054672f43033ccf5a8400a9f9b8726067"
+      },
+      "expected_scores": [
+        -4.468921184539795,
+        -1.126481533050537,
+        5.5957159996032715
+      ],
+      "expected_prediction": "UNFERTILIZED",
+      "expected_analysis_outcome": "CLASSIFIED",
+      "expected_recapture_reasons": [],
+      "partition": "development validation software fixture"
+    },
+    {
+      "file": {
+        "path": "egg-grade/too-dark.jpg",
+        "sha256": "5f02e1a0ffb037db6fcefd4b253d327aa881daaa1a650df63f1d36b3822e6058"
+      },
+      "expected_scores": [
+        1.752465844154358,
+        -2.427931308746338,
+        0.6757504940032959
+      ],
+      "expected_prediction": null,
+      "expected_analysis_outcome": "RECAPTURE_REQUIRED",
+      "expected_recapture_reasons": [
+        "LOW_CONTRAST",
+        "IMAGE_TOO_BLURRY",
+        "EXPOSURE_CLIPPED",
+        "AMBIGUOUS_APPEARANCE",
+        "UNFAMILIAR_APPEARANCE"
+      ],
+      "partition": "synthetic software fixture"
+    }
+  ]
+}
