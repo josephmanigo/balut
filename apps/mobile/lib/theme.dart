@@ -35,19 +35,29 @@ ThemeData balutTheme(Brightness brightness) {
     fontFamily: 'BalutSerif',
     fontSize: size,
     fontWeight: FontWeight.w400,
-    height: 1.18,
-    letterSpacing: -0.7,
+    height: 1.2,
+    letterSpacing: -size * .02,
   );
   return base.copyWith(
     scaffoldBackgroundColor: scheme.surface,
     textTheme: base.textTheme.copyWith(
-      headlineLarge: serif(base.textTheme.headlineLarge, 34),
-      headlineMedium: serif(base.textTheme.headlineMedium, 28),
-      headlineSmall: serif(base.textTheme.headlineSmall, 23),
-      bodyMedium: base.textTheme.bodyMedium!.copyWith(height: 1.5),
+      headlineLarge: serif(base.textTheme.headlineLarge, 36),
+      headlineMedium: serif(base.textTheme.headlineMedium, 30),
+      headlineSmall: serif(base.textTheme.headlineSmall, 24),
+      bodyLarge: base.textTheme.bodyLarge!.copyWith(height: 1.6),
+      bodyMedium: base.textTheme.bodyMedium!.copyWith(
+        fontSize: 16,
+        height: 1.6,
+      ),
       bodySmall: base.textTheme.bodySmall!.copyWith(
-        height: 1.5,
+        fontSize: 14,
+        height: 1.6,
         color: scheme.onSurfaceVariant,
+      ),
+      labelLarge: base.textTheme.labelLarge!.copyWith(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
       ),
     ),
     appBarTheme: AppBarTheme(
@@ -134,8 +144,8 @@ class Brand extends StatelessWidget {
             Text(
               'IoT',
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 color: onDark ? paper : null,
               ),
             ),

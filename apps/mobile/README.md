@@ -1,6 +1,6 @@
 # EggGrade IoT Android workspace
 
-Current preview: **0.4.2+6**, built for `https://egggradeiot.vercel.app`, supports Day 16, Day 18 and Unfertilized. Update to `artifacts/EggGrade-IoT-Android-0.4.2-preview.apk` to display Unfertilized results. Earlier Reject history keeps its original labels. This is a debug-signed preview; physical installation remains unverified.
+Current preview: **0.4.3+7**, built for `https://egggradeiot.vercel.app`, supports Day 16, Day 18 and Unfertilized. Install `artifacts/EggGrade-IoT-Android-0.4.3-preview.apk` for clearer typography, camera setup collapsed by default, and the simplified footer. Earlier Reject history keeps its original labels. This is a debug-signed preview; physical-phone installation remains unverified.
 
 The native Flutter Android app follows the current web workspace: account creation/sign-in, **Analyze**, and **History**. It uses the same authentication, model and prediction endpoints as the web app. This replaces the older device/review simulator screens.
 
@@ -40,7 +40,7 @@ Validated toolchain versions and runtime evidence are recorded in [the Android v
 From the repository root:
 
 ```powershell
-.\scripts\Build-BalutAndroid.ps1
+.\scripts\Build-EggGradeAndroid.ps1 -Server 'https://egggradeiot.vercel.app'
 # Other installations:
 .\scripts\Build-BalutAndroid.ps1 -FlutterExecutable 'C:\flutter\bin\flutter.bat' -Server 'https://balut.example.com'
 ```
@@ -49,4 +49,4 @@ The script resolves dependencies, runs Flutter analysis and tests, then produces
 
 The Windows desktop app host can cause Java AF_UNIX selector failures. The build script scopes a Java socket-directory override to its child processes so Java uses TCP fallback. It restores the caller's environment afterward.
 
-All 18 unit/widget tests pass, including authentication, research-only result validation, account confirmation, history errors, automatic-only layouts, changing live previews while analysis is paused, and certificate loading. The optimized 0.4.0 preview APK is built with the Android debug key. Earlier emulator evidence is recorded separately in [automatic camera setup and verification](../../docs/AUTOMATIC_BOX_2026-10-14.md). The current box USB feed and web preview have been verified on this PC; physical Android installation, real egg framing/placement cycles, and TalkBack acceptance remain pending.
+All 21 unit/widget tests pass, including authentication, research-only result validation, account confirmation, history errors, automatic-only layouts, changing live previews while analysis is paused, certificate loading, and collapsed camera setup in English and Filipino. Version 0.4.3 also passes static analysis, the optimized APK build, and APK signature verification. Native layout checks use an isolated emulator fixture on phone/tablet layouts, dark mode, and 130% text; the delivered APK is separately installed and launched on that emulator. The fixture entrypoint is excluded from the delivered APK and source commit. This preview uses the Android debug key. Earlier emulator evidence is recorded separately in [automatic camera setup and verification](../../docs/AUTOMATIC_BOX_2026-10-14.md). Physical Android installation, real egg framing/placement cycles, and TalkBack acceptance remain pending.

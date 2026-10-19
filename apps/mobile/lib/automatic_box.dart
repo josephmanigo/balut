@@ -27,14 +27,11 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
     with WidgetsBindingObserver {
   final _address = TextEditingController();
   final _scroll = ScrollController();
+  final _setup = ExpansibleController();
   Timer? _timer;
   BoxStatus? _status;
   String? _error, _lastId;
-  bool _busy = false,
-      _polling = false,
-      _setup = false,
-      _unreachable = false,
-      _active = true;
+  bool _busy = false, _polling = false, _unreachable = false, _active = true;
   int _generation = 0;
   String t(String en, String fil) => widget.filipino ? fil : en;
   @override
@@ -50,6 +47,7 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
     WidgetsBinding.instance.removeObserver(this);
     _address.dispose();
     _scroll.dispose();
+    _setup.dispose();
     super.dispose();
   }
 
@@ -115,9 +113,7 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
       if (mounted) {
         _accept(value);
         if (action == 'reference') {
-          setState(() {
-            _setup = false;
-          });
+          _setup.collapse();
         }
       }
     } on Object catch (error) {
@@ -247,41 +243,50 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
           };
     final scene = Container(
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 185),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondaryContainer.withValues(alpha: .35),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(6),
+        color: ink,
+        borderRadius: BorderRadius.circular(12),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (status?.preview != null)
-            Image.memory(
-              base64Decode(status!.preview!),
-              gaplessPlayback: true,
-              height: 230,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) =>
-                  const Icon(Icons.broken_image_outlined, size: 40),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.all(36),
-              child: Icon(
-                Icons.camera_alt_outlined,
-                size: 48,
-                color: theme.colorScheme.secondary,
-              ),
-            ),
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              status?.connected == true && !_unreachable
-                  ? t('Live camera view', 'Live na kuha ng camera')
-                  : t('Camera view', 'Tanaw ng camera'),
-              style: theme.textTheme.bodySmall,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                const Icon(Icons.camera_alt_outlined, size: 18, color: paper),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    status?.connected == true && !_unreachable
+                        ? t('Live camera view', 'Live na kuha ng camera')
+                        : t('Camera view', 'Tanaw ng camera'),
+                    style: theme.textTheme.bodySmall!.copyWith(color: paper),
+                  ),
+                ),
+              ],
             ),
+          ),
+          AspectRatio(
+            aspectRatio: 4 / 3,
+            child: status?.preview != null
+                ? Image.memory(
+                    base64Decode(status!.preview!),
+                    gaplessPlayback: true,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.broken_image_outlined,
+                      size: 40,
+                      color: paper,
+                    ),
+                  )
+                : const Center(
+                    child: Icon(
+                      Icons.camera_alt_outlined,
+                      size: 40,
+                      color: paper,
+                    ),
+                  ),
           ),
         ],
       ),
@@ -294,8 +299,8 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(heading, style: theme.textTheme.headlineLarge),
-              const SizedBox(height: 12),
+              Text(heading, style: theme.textTheme.headlineMedium),
+              const SizedBox(height: 16),
               Text(hint),
             ],
           ),
@@ -381,74 +386,78 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
               ),
               if (_error != null) Notice(_error!),
               const Divider(height: 40),
-              TextButton.icon(
-                onPressed: () => setState(() => _setup = !_setup),
-                icon: const Icon(Icons.tune, size: 18),
-                label: Text(t('Box setup', 'Setup ng kahon')),
-              ),
-              if (_setup || status?.calibrated != true) ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _address,
-                  enabled: !_busy,
-                  keyboardType: TextInputType.url,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    labelText: t('Camera address', 'Address ng camera'),
-                    hintText: 'http://192.168.1.50',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: _busy
-                      ? null
-                      : () => _change('connect', {
-                          'cameraUrl': _address.text.trim(),
-                        }),
-                  child: Text(
-                    _busy
-                        ? t('Please wait…', 'Sandali…')
-                        : t('Connect camera', 'Ikonekta ang camera'),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  t(
-                    'Use the camera address provided during box setup.',
-                    'Gamitin ang address ng camera na ibinigay sa setup ng kahon.',
-                  ),
-                  style: theme.textTheme.bodySmall,
-                ),
-                if (status?.cameraUrl.isNotEmpty == true) ...[
-                  const SizedBox(height: 20),
-                  Text(
-                    t(
-                      'Remove the egg. Keep normal candling light on, then confirm below.',
-                      'Alisin ang itlog. Panatilihing bukas ang karaniwang ilaw, saka kumpirmahin sa ibaba.',
+              ExpansionTile(
+                controller: _setup,
+                leading: const Icon(Icons.tune, size: 18),
+                title: Text(t('Box setup', 'Setup ng kahon')),
+                children: [
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _address,
+                    enabled: !_busy,
+                    keyboardType: TextInputType.url,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      labelText: t('Camera address', 'Address ng camera'),
+                      hintText: 'http://192.168.1.50',
                     ),
                   ),
                   const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed:
-                        _busy ||
-                            status?.connected != true ||
-                            status?.state == 'calibrating'
+                  OutlinedButton(
+                    onPressed: _busy
                         ? null
-                        : () => _change('reference', {'emptyConfirmed': true}),
+                        : () => _change('connect', {
+                            'cameraUrl': _address.text.trim(),
+                          }),
                     child: Text(
-                      t('Box is empty — start', 'Bakante ang kahon — simulan'),
+                      _busy
+                          ? t('Please wait…', 'Sandali…')
+                          : t('Connect camera', 'Ikonekta ang camera'),
                     ),
                   ),
-                ],
-                const SizedBox(height: 16),
-                Text(
-                  t(
-                    'Save the empty view once. We recognize it after reconnecting and between eggs. Save again if camera position or lighting changes. This uses image comparison, not an egg-presence sensor.',
-                    'I-save nang isang beses ang bakanteng kuha. Makikilala ito sa muling pagkonekta at pagkatapos alisin ang itlog. I-save muli kapag nagbago ang posisyon ng camera o ilaw. Paghahambing ng larawan ito, hindi sensor ng itlog.',
+                  const SizedBox(height: 12),
+                  Text(
+                    t(
+                      'Use the camera address provided during box setup.',
+                      'Gamitin ang address ng camera na ibinigay sa setup ng kahon.',
+                    ),
+                    style: theme.textTheme.bodySmall,
                   ),
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
+                  if (status?.cameraUrl.isNotEmpty == true) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      t(
+                        'Remove the egg. Keep normal candling light on, then confirm below.',
+                        'Alisin ang itlog. Panatilihing bukas ang karaniwang ilaw, saka kumpirmahin sa ibaba.',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed:
+                          _busy ||
+                              status?.connected != true ||
+                              status?.state == 'calibrating'
+                          ? null
+                          : () =>
+                                _change('reference', {'emptyConfirmed': true}),
+                      child: Text(
+                        t(
+                          'Box is empty — start',
+                          'Bakante ang kahon — simulan',
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(
+                    t(
+                      'Save the empty view once. We recognize it after reconnecting and between eggs. Save again if camera position or lighting changes. This uses image comparison, not an egg-presence sensor.',
+                      'I-save nang isang beses ang bakanteng kuha. Makikilala ito sa muling pagkonekta at pagkatapos alisin ang itlog. I-save muli kapag nagbago ang posisyon ng camera o ilaw. Paghahambing ng larawan ito, hindi sensor ng itlog.',
+                    ),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
               const Divider(height: 40),
               Text(
                 t(

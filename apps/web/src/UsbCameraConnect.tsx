@@ -50,16 +50,14 @@ export function UsbCameraConnect({ locale, onPreview }: { locale: "en" | "fil"; 
   }
   const live = state === "connected" || state === "retrying";
   return <div className="usb-camera-connect">
-    {!live && <p>{t("Plug in the box camera. On a new computer, allow its USB port once.", "Ikabit ang camera. Sa bagong computer, payagan ang USB port nito nang isang beses.")}</p>}
     <button type="button" className={live ? "outline-button" : "solid-button"} disabled={!supported}
       onClick={() => void (live || state === "connecting" ? disconnect() : connect())}>
       {live || state === "connecting" ? t("Disconnect USB camera", "Idiskonekta ang USB camera") : t("Connect USB camera", "Ikonekta ang USB camera")}
     </button>
-    <p role="status">{!supported ? t("Use Chrome or Edge on a computer for USB capture. You can still view this workspace on your phone.", "Gumamit ng Chrome o Edge sa computer para sa USB camera. Maaari pa ring tingnan ang workspace sa phone.")
+    {(!supported || state !== "disconnected") && <p role="status">{!supported ? t("Use Chrome or Edge on a computer for USB capture. You can still view this workspace on your phone.", "Gumamit ng Chrome o Edge sa computer para sa USB camera. Maaari pa ring tingnan ang workspace sa phone.")
       : state === "connecting" ? t("Choose the camera port. Waiting for its first image…", "Piliin ang port ng camera. Hinihintay ang unang larawan…")
       : state === "retrying" ? t("Camera connected. Cloud connection is retrying; keep this tab open.", "Konektado ang camera. Kumokonekta muli sa cloud; panatilihing bukas ang tab.")
-      : live ? t("USB camera connected. Keep this tab open and this computer awake.", "Konektado ang USB camera. Panatilihing bukas ang tab at gising ang computer.")
-      : t("After permission is saved, the camera reconnects automatically while this page is open.", "Kapag naka-save na ang pahintulot, awtomatikong kokonekta ang camera habang bukas ang pahinang ito.")}</p>
+      : t("USB camera connected. Keep this tab open and this computer awake.", "Konektado ang USB camera. Panatilihing bukas ang tab at gising ang computer.")}</p>}
     {error && <p className="inline-error" role="alert">{error}</p>}
   </div>;
 }

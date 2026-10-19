@@ -187,35 +187,9 @@ class ResultContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final symbol = prediction.label == 'DAY_16'
-        ? '16'
-        : prediction.label == 'DAY_18'
-        ? '18'
-        : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            width: 88,
-            height: 96,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(44),
-            ),
-            child: symbol != null
-                ? Text(symbol, style: theme.textTheme.headlineLarge)
-                : Icon(
-                    prediction.recapture
-                        ? Icons.refresh
-                        : Icons.document_scanner_outlined,
-                    size: 34,
-                  ),
-          ),
-        ),
-        const SizedBox(height: 24),
         Text(prediction.title(filipino), style: theme.textTheme.headlineLarge),
         const SizedBox(height: 12),
         Text(
@@ -454,7 +428,10 @@ class _HistoryPageState extends State<HistoryPage> {
               ),
           const Divider(height: 40),
           Text(
-            t('Saved on your EggGrade IoT server', 'Naka-save sa EggGrade IoT server'),
+            t(
+              'Appearance only · Not a food-safety assessment',
+              'Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain',
+            ),
             style: theme.textTheme.bodySmall,
           ),
         ],

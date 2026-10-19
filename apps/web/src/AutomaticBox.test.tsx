@@ -14,12 +14,12 @@ describe("automatic camera capture", () => {
     vi.resetAllMocks();
     vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "retained", analysisModelId: "egg-grade", models: [] });
   });
-  it("identifies the experimental model and distinguishes earlier saved results", async () => {
+  it("keeps experimental context beside results without a model banner", async () => {
     vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "camera-trial-20261018", experimental: true, analysisModelId: "egg-grade", models: [] });
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "remove_egg", result: { ...prediction, modelReleaseId: "retained" } });
     const { unmount } = render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByText("Camera model · experimental")).toBeInTheDocument();
-    expect(screen.getByText("Earlier model result · place a new egg to test the camera model.")).toBeInTheDocument();
+    expect(await screen.findByText("Earlier model result · place a new egg to test the camera model.")).toBeInTheDocument();
+    expect(screen.queryByText("Camera model · experimental")).not.toBeInTheDocument();
     unmount();
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "remove_egg", result: { ...prediction, modelReleaseId: "camera-trial-20261018" } });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
@@ -33,14 +33,16 @@ describe("automatic camera capture", () => {
     expect(await screen.findByText("Image too blurry · check camera focus, then replace the egg.")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
   });
-  it("shows explicit unfertilized results and the missing live-validation boundary", async () => {
+  it("shows unfertilized research results without the removed announcement", async () => {
     vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "unfertilized-trial", experimental: true,
       displayName: "Day 16/18 + Unfertilized · experimental", analysisModelId: "egg-grade",
       models: [{id: "egg-grade", classOrder: ["DAY_16", "DAY_18", "UNFERTILIZED"], input: "one egg"}] });
     vi.mocked(boxRequest).mockResolvedValue({...blank,state:"remove_egg",result:{...prediction,sourcePrediction:"UNFERTILIZED"}});
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
     expect(await screen.findByRole("heading",{name:"Unfertilized"})).toBeInTheDocument();
-    expect(await screen.findByText("Unfertilized has not been checked with this camera.")).toBeInTheDocument();
+    expect(screen.getByText("Research estimate · appearance only")).toBeInTheDocument();
+    expect(screen.queryByText("Day 16/18 + Unfertilized · experimental")).not.toBeInTheDocument();
+    expect(screen.queryByText("Unfertilized has not been checked with this camera.")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading",{name:"Reject — suspected"})).not.toBeInTheDocument();
   });
   it("does not present focus as the only fix when the model also rejects unfamiliar views", async () => {
@@ -61,14 +63,17 @@ describe("automatic camera capture", () => {
     expect(screen.queryByText(/Views captured|three views|Leave the egg rotating/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /capture|analyze|start/i })).not.toBeInTheDocument();
   });
-  it("offers USB capture without a manual cloud setup or start button", async () => {
+  it("keeps USB controls inside collapsed setup without a manual cloud address or start button", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", state: "offline" });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByRole("button", { name: "Connect USB camera" })).toBeDisabled();
+    const setup = await screen.findByText("Box setup");
+    expect(setup.closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByRole("button", { name: "Connect USB camera" }).closest("details")).toBe(setup.closest("details"));
+    await userEvent.setup().click(setup);
+    expect(screen.getByRole("button", { name: "Connect USB camera" })).toBeDisabled();
     expect(screen.getByText(/Use Chrome or Edge on a computer/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Camera address")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    expect(screen.queryByText("Box setup")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /empty.*start/i })).not.toBeInTheDocument();
   });
   it("opens the browser's USB picker only after the operator clicks Connect", async () => {
@@ -77,7 +82,9 @@ describe("automatic camera capture", () => {
     try {
       vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767" });
       render(<AutomaticBox locale="en" onSaved={() => {}} />);
-      const button = await screen.findByRole("button", { name: "Connect USB camera" });
+      await userEvent.setup().click(await screen.findByText("Box setup"));
+      const button = screen.getByRole("button", { name: "Connect USB camera" });
+      expect(screen.queryByText(/Plug in the box camera|After permission is saved/)).not.toBeInTheDocument();
       expect(requestPort).not.toHaveBeenCalled();
       await userEvent.setup().click(button);
       expect(requestPort).toHaveBeenCalledOnce();
@@ -152,7 +159,7 @@ describe("automatic camera capture", () => {
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Camera calibration needed." })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /empty.*start/i })).not.toBeInTheDocument();
-    expect(screen.queryByText("Box setup")).not.toBeInTheDocument();
+    expect(screen.getByText("Box setup").closest("details")).not.toHaveAttribute("open");
     expect(boxRequest).not.toHaveBeenCalledWith("reference", expect.anything());
   });
   it("shows automatic empty recognition after reconnecting without another setup click", async () => {
@@ -165,7 +172,7 @@ describe("automatic camera capture", () => {
       render(<AutomaticBox locale="en" onSaved={saved} />);
       await act(async () => { await Promise.resolve(); });
       expect(screen.getByRole("heading", { name: "Waiting for an empty view." })).toBeInTheDocument();
-      expect(screen.queryByText("Box setup")).not.toBeInTheDocument();
+      expect(screen.getByText("Box setup").closest("details")).not.toHaveAttribute("open");
       expect(screen.queryByRole("button", { name: /empty.*start/i })).not.toBeInTheDocument();
       vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "waiting" });
       await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
@@ -243,6 +250,8 @@ describe("automatic camera capture", () => {
       expect(screen.getByRole("img").parentElement).toHaveClass("box-camera-direct");
       expect(screen.getByText("Live")).toBeInTheDocument();
       expect(uploadBoxFrame).toHaveBeenCalledOnce();
+      expect(screen.getByText("Box setup").closest("details")).not.toHaveAttribute("open");
+      fireEvent.click(screen.getByText("Box setup"));
       await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Disconnect USB camera" })); await vi.advanceTimersByTimeAsync(600); });
       expect(screen.getByRole("img")).toHaveAttribute("src", "data:image/jpeg;base64,old-cloud-image");
       expect(screen.getByText("Last image")).toBeInTheDocument();

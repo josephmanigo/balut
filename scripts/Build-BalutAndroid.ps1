@@ -26,7 +26,7 @@ try {
     if ($LASTEXITCODE) { throw 'Flutter tests failed.' }
     & $FlutterExecutable build apk --release --no-pub "--dart-define=BALUT_SERVER=$Server"
     if ($LASTEXITCODE) { throw 'Android build failed.' }
-    $taskOutput = Join-Path $taskRoot 'artifacts\EggGrade-IoT-Android-0.4.2-preview.apk'
+    $taskOutput = Join-Path $taskRoot 'artifacts\EggGrade-IoT-Android-0.4.3-preview.apk'
     Copy-Item -LiteralPath (Join-Path $taskMobile 'build\app\outputs\flutter-apk\app-release.apk') -Destination $taskOutput
     Get-FileHash -LiteralPath $taskOutput -Algorithm SHA256
     Write-Output 'Preview APK uses the Android debug signing key. Configure release signing before distribution.'

@@ -18,12 +18,14 @@ class TestApi extends ApiClient {
   });
   bool setup, signedIn, failHistory, expiredLogout;
   int registrations = 0;
+  final boxActions = <String>[];
   BoxStatus box = const BoxStatus();
   int analyses = 0;
   @override
   Future<BoxStatus> boxStatus() async => box;
   @override
   Future<BoxStatus> boxAction(String action, Map<String, Object> body) async {
+    boxActions.add(action);
     box = action == 'connect'
         ? const BoxStatus(
             cameraUrl: 'http://192.168.1.50',
@@ -75,6 +77,63 @@ class TestApi extends ApiClient {
 }
 
 void main() {
+  for (final filipino in [false, true]) {
+    testWidgets(
+      'camera setup stays optional and functional in ${filipino ? 'Filipino' : 'English'}',
+      (tester) async {
+        final api = TestApi(setup: false, signedIn: true);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: balutTheme(Brightness.light),
+            home: Workspace(
+              api: api,
+              filipino: filipino,
+              onLanguage: () {},
+              onSignedOut: () {},
+              onExpired: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(TextField), findsNothing);
+        expect(api.boxActions, isEmpty);
+        final setup = find.text(filipino ? 'Setup ng kahon' : 'Box setup');
+        await tester.ensureVisible(setup);
+        await tester.tap(setup);
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'http://192.168.1.50');
+        final connect = find.text(
+          filipino ? 'Ikonekta ang camera' : 'Connect camera',
+        );
+        await tester.ensureVisible(connect);
+        await tester.tap(connect);
+        await tester.pumpAndSettle();
+        expect(api.boxActions, ['connect']);
+        final confirm = find.text(
+          filipino ? 'Bakante ang kahon — simulan' : 'Box is empty — start',
+        );
+        await tester.ensureVisible(confirm);
+        await tester.tap(confirm);
+        await tester.pumpAndSettle();
+        expect(api.boxActions, ['connect', 'reference']);
+        expect(find.byType(TextField), findsNothing);
+        await tester.tap(find.text(filipino ? 'Mga tala' : 'History'));
+        await tester.pumpAndSettle();
+        expect(find.text('Saved on your EggGrade IoT server'), findsNothing);
+        expect(find.text('Naka-save sa EggGrade IoT server'), findsNothing);
+        expect(
+          find.text(
+            filipino
+                ? 'Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain'
+                : 'Appearance only · Not a food-safety assessment',
+          ),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), null);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  }
   testWidgets('signing out of an expired session returns to sign in', (
     tester,
   ) async {

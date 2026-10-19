@@ -32,7 +32,7 @@ export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cl
         <AutomaticBox locale={locale} active={view === "analyze"} onSaved={() => setHistoryVersion(value => value + 1)} />
       </div>
       {view === "history" && <PredictionHistory locale={locale} version={historyVersion} onAnalyze={() => setView("analyze")} />}
-      <footer className="workspace-footer"><span>{sharedStorage ? t("Saved online · Shared across your devices", "Naka-save online · Para sa lahat ng iyong device") : cloudDemo ? t("Temporary demo history", "Pansamantalang mga tala") : t("Saved on this laptop", "Naka-save sa laptop na ito")}</span><span>{t("Appearance only · Not a food-safety assessment", "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain")}</span></footer>
+      <footer className="workspace-footer">{t("Appearance only · Not a food-safety assessment", "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain")}</footer>
     </main>
   </div>;
 }

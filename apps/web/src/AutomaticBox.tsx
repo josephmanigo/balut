@@ -105,7 +105,6 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: t("Reject — suspected", "Posibleng reject"), UNFERTILIZED: t("Unfertilized", "Hindi pertilisado") }[result?.sourcePrediction ?? ""]);
 
   return <section className="automatic-box" aria-label={t("Automatic box", "Awtomatikong kahon")}>
-    {catalog?.experimental && <p className="experimental-model" role="note"><strong>{catalog.displayName ?? t("Camera model · experimental", "Modelo ng camera · eksperimental")}</strong><span>{catalog.models.some(model => model.classOrder.includes("UNFERTILIZED")) ? t("Unfertilized has not been checked with this camera.", "Hindi pa nasusuri ang Unfertilized gamit ang kamerang ito.") : t("Live test using the 30-egg dataset. Accuracy is still being evaluated.", "Live na pagsubok gamit ang dataset ng 30 itlog. Sinusuri pa ang katumpakan.")}</span></p>}
     <div className="box-status-line"><span><Radio size={17} />{cameraLive ? t("Camera connected", "Konektado ang camera") : t("Camera not connected", "Hindi konektado ang camera")}</span>
       {status?.calibrated && <button type="button" className="quiet-button" disabled={busy} onClick={() => void change("enabled", { enabled: !status.enabled })}>{status.enabled ? <Pause size={16} /> : <Play size={16} />}{status.enabled ? t("Pause", "I-pause") : t("Resume", "Ituloy")}</button>}
     </div>
@@ -121,12 +120,15 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
       <div ref={livePanel} className="box-live" role="status" aria-live="polite" aria-atomic="true">
         <h2>{unreachable ? t("Connection interrupted.", "Naputol ang koneksyon.") : copy[locale === "en" ? 0 : 1]}</h2>
         <p>{unreachable ? t("Check the EggGrade IoT server. Reconnecting automatically.", "Suriin ang EggGrade IoT server. Kokonekta muli.") : copy[locale === "en" ? 2 : 3]}</p>
-        {status?.cloudCapture && <UsbCameraConnect locale={locale} onPreview={setLocalPreview} />}
         {(status?.state === "analyzing" || status?.state === "capturing_views" || calibrating) && <LoaderCircle className="spin" size={24} />}
         {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? recaptureHelp : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p>{catalog?.experimental && <p>{result.modelReleaseId === catalog.releaseId ? t("Current experimental camera model", "Kasalukuyang eksperimental na modelo") : t("Earlier model result · place a new egg to test the camera model.", "Resulta ng dating modelo · maglagay ng bagong itlog upang subukan.")}</p>}{result.recaptureRequested && unfamiliar && blurry && <p>{t("Some views also have low detail. Check lens focus and reduce vibration.", "Kulang din sa detalye ang ilang kuha. Suriin ang focus ng lens at bawasan ang pagyanig.")}</p>}<time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
       </div>
     </div>
     {setupError && <p className="inline-error" role="alert">{setupError}</p>}
+    {status?.cloudCapture && <details className="box-settings">
+      <summary><Settings2 size={17} />{t("Box setup", "Setup ng kahon")}</summary>
+      <UsbCameraConnect locale={locale} onPreview={setLocalPreview} />
+    </details>}
     {status?.cloudCapture && ["checking_empty", "needs_reference"].includes(status.state) && <details className="box-settings">
       <summary>{t("Box is empty but still waiting?", "Bakante pero naghihintay pa rin?")}</summary>
       <p>{t("If the camera or lighting changed, update the empty view. Only continue with no egg or hands in the box. Keep the light on.", "Kung nagbago ang camera o ilaw, i-update ang bakanteng kuha. Tiyaking walang itlog o kamay sa kahon. Panatilihing bukas ang ilaw.")}</p>

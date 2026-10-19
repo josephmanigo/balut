@@ -22,10 +22,13 @@ it("labels temporary Render history clearly", async () => {
   render(<Workspace locale="en" setLocale={() => {}} onSignOut={() => {}} signingOut={false} notice="" cloudDemo />);
   expect(screen.getByRole("note")).toHaveTextContent("History and images reset when the server restarts");
   expect(screen.queryByText("Saved on this laptop")).not.toBeInTheDocument();
+  await screen.findByRole("heading", { name: "Ready for an egg." });
 });
 
-it("shows shared history only when the backend confirms shared storage", () => {
-  render(<Workspace locale="en" setLocale={() => {}} onSignOut={() => {}} signingOut={false} notice="" cloudDemo sharedStorage />);
-  expect(screen.getByText("Saved online · Shared across your devices")).toBeInTheDocument();
+it.each(["en", "fil"] as const)("removes the storage footer in %s while keeping the appearance boundary", async locale => {
+  render(<Workspace locale={locale} setLocale={() => {}} onSignOut={() => {}} signingOut={false} notice="" cloudDemo sharedStorage />);
+  expect(screen.queryByText(/Saved online|Shared across your devices|Naka-save online|Para sa lahat ng iyong device/)).not.toBeInTheDocument();
+  expect(screen.getByRole("contentinfo")).toHaveTextContent(locale === "en" ? "Appearance only · Not a food-safety assessment" : "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain");
   expect(screen.queryByRole("note")).not.toBeInTheDocument();
+  await screen.findByRole("heading", { name: locale === "en" ? "Ready for an egg." : "Handa para sa itlog." });
 });
