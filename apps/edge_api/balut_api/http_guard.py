@@ -35,9 +35,10 @@ class HttpGuard:
             nonlocal status
             if message["type"] == "http.response.start":
                 status = message["status"]
+                cache = b"public, max-age=31536000, immutable" if status in (200, 304) and request.url.path.startswith("/assets/") else b"no-store"
                 message.setdefault("headers", []).extend([
                     (b"x-request-id", request_id.encode()), (b"x-content-type-options", b"nosniff"),
-                    (b"cache-control", b"no-store"), (b"referrer-policy", b"no-referrer"),
+                    (b"cache-control", cache), (b"referrer-policy", b"no-referrer"),
                     (b"x-frame-options", b"DENY"),
                     (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), serial=(self)"),
                     (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"),

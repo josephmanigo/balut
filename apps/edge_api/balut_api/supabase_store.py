@@ -18,12 +18,16 @@ class Supabase:
         self.headers = {"apikey": secret}
         if not secret.startswith("sb_secret_"):
             self.headers["Authorization"] = "Bearer " + secret
+        self.client = httpx.Client(timeout=20, follow_redirects=False,
+                                   limits=httpx.Limits(keepalive_expiry=30))
+
+    def close(self):
+        self.client.close()
 
     def request(self, method, path, *, allowed=(), **kwargs):
         headers = {**self.headers, **kwargs.pop("headers", {})}
         try:
-            response = httpx.request(method, self.url + path, headers=headers, timeout=20,
-                                     follow_redirects=False, **kwargs)
+            response = self.client.request(method, self.url + path, headers=headers, **kwargs)
         except httpx.HTTPError:
             raise CloudStorageError("Shared storage unavailable; retry when connected") from None
         if response.is_success or response.status_code in allowed:

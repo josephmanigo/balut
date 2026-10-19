@@ -151,11 +151,15 @@ class ServerlessBox:
     def box(self, snapshot, token=None):
         return SavedBox(self.database, self.evidence, self.predict, self.cloud, snapshot, token)
 
-    def status(self):
-        rows = self.cloud.request("GET", "/rest/v1/balut_camera", params={"id": "eq.1", "select": "value"}).json()
+    def status(self, preview=True):
+        fields = ["config", "state", "error", "result", "received"]
+        if preview:
+            fields.append("preview")
+        selection = ",".join(f"{name}:value->{name}" for name in fields)
+        rows = self.cloud.request("GET", "/rest/v1/balut_camera", params={"id": "eq.1", "select": selection}).json()
         if not rows:
             raise CloudStorageError("Shared camera state is missing")
-        return self.box(rows[0]["value"]).status()
+        return self.box({name: value for name, value in rows[0].items() if value is not None}).status()
 
     def mutate(self, action):
         token = str(uuid4())
@@ -272,9 +276,9 @@ def serverless_box_router(box, settings):
             raise HTTPException(400, str(exc)) from exc
 
     @router.get("/status")
-    def status(request: Request):
+    def status(request: Request, preview: bool = True):
         require_box_operator(request, settings)
-        return box.status()
+        return box.status(preview=preview)
 
     @router.post("/frame")
     async def browser_frame(request: Request):

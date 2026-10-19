@@ -316,9 +316,12 @@ def box_router(box, settings):
     router = APIRouter(prefix="/api/v1/box")
 
     @router.get("/status")
-    def status(request: Request):
+    def status(request: Request, preview: bool = True):
         require_box_operator(request, settings)
-        return box.status()
+        value = box.status()
+        if not preview:
+            value["preview"] = None
+        return value
 
     async def mutate(request, action):
         require_box_operator(request, settings)

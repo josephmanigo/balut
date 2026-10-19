@@ -14,17 +14,84 @@ describe("automatic camera capture", () => {
     vi.resetAllMocks();
     vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "retained", analysisModelId: "egg-grade", models: [] });
   });
-  it("keeps experimental context beside results without a model banner", async () => {
+  it("loads capture without fetching the model catalog or displaying model-status messages", async () => {
     vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "camera-trial-20261018", experimental: true, analysisModelId: "egg-grade", models: [] });
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "remove_egg", result: { ...prediction, modelReleaseId: "retained" } });
     const { unmount } = render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByText("Earlier model result · place a new egg to test the camera model.")).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Day 16" });
+    expect(getSourceModels).not.toHaveBeenCalled();
+    expect(screen.queryByText(/experimental|Earlier model result/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Camera model · experimental")).not.toBeInTheDocument();
     unmount();
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "remove_egg", result: { ...prediction, modelReleaseId: "camera-trial-20261018" } });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByText("Current experimental camera model")).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Day 16" });
+    expect(getSourceModels).not.toHaveBeenCalled();
+    expect(screen.queryByText("Current experimental camera model")).not.toBeInTheDocument();
     expect(screen.queryByText("Earlier model result · place a new egg to test the camera model.")).not.toBeInTheDocument();
+  });
+  it("requests status without camera images while History is visible and cancels on unmount", async () => {
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true });
+    const { unmount } = render(<AutomaticBox locale="en" active={false} onSaved={() => {}} />);
+    await screen.findByRole("heading", { name: "Connect your box." });
+    expect(boxRequest).toHaveBeenCalledWith("status", undefined, expect.objectContaining({ preview: false, signal: expect.any(AbortSignal) }));
+    const signal = vi.mocked(boxRequest).mock.calls[0][2]?.signal;
+    expect(signal?.aborted).toBe(false);
+    unmount();
+    expect(signal?.aborted).toBe(true);
+  });
+  it("waits for slow status requests and stops polling a hidden browser tab", async () => {
+    vi.useFakeTimers();
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(false);
+    let finish!: (value: BoxStatus) => void;
+    vi.mocked(boxRequest).mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    try {
+      const { unmount } = render(<AutomaticBox locale="en" onSaved={() => {}} />);
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      expect(boxRequest).toHaveBeenCalledTimes(1);
+      const signal = vi.mocked(boxRequest).mock.calls[0][2]?.signal;
+      visibility.mockReturnValue("hidden"); hidden.mockReturnValue(true);
+      fireEvent(document, new Event("visibilitychange"));
+      expect(signal?.aborted).toBe(true);
+      await act(async () => { finish(blank); await vi.advanceTimersByTimeAsync(5000); });
+      expect(boxRequest).toHaveBeenCalledTimes(1);
+      visibility.mockReturnValue("visible"); hidden.mockReturnValue(false);
+      fireEvent(document, new Event("visibilitychange"));
+      expect(boxRequest).toHaveBeenCalledTimes(2);
+      unmount();
+    } finally { visibility.mockRestore(); hidden.mockRestore(); vi.useRealTimers(); }
+  });
+  it("checks cloud scan progress every half second while keeping slower idle polling", async () => {
+    vi.useFakeTimers();
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, connected: true, state: "capturing_views" });
+    try {
+      render(<AutomaticBox locale="en" onSaved={() => {}} />);
+      await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+      expect(boxRequest).toHaveBeenCalledTimes(2);
+      vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, connected: true, state: "waiting" });
+      await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+      expect(boxRequest).toHaveBeenCalledTimes(3);
+      await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+      expect(boxRequest).toHaveBeenCalledTimes(3);
+      await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+      expect(boxRequest).toHaveBeenCalledTimes(4);
+    } finally { vi.useRealTimers(); }
+  });
+  it("backs off failed status requests instead of retrying four times per second", async () => {
+    vi.useFakeTimers();
+    vi.mocked(boxRequest).mockRejectedValue(new Error("offline"));
+    try {
+      render(<AutomaticBox locale="en" onSaved={() => {}} />);
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      expect(boxRequest).toHaveBeenCalledTimes(1);
+      await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+      expect(boxRequest).toHaveBeenCalledTimes(2);
+      await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+      expect(boxRequest).toHaveBeenCalledTimes(3);
+      await act(async () => { await vi.advanceTimersByTimeAsync(1999); });
+      expect(boxRequest).toHaveBeenCalledTimes(3);
+    } finally { vi.useRealTimers(); }
   });
   it("explains a blurry multi-view recapture without inventing an age", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "recapture", result: { ...prediction,
@@ -147,7 +214,7 @@ describe("automatic camera capture", () => {
       current = { ...current, calibrated: true, enabled: true, state: "waiting" };
       await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
       expect(screen.getByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
-      expect(vi.mocked(boxRequest).mock.calls.every(args => args.length === 0)).toBe(true);
+      expect(vi.mocked(boxRequest).mock.calls.every(args => args[0] === "status")).toBe(true);
       expect(saved).not.toHaveBeenCalled();
     } finally { vi.useRealTimers(); }
   });
@@ -184,7 +251,7 @@ describe("automatic camera capture", () => {
       vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "waiting", result: prediction });
       await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
       expect(screen.getByRole("heading", { name: "Ready for an egg." })).toBeInTheDocument();
-      expect(vi.mocked(boxRequest).mock.calls.every(args => args.length === 0)).toBe(true);
+      expect(vi.mocked(boxRequest).mock.calls.every(args => args[0] === "status")).toBe(true);
       expect(saved).toHaveBeenCalledOnce();
     } finally { vi.useRealTimers(); }
   });

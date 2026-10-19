@@ -45,8 +45,10 @@ def create_gateway(key, transport=None):
         if request.method != ROUTES[route]:
             return error(405, "Method unavailable")
         query = list(request.query_params.multi_items())
-        if query and not (route == "model-predictions" and len(query) == 1 and query[0][0] == "limit"
-                          and re.fullmatch(r"[0-9]{1,3}", query[0][1]) and 1 <= int(query[0][1]) <= 100):
+        history_query = (route == "model-predictions" and len(query) == 1 and query[0][0] == "limit"
+                         and re.fullmatch(r"[0-9]{1,3}", query[0][1]) and 1 <= int(query[0][1]) <= 100)
+        preview_query = route == "box/status" and query in ([("preview", "false")], [("preview", "true")])
+        if query and not (history_query or preview_query):
             return error(400, "Invalid query")
         body = bytearray()
         try:

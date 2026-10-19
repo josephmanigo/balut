@@ -59,9 +59,10 @@ export interface BoxStatus {
   result: SourcePrediction | null;
 }
 
-export async function boxRequest(action = "status", body?: Record<string, unknown>): Promise<BoxStatus> {
-  const response = await apiFetch(`${API_BASE}/box/${action}`, {
-    method: body ? "POST" : "GET", signal: AbortSignal.timeout(45_000),
+export async function boxRequest(action = "status", body?: Record<string, unknown>, options: { signal?: AbortSignal; preview?: boolean } = {}): Promise<BoxStatus> {
+  const signal = AbortSignal.timeout(body ? 45_000 : 10_000);
+  const response = await apiFetch(`${API_BASE}/box/${action}${action === "status" && options.preview === false ? "?preview=false" : ""}`, {
+    method: body ? "POST" : "GET", signal: options.signal ? AbortSignal.any([signal, options.signal]) : signal,
     headers: { "X-Balut-Origin": "local", ...(body ? { "Content-Type": "application/json" } : {}),
       ...(LOCAL_TOKEN ? { Authorization: `Bearer ${LOCAL_TOKEN}` } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),

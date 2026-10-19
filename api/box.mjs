@@ -29,8 +29,10 @@ export async function proxy(request, env = process.env, fetchBox = fetch) {
   if (!Object.hasOwn(routes, route)) return error(404, "Route unavailable");
   if (request.method !== routes[route]) return error(405, "Method unavailable");
   const query = [...url.searchParams].filter(([name]) => name !== "route");
-  if (url.searchParams.getAll("route").length > 1 || query.length && !(route === "model-predictions" && query.length === 1
-      && query[0][0] === "limit" && /^[0-9]{1,3}$/.test(query[0][1]) && +query[0][1] >= 1 && +query[0][1] <= 100)) {
+  const historyQuery = route === "model-predictions" && query.length === 1
+    && query[0][0] === "limit" && /^[0-9]{1,3}$/.test(query[0][1]) && +query[0][1] >= 1 && +query[0][1] <= 100;
+  const previewQuery = route === "box/status" && query.length === 1 && query[0][0] === "preview" && ["true", "false"].includes(query[0][1]);
+  if (url.searchParams.getAll("route").length > 1 || query.length && !(historyQuery || previewQuery)) {
     return error(400, "Invalid query");
   }
   if (request.headers.get("sec-fetch-site") === "cross-site") return error(403, "Open the Balut website directly");

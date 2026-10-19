@@ -1,0 +1,35 @@
+:root {
+  color: #15221d;
+  background: #eee8dc;
+  font-family: Aptos, "Segoe UI", Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink: #15221d;
+  --muted: #64706a;
+  --paper: #f7f4ec;
+  --paper-deep: #eee8dc;
+  --rule: #cfc8ba;
+  --amber: #d77f22;
+  --amber-soft: #f0cf9e;
+  --teal: #245864;
+  --teal-soft: #b9d1d0;
+  --red: #a54138;
+  --red-soft: #e2b9b1;
+  --violet: #6d577c;
+}
+
+* { box-sizing: border-box; }
+
+html { min-width: 320px; background: var(--paper-deep); }
+
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+
+button, input, select { font: inherit; }
+button { color: inherit; }
+button:focus-visible, select:focus-visible { outline: 3px solid #83aab2; outline-offset: 2px; }
+
+.spin { animation: spin .85s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}

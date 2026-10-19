@@ -37,6 +37,8 @@ test("only required routes, same-origin JSON writes and USB connection are accep
     [request("/api/v1/auth/login", {}, { "Content-Type": "text/plain" }), 415],
     [request("/api/v1/box/connect", { cameraUrl: "http://192.168.1.1" }), 400],
     [request("/api/v1/box/status?extra=1"), 400],
+    [request("/api/v1/box/status?preview=false&preview=true"), 400],
+    [request("/api/v1/box/status?preview=invalid"), 400],
     [request("/api/v1/model-predictions?limit=0"), 400],
     [request("/api/box?route=box/status&route=models"), 400],
     [request("/api/v1/auth/login", { x: "a".repeat(17000) }), 400],
@@ -61,6 +63,14 @@ test("original API path forwards bounded history query", async () => {
   const response = await proxy(request("/api/v1/model-predictions?limit=50"), env, async url => {
     assert.equal(url.href, env.BALUT_BOX_URL + "/api/v1/model-predictions?limit=50");
     return Response.json({ items: [] });
+  });
+  assert.equal(response.status, 200);
+});
+
+test("proxy forwards status without preview for the capture computer", async () => {
+  const response = await proxy(request("/api/v1/box/status?preview=false"), env, async url => {
+    assert.equal(url.href, env.BALUT_BOX_URL + "/api/v1/box/status?preview=false");
+    return Response.json({ preview: null });
   });
   assert.equal(response.status, 200);
 });

@@ -14,6 +14,7 @@ export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cl
   sharedStorage?: boolean;
 }) {
   const [view, setView] = useState<"analyze" | "history">("analyze");
+  const [historyOpened, setHistoryOpened] = useState(false);
   const [historyVersion, setHistoryVersion] = useState(0);
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
   useEffect(() => { document.title = `${view === "analyze" ? "Analyze" : "History"} · EggGrade IoT`; document.documentElement.lang = locale; }, [view, locale]);
@@ -21,7 +22,7 @@ export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cl
     <a href="#workspace-main" className="skip-link">{t("Skip to workspace", "Pumunta sa workspace")}</a>
     <header className="workspace-header">
       <Brand />
-      <nav aria-label="Workspace"><button type="button" aria-current={view === "analyze" ? "page" : undefined} onClick={() => setView("analyze")}><ScanLine size={17} />{t("Analyze", "Suriin")}</button><button type="button" aria-current={view === "history" ? "page" : undefined} onClick={() => setView("history")}><History size={17} />{t("History", "Mga tala")}</button></nav>
+      <nav aria-label="Workspace"><button type="button" aria-current={view === "analyze" ? "page" : undefined} onClick={() => setView("analyze")}><ScanLine size={17} />{t("Analyze", "Suriin")}</button><button type="button" aria-current={view === "history" ? "page" : undefined} onClick={() => { setHistoryOpened(true); setView("history"); }}><History size={17} />{t("History", "Mga tala")}</button></nav>
       <div className="workspace-account"><button type="button" className="quiet-button" onClick={() => setLocale(locale === "en" ? "fil" : "en")}><Languages size={17} /><span>{locale === "en" ? "Filipino" : "English"}</span></button><span className="account-divider" /><button type="button" className="quiet-button" disabled={signingOut} onClick={onSignOut}><LogOut size={17} /><span>{t("Sign out", "Lumabas")}</span></button></div>
     </header>
     <main className="workspace-main" id="workspace-main">
@@ -31,7 +32,7 @@ export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cl
         <div className="workspace-heading"><div><h1>{t("A little light. A closer look.", "Mas malinaw na kuha.")}</h1><p>{t("Place one egg. Results save automatically.", "Maglagay ng isang itlog. Awtomatikong mase-save ang resulta.")}</p></div><span className="workspace-tag">{t("Candling workbench", "Candling workbench")}</span></div>
         <AutomaticBox locale={locale} active={view === "analyze"} onSaved={() => setHistoryVersion(value => value + 1)} />
       </div>
-      {view === "history" && <PredictionHistory locale={locale} version={historyVersion} onAnalyze={() => setView("analyze")} />}
+      {historyOpened && <div hidden={view !== "history"}><PredictionHistory locale={locale} version={historyVersion} onAnalyze={() => setView("analyze")} /></div>}
       <footer className="workspace-footer">{t("Appearance only · Not a food-safety assessment", "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain")}</footer>
     </main>
   </div>;

@@ -27,15 +27,21 @@ ORIGIN = "https://balut-test.vercel.app"
 
 @pytest.fixture
 def shared(provider, monkeypatch):
-    state = {"camera": {}, "lease": None, "sessions": {}, "attempts": []}
-    upstream = httpx.request
-    def request(method, url, **kwargs):
+    state = {"camera": {}, "lease": None, "sessions": {}, "attempts": [], "selects": []}
+    upstream = httpx.Client.request
+    def request(self, method, url, **kwargs):
+        if isinstance(self, TestClient):
+            return upstream(self, method, url, **kwargs)
         if provider["down"]:
             raise httpx.ConnectError("private diagnostics")
         name = url.split("/")[-1]
         body, params = kwargs.get("json", {}), kwargs.get("params", {})
         value = None
-        if name == "balut_camera": value = [{"value": state["camera"]}]
+        if name == "balut_camera":
+            selection = params.get("select", "value")
+            state["selects"].append(selection)
+            value = [{"value": state["camera"]}] if selection == "value" else [
+                {field.split(":")[0]: state["camera"].get(field.split(":")[0]) for field in selection.split(",")}]
         elif name == "balut_claim_camera":
             if not state["lease"]:
                 state["lease"] = body["p_token"]
@@ -57,9 +63,9 @@ def shared(provider, monkeypatch):
             state["attempts"] = [t for t in state["attempts"] if t > time.time() - 60]
             value = len(state["attempts"]) < 10
             if value: state["attempts"].append(time.time())
-        else: return upstream(method, url, **kwargs)
+        else: return upstream(self, method, url, **kwargs)
         return httpx.Response(200, content=b"null") if value is None else httpx.Response(200, json=value)
-    monkeypatch.setattr(httpx, "request", request)
+    monkeypatch.setattr(httpx.Client, "request", request)
     return state
 
 
@@ -70,6 +76,23 @@ def camera_frame(occupied=False, size=(640, 480), brightness=40):
     output = io.BytesIO()
     image.save(output, "JPEG")
     return output.getvalue()
+
+
+def test_browser_can_skip_cloud_preview_without_changing_shared_state(tmp_path, shared, provider):
+    provider["account"] = {"username": "classroom", "password_hash": "test-only"}
+    shared["camera"] = {"preview": "x" * 65536, "received": time.time(), "state": "waiting"}
+    settings = settings_for(tmp_path, cloud_origin=ORIGIN, serverless=True, supabase_url=URL, supabase_secret_key=SECRET)
+    application = create_app(settings)
+    with TestClient(application, base_url=ORIGIN) as client:
+        client.cookies.set(COOKIE_NAME, application.state.browser_sessions.issue("classroom"))
+        full = client.get("/api/v1/box/status", headers={"X-Balut-Origin": "local"})
+        small = client.get("/api/v1/box/status?preview=false", headers={"X-Balut-Origin": "local"})
+        assert full.status_code == small.status_code == 200
+        assert small.json() == {**full.json(), "preview": None}
+        assert len(small.content) < len(full.content) / 100
+        assert shared["camera"]["preview"] == full.json()["preview"]
+        assert shared["selects"][-1] == "config:value->config,state:value->state,error:value->error,result:value->result,received:value->received"
+    assert application.state.database.cloud.client.is_closed
 
 
 def test_motion_preview_requests_a_separate_held_frame_before_inference(tmp_path, shared, monkeypatch):

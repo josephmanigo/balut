@@ -94,8 +94,11 @@ def main():
                         supabase_secret_key=shared["secret_key"])
     settings.validate()
     cloud = Supabase(settings.supabase_url, settings.supabase_secret_key)
-    cloud.check()
-    report = migrate(database, evidence, SupabaseDatabase(snapshot, cloud), SupabaseEvidence(backup / "verified-images", cloud))
+    try:
+        cloud.check()
+        report = migrate(database, evidence, SupabaseDatabase(snapshot, cloud), SupabaseEvidence(backup / "verified-images", cloud))
+    finally:
+        cloud.close()
     (backup / "migration-report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({**report, "backup": str(snapshot)}))
 

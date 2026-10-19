@@ -39,6 +39,8 @@ def test_gateway_forwards_only_session_and_fixed_local_headers(gateway):
     ("POST", "/api/v1/box/status", {}, 405), ("GET", "/api/v1/box/status?url=http://evil", None, 400),
     ("GET", "/api/v1/model-predictions?limit=101", None, 400),
     ("GET", "/api/v1/model-predictions?limit=1&limit=2", None, 400),
+    ("GET", "/api/v1/box/status?preview=false&preview=true", None, 400),
+    ("GET", "/api/v1/box/status?preview=invalid", None, 400),
     ("POST", "/api/v1/box/connect", {"cameraUrl": "http://192.168.1.1"}, 400),
     ("POST", "/api/v1/auth/login", [], 400), ("POST", "/api/v1/auth/login", {"x": "a" * 17000}, 413),
 ])
@@ -62,6 +64,8 @@ def test_gateway_allows_usb_and_bounded_history(gateway):
     assert calls[-1].url.query == b"limit=50"
     assert calls[-1].headers["cookie"] == ""
     assert client.post("/api/v1/auth/logout", headers={"Content-Type": "application/json"}).status_code == 200
+    assert client.get("/api/v1/box/status?preview=false").status_code == 200
+    assert calls[-1].url.query == b"preview=false"
 
 
 @pytest.mark.parametrize("kind", ["redirect", "html", "large", "offline"])

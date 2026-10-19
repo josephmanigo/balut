@@ -1,13 +1,29 @@
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { Workspace } from "./Workspace";
-import { boxRequest, getSourceModels } from "./api";
+import { boxRequest, getPredictionHistory, getSourceModels } from "./api";
 
 vi.mock("./api", () => ({ boxRequest: vi.fn(), getPredictionHistory: vi.fn(), getSourceModels: vi.fn() }));
 
 beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(getPredictionHistory).mockResolvedValue([]);
   vi.mocked(getSourceModels).mockResolvedValue({ releaseId: "retained", analysisModelId: "egg-grade", models: [] });
   vi.mocked(boxRequest).mockResolvedValue({ cameraUrl: "http://192.168.2.2:8767", enabled: true, connected: true, calibrated: true, state: "waiting", error: null, preview: null, result: null });
+});
+
+it("keeps loaded history when switching tabs instead of fetching and showing loading again", async () => {
+  render(<Workspace locale="en" setLocale={() => {}} onSignOut={() => {}} signingOut={false} notice="" />);
+  await screen.findByRole("heading", { name: "Ready for an egg." });
+  fireEvent.click(screen.getByRole("button", { name: "History" }));
+  await screen.findByRole("heading", { name: "A fresh start." });
+  fireEvent.click(screen.getByRole("button", { name: /^Analyze$/ }));
+  fireEvent.click(screen.getByRole("button", { name: "History" }));
+  expect(screen.queryByText("Loading records…")).not.toBeInTheDocument();
+  expect(getPredictionHistory).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+  await act(async () => { await Promise.resolve(); });
+  expect(getPredictionHistory).toHaveBeenCalledTimes(2);
 });
 
 it.each(["en", "fil"] as const)("opens directly into automatic capture in %s without a photo picker", async locale => {

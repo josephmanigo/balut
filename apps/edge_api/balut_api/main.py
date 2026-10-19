@@ -11,6 +11,7 @@ from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from starlette.concurrency import run_in_threadpool
 from starlette.staticfiles import StaticFiles
@@ -126,6 +127,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if not resolved_settings.serverless:
                 await box.close()
             models.close()
+            if cloud:
+                cloud.close()
 
     application = FastAPI(
         title="EggGrade IoT local edge API",
@@ -170,6 +173,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "X-Image-SHA256",
         ],
     )
+    application.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=4)
     application.add_middleware(HttpGuard, settings=resolved_settings)
 
     @application.exception_handler(sqlite3.OperationalError)

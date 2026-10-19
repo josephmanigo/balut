@@ -1,33 +1,3 @@
-:root {
-  color: #15221d;
-  background: #eee8dc;
-  font-family: Aptos, "Segoe UI", Arial, sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  --ink: #15221d;
-  --muted: #64706a;
-  --paper: #f7f4ec;
-  --paper-deep: #eee8dc;
-  --rule: #cfc8ba;
-  --amber: #d77f22;
-  --amber-soft: #f0cf9e;
-  --teal: #245864;
-  --teal-soft: #b9d1d0;
-  --red: #a54138;
-  --red-soft: #e2b9b1;
-  --violet: #6d577c;
-}
-
-* { box-sizing: border-box; }
-
-html { min-width: 320px; background: var(--paper-deep); }
-
-body { margin: 0; min-width: 320px; min-height: 100vh; }
-
-button, input, select { font: inherit; }
-button { color: inherit; }
-button:focus-visible, select:focus-visible { outline: 3px solid #83aab2; outline-offset: 2px; }
-
 .app-shell { min-height: 100vh; display: grid; grid-template-columns: 232px minmax(0, 1fr); }
 
 .sidebar {
@@ -235,8 +205,6 @@ td { padding: 15px 10px; border-bottom: 1px solid var(--rule); font-size: 12px; 
 .role-matrix strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 500; margin-bottom: 11px; }
 .audit-explainer { grid-template-columns: auto 1fr; margin-bottom: 25px; }
 
-.spin { animation: spin .85s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 @keyframes scanSweep { from { left: 0; } to { left: 86%; } }
 
 @media (max-width: 1050px) {
@@ -301,8 +269,4 @@ td { padding: 15px 10px; border-bottom: 1px solid var(--rule); font-size: 12px; 
   .device-plate, .release-empty { align-items: flex-start; flex-direction: column; display: flex; }
   .health-list > div { grid-template-columns: 1fr; gap: 4px; padding-block: 12px; }
   .analytic-plot > div { grid-template-columns: 118px minmax(70px, 1fr) 24px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }

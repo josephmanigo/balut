@@ -22,8 +22,11 @@ SECRET = "sb_secret_" + "x" * 40
 @pytest.fixture
 def provider(monkeypatch):
     state = {"account": None, "predictions": {}, "images": {}, "down": False, "public": False}
+    upstream = httpx.Client.request
 
-    def request(method, url, **kwargs):
+    def request(self, method, url, **kwargs):
+        if isinstance(self, TestClient):
+            return upstream(self, method, url, **kwargs)
         assert kwargs["headers"]["apikey"] == SECRET
         assert "Authorization" not in kwargs["headers"]
         path = url.removeprefix(URL)
@@ -63,7 +66,7 @@ def provider(monkeypatch):
             if "id" in params: rows = [row for row in rows if row["response"]["predictionId"] == params["id"][3:]]
             return reply(rows[:int(params.get("limit", 50))])
         raise AssertionError((method, path))
-    monkeypatch.setattr(httpx, "request", request)
+    monkeypatch.setattr(httpx.Client, "request", request)
     return state
 
 
