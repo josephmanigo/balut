@@ -1,4 +1,8 @@
-# Balut AIoT research prototype
+# EggGrade IoT research prototype
+
+EggGrade IoT is the current product name. Open `Start EggGrade IoT.cmd` for the school box, or run `scripts/Start-EggGrade.ps1 -Supervise` from the source checkout. The current web address remains <https://balutaiot.vercel.app>.
+
+The latest camera dataset includes all 90 earlier views, 1,500 age sweep photos, and 150 vendor-labeled Reject photos. See `docs/REJECT_CAMERA_COLLECTION_20261019.md` for the completed retraining comparison. The new candidate was saved but not activated because validation regressed. The downloadable report is `output/pdf/EggGrade-IoT-Training-Results-20261019.pdf`; the results ZIP is under `output/model-results/`.
 
 Deploy the **website and AI on Vercel**, with the account, sessions, prediction
 history, camera state and private images in Supabase. See
@@ -23,7 +27,7 @@ offline installation, and backup/restore. Read the
 [2026-10-04 hardening and accuracy comparison](docs/HARDENING_AND_ACCURACY_2026-10-04.md),
 [Windows operating guide](docs/WINDOWS_MODEL_SERVICE.md) and
 [current automatic-recapture report](docs/AUTOMATIC_RECAPTURE_2026-09-12.md). There is no mandatory human review in this upload workflow. Unclear images remain unclassified. Historical accepted accuracy is 95/97 with 97/172 coverage; 100% accuracy has not been achieved.
-Use `scripts/Start-Balut.ps1` for that profile; the development commands below
+Use `scripts/Start-EggGrade.ps1` for that profile; the development commands below
 continue to run the separate simulator configuration. Automatic physical egg
 grading and physical actuation remain disabled pending the candler and real-egg validation. Camera scene-change capture is available as a research workflow; it requires an empty-box reference and a reachable camera. See [automatic camera setup](docs/AUTOMATIC_BOX_2026-10-14.md). Physical ESP32-CAM acceptance has not been performed.
 

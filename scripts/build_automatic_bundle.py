@@ -63,7 +63,7 @@ def main():
     }.items():
         for name in names:
             files[folder + "/" + name] = ROOT / folder / name
-    files["Open Balut.url"] = ROOT / "Open Balut.url"
+    files["Open EggGrade IoT.url"] = ROOT / "Open Balut.url"
     if args.verification_prefix:
         files["docs/HARDENING_AND_ACCURACY_2026-10-04.md"] = ROOT / "docs/HARDENING_AND_ACCURACY_2026-10-04.md"
         files["verification/production-readiness.json"] = artifacts / "production-readiness.json"
@@ -78,7 +78,7 @@ def main():
     with zipfile.ZipFile(archive,"w",zipfile.ZIP_DEFLATED,compresslevel=6) as bundle:
         behavior = ("Automatic Day 16 / Day 18 / suspected Reject appearance prediction, with automatic recapture requests for unclear images. Unclear images remain unclassified; no mandatory human review. Historical accepted accuracy was 95/97 at 97/172 coverage; two accepted predictions were wrong. Read docs/AUTOMATIC_RECAPTURE_2026-09-12.md."
                     if args.selective else "Automatic Day 16 / Day 18 / suspected Reject prediction. All predictions need confirmation. Read docs/AUTOMATIC_EGG_ANALYSIS_2026-09-12.md.")
-        bundle.writestr("README.md", "# Balut automatic image analysis\n\n"+behavior+"\n\nRequires Windows x64 and Python 3.12. Run scripts/Install-Balut.ps1, then scripts/Copy-Balut-Login.ps1, then scripts/Start-Balut.ps1 -Supervise in PowerShell. Leave the window running. Open http://127.0.0.1:8765 in Chrome or Edge, username operator, and paste the copied password. Clear your clipboard afterward.\n\nIncludes offline dependencies, the trained ONNX model, dashboard, evidence/backup tools, and software test images. Private credentials and databases are excluded and generated locally at installation. Physical camera capture and grading remain unvalidated.\n")
+        bundle.writestr("README.md", "# EggGrade IoT automatic image analysis\n\n"+behavior+"\n\nRequires Windows x64 and Python 3.12. Run scripts/Install-Balut.ps1, then scripts/Copy-Balut-Login.ps1, then scripts/Start-Balut.ps1 -Supervise in PowerShell. Leave the window running. Open http://127.0.0.1:8765 in Chrome or Edge, username operator, and paste the copied password. Clear your clipboard afterward.\n\nIncludes offline dependencies, the trained ONNX model, dashboard, evidence/backup tools, and software test images. Private credentials and databases are excluded and generated locally at installation. Physical camera capture and grading remain unvalidated.\n")
         inventory = {}
         for name, path in files.items():
             assert not any(part in {"private","runtime","backups","logs"} for part in Path(name).parts)

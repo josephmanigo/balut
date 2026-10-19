@@ -34,7 +34,7 @@ The age candidate correctly classifies 12/15 Day 16 examples and 17/20 Day 18 ex
 
 ## Use the candidate files
 
-From the Balut workspace:
+From the EggGrade IoT workspace:
 
 ```powershell
 .\scripts\Predict-Candling.ps1 -ImagePath "C:\path\to\egg-crop.jpg" -Model age16-18 -Version accuracy-v2

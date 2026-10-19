@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
-describe("Balut evidence workbench", () => {
+describe("EggGrade IoT evidence workbench", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
   });

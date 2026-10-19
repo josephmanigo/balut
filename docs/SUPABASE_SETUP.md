@@ -1,9 +1,9 @@
-# Shared Balut account, history, and images
+# Shared EggGrade IoT account, history, and images
 
 The backend can store its existing single workspace account and completed model
 predictions in Supabase Postgres, with images in the private `balut-evidence`
 bucket. A Render restart no longer removes these records when this mode is
-configured. Browsers and phones use the same deployed Balut URL and existing
+configured. Browsers and phones use the same deployed EggGrade IoT URL and existing
 username/password. They do not receive any Supabase secret.
 
 This preserves the existing username and scrypt password hash; it does not
@@ -39,7 +39,7 @@ real values locally, never in chat:
 }
 ```
 
-Stop the current Balut backend before the final copy, so it cannot create new
+Stop the current EggGrade IoT backend before the final copy, so it cannot create new
 records during migration. Run from the repository root:
 
 ```powershell

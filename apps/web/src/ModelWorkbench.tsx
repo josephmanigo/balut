@@ -40,7 +40,7 @@ export function ModelWorkbench({ locale = "en" }: { locale?: "en" | "fil" }) {
     const timer = setTimeout(() => controller.abort(), 10_000);
     setLoading(true); setNotice("");
     getSourceModels(controller.signal).then(value => { if (active) setCatalog(value); })
-      .catch(() => { if (active) { setCatalog(null); setNotice("Cannot reach the model. Check the Balut service, then retry."); } })
+      .catch(() => { if (active) { setCatalog(null); setNotice("Cannot reach the model. Check the EggGrade IoT service, then retry."); } })
       .finally(() => { clearTimeout(timer); if (active) setLoading(false); });
     return () => { active = false; controller.abort(); clearTimeout(timer); };
   }, [retry]);
@@ -76,7 +76,7 @@ export function ModelWorkbench({ locale = "en" }: { locale?: "en" | "fil" }) {
       const classified = value.analysisOutcome === "CLASSIFIED" && typeof value.sourcePrediction === "string" && Object.hasOwn(results, value.sourcePrediction) && value.recaptureRequested === false;
       const recapture = value.analysisOutcome === "RECAPTURE_REQUIRED" && value.sourcePrediction === null && value.recaptureRequested === true;
       if (value.operationalUseAuthorized !== false || value.operationalOutcome !== "NOT_AUTHORIZED" || value.reviewRequired !== false || !Array.isArray(value.recaptureReasons) || !(classified || recapture)) {
-        throw new Error("Unsupported result. No class has been assigned. Restart the Balut service.");
+        throw new Error("Unsupported result. No class has been assigned. Restart the EggGrade IoT service.");
       }
       setResult(value);
     } catch (error) {

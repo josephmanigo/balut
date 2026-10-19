@@ -452,7 +452,7 @@ class _HistoryPageState extends State<HistoryPage> {
               ),
           const Divider(height: 40),
           Text(
-            t('Saved on your Balut server', 'Naka-save sa Balut server'),
+            t('Saved on your EggGrade IoT server', 'Naka-save sa EggGrade IoT server'),
             style: theme.textTheme.bodySmall,
           ),
         ],

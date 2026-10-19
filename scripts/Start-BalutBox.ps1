@@ -18,7 +18,7 @@ if (-not $taskExisting) {
 for ($taskAttempt = 0; $taskAttempt -lt 30; $taskAttempt++) {
     try {
         $taskReady = Invoke-RestMethod -Uri ($taskProfile.https_origin + '/ready') -TimeoutSec 2
-        if ($taskReady.serviceReady) { Write-Output ('Balut is ready: ' + $taskProfile.https_origin); return }
+        if ($taskReady.serviceReady) { Write-Output ('EggGrade IoT is ready: ' + $taskProfile.https_origin); return }
     } catch { }
     Start-Sleep -Seconds 1
 }

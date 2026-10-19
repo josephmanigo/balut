@@ -21,7 +21,7 @@ async function authRequest(action: string, body?: object) {
       throw new AuthError(response.status, typeof error.detail === "string" ? error.detail : "Check your details and try again.");
     }
     if (response.status === 422) throw new AuthError(422, "Check your details. Passwords need 12–128 characters.");
-    throw new Error("Cannot connect. Check the Balut service and try again.");
+    throw new Error("Cannot connect. Check the EggGrade IoT service and try again.");
   }
   return response.json() as Promise<{ authenticated: boolean; setupRequired?: boolean; username?: string; cloudDemo?: boolean; sharedStorage?: boolean }>;
 }
@@ -39,7 +39,7 @@ export function SessionGate() {
     const expired = () => { setState("login"); setNotice("Session ended. Sign in again."); };
     window.addEventListener("balut:session-expired", expired);
     authRequest("session").then(value => { if (active) { setCloudDemo(!!value.cloudDemo); setSharedStorage(!!value.sharedStorage); setSetupRequired(!!value.setupRequired); setState(value.authenticated ? "ready" : "login"); } })
-      .catch(() => { if (active) { setState("login"); setNotice("Cannot connect. Check the Balut service and try again."); } });
+      .catch(() => { if (active) { setState("login"); setNotice("Cannot connect. Check the EggGrade IoT service and try again."); } });
     return () => { active = false; window.removeEventListener("balut:session-expired", expired); };
   }, []);
 
@@ -68,7 +68,7 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => { document.title = `${creating ? "Create account" : "Sign in"} · Balut AIoT`; document.documentElement.lang = locale; }, [locale, creating]);
+  useEffect(() => { document.title = `${creating ? "Create account" : "Sign in"} · EggGrade IoT`; document.documentElement.lang = locale; }, [locale, creating]);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (busy) return;
@@ -77,12 +77,12 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
     try { await authRequest(creating ? "register" : "login", { username: username.trim(), password, ...(creating ? { confirmPassword: confirmation } : {}) }); setPassword(""); setConfirmation(""); onLogin(); }
     catch (failure) {
       if (failure instanceof AuthError && failure.status === 409) { setCreating(false); setCanRegister(false); setPassword(""); setConfirmation(""); }
-      setError(failure instanceof Error && failure.name === "Error" ? failure.message : "Cannot connect. Check the Balut service and try again.");
+      setError(failure instanceof Error && failure.name === "Error" ? failure.message : "Cannot connect. Check the EggGrade IoT service and try again.");
     }
     finally { setBusy(false); }
   }
   return <div className="login-page">
-    <section className="login-story" aria-label="Balut workspace">
+    <section className="login-story" aria-label="EggGrade IoT workspace">
       <Brand />
       <div className="login-story-body">
         <div className="candling-symbol" aria-hidden="true"><span /><span /><span /></div>
@@ -97,7 +97,7 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
       <div className="login-form-wrap">
         <LockKeyhole className="login-lock" size={26} strokeWidth={1.4} aria-hidden="true" />
         <h1>{creating ? t("Create your account.", "Gumawa ng account.") : t("Welcome back.", "Maligayang pagbabalik.")}</h1>
-        <p>{creating ? t("Your username. Your password. Your workbench.", "Iyong username, password, at workbench.") : t("Sign in to your Balut workbench.", "Mag-sign in sa iyong Balut workbench.")}</p>
+        <p>{creating ? t("Your username. Your password. Your workbench.", "Iyong username, password, at workbench.") : t("Sign in to your EggGrade IoT workbench.", "Mag-sign in sa iyong EggGrade IoT workbench.")}</p>
         <form className="login-form" onSubmit={event => void submit(event)}>
           <div className="field-group"><label htmlFor="username">Username</label><input id="username" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder={creating ? t("Choose a username", "Pumili ng username") : t("Enter your username", "Ilagay ang username")} required minLength={creating ? 3 : undefined} maxLength={creating ? 32 : 80} pattern={creating ? "[a-zA-Z0-9][a-zA-Z0-9_.\\-]{2,31}" : undefined} title={creating ? t("3–32 letters, numbers, dots, underscores or hyphens", "3–32 letra, numero, tuldok, underscore o gitling") : undefined} value={username} onChange={event => setUsername(event.target.value)} disabled={busy} /></div>
           <div className="field-group"><label htmlFor="password">Password</label><div className="password-field"><input id="password" name="password" type={visible ? "text" : "password"} autoComplete={creating ? "new-password" : "current-password"} placeholder={creating ? t("Choose a password", "Pumili ng password") : t("Enter your password", "Ilagay ang password")} required minLength={creating ? 12 : undefined} maxLength={128} value={password} onChange={event => setPassword(event.target.value)} disabled={busy} aria-describedby={[creating ? "password-hint" : "", error ? "login-error" : ""].filter(Boolean).join(" ") || undefined} aria-invalid={!!error} /><button type="button" aria-label={visible ? "Hide password" : "Show password"} aria-pressed={visible} onClick={() => setVisible(!visible)}>{visible ? <EyeOff size={19} /> : <Eye size={19} />}</button></div>{creating && <small className="field-hint" id="password-hint">{t("At least 12 characters. A short phrase works well.", "12 character pataas. Maaaring maikling parirala.")}</small>}</div>

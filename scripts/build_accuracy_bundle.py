@@ -72,7 +72,7 @@ def main():
         (RUN / task / "model-card.md").write_text("\n".join(card), encoding="utf-8")
         lines += [f"## {title}", "", f"`{config['backbone']}` + `{config['hyperparameters']['kind']}`. [Model card](../ml/runs/accuracy-v2/{task}/model-card.md) · [PyTorch](../ml/runs/accuracy-v2/{task}/best.pt) · [ONNX](../ml/runs/accuracy-v2/{task}/best.onnx) · [all validation candidates](../ml/runs/accuracy-v2/{task}/candidates.jsonl).", ""]
     lines += ["The age candidate correctly classifies 12/15 Day 16 examples and 17/20 Day 18 examples. It still makes six errors in 35 images. Pat Reject recall improved only modestly, from 121/137 (88.3%) to 123/137 (89.8%); fourteen Reject-labelled crops are still missed. Duck abnormal recall remains 10/14 (71.4%), and the new candidate adds two fertile/infertile errors. Overall accuracy must not hide these weaknesses.", "",
-              "## Use the candidate files", "", "From the Balut workspace:", "", "```powershell",
+              "## Use the candidate files", "", "From the EggGrade IoT workspace:", "", "```powershell",
               '.\\scripts\\Predict-Candling.ps1 -ImagePath "C:\\path\\to\\egg-crop.jpg" -Model age16-18 -Version accuracy-v2',
               '.\\scripts\\Predict-Candling.ps1 -ImagePath "C:\\path\\to\\egg-crop.jpg" -Model pat-status -Version accuracy-v2', "```", "",
               "Use a single-egg crop for age and Pat status, matching their training images. `-Version baseline` (also the unchanged default) runs the original models. `-Model duck-status -Version accuracy-v2` explicitly selects the new duck candidate, whose historical test result is lower. Every command continues to return `REVIEW_RECAPTURE` for operational grading.", "",
@@ -121,7 +121,7 @@ def main():
     for name in ["LICENSE", "LICENSE_CELL_DINO_CODE", "LICENSE_CELL_DINO_MODELS", "LICENSE_XRAY_DINO_MODEL", "README.md", "MODEL_CARD.md"]:
         add(dino / name, f"ml/vendor/dinov2/{name}")
     add(ROOT / ".venv-ml" / "Lib" / "site-packages" / "torchvision-0.26.0+cu128.dist-info" / "LICENSE", "licenses/torchvision-LICENSE")
-    readme = """# Balut accuracy-v2 research models
+    readme = """# EggGrade IoT accuracy-v2 research models
 
 Source-labelled age: 62.9% -> 82.9% (29/35); Pat status: 94.1% -> 96.5% (445/461).
 The duck candidate regressed: 95.4% -> 93.1% (81/87). Its original 83/87 baseline is included separately.

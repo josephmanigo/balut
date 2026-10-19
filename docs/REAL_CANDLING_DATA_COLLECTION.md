@@ -1,4 +1,4 @@
-# Data needed to measure accuracy on the actual Balut candler
+# Data needed to measure accuracy on the actual EggGrade IoT candler
 
 The public experiments measure agreement with three separate sources. The Day 16/18 source does not document species or incubation timestamps, and none of these sources identifies physical eggs. Better public-source scores do not resolve those gaps.
 

@@ -1,4 +1,4 @@
-# Balut software hardening and accuracy comparison — 2026-10-04
+# EggGrade IoT software hardening and accuracy comparison — 2026-10-04
 
 Status: **verified Windows software for local shadow use**. Production physical grading remains blocked. The shipped model remains `automatic-recapture-20260912`; the new candidate is retained for research and is not activated.
 

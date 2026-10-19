@@ -47,7 +47,7 @@ The official Espressif [CameraWebServer example](https://github.com/espressif/ar
 
 - The server compares the center of each image with your saved empty reference. It compensates for uniform exposure changes and waits for three steady changed frames before capturing.
 - It saves one result per placement. Three frames matching the empty reference rearm capture. Polling normally waits one second between requests; actual delay also includes camera/network and model time.
-- The box can keep processing while both apps are closed, provided the Balut server is running and automatic mode is enabled. **Pause** stops automatic capture; manual upload remains available.
+- The box can keep processing while both apps are closed, provided the EggGrade IoT server is running and automatic mode is enabled. **Pause** stops automatic capture; manual upload remains available.
 - Configuration, the empty reference, the placement latch, latest result ID, and pending capture identity persist in SQLite. A pending image reuses the same idempotency key after interruption to avoid duplicate records.
 - Unclear images remain unclassified. Remove the egg, improve its position or lighting, and place it again for another capture. Manual attachment is also available.
 
@@ -55,7 +55,7 @@ Scene change is a heuristic, not a trained egg-presence detector. Hands, other o
 
 ## Connection and storage
 
-The laptop fetches camera images over the LAN. The web app and Android app communicate with the Balut server, not directly with the camera. Results, account data, evidence, and camera configuration are stored on that server. Supabase is not required for this local workflow.
+The laptop fetches camera images over the LAN. The web app and Android app communicate with the EggGrade IoT server, not directly with the camera. Results, account data, evidence, and camera configuration are stored on that server. Supabase is not required for this local workflow.
 
 The current Windows server still listens only on `127.0.0.1:8765`. An Android USB development bridge is described in [the mobile guide](../apps/mobile/README.md). A remote HTTPS deployment must also have a network path to the camera, such as a local gateway or private tunnel; a public server cannot reach a home's private camera address by itself. Public deployment and physical-phone acceptance are separate work.
 

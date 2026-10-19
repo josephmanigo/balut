@@ -56,7 +56,7 @@ The current Windows upload workflow supersedes the earlier mandatory-review inte
 
 ## Brand Commitments
 
-The product name is Balut AIoT. Its voice is precise, calm, bilingual, and operational. Green may not imply food safety. Synthetic or simulated data must be labeled visibly.
+The product name is EggGrade IoT. Its voice is precise, calm, bilingual, and operational. Green may not imply food safety. Synthetic or simulated data must be labeled visibly.
 
 ## Evidence on Hand
 

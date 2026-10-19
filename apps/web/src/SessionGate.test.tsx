@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Login, SessionGate } from "./SessionGate";
 
-vi.mock("./Workspace", () => ({ Brand: () => <span>Balut</span>, Workspace: ({ onSignOut }: { onSignOut: () => void }) => <button onClick={onSignOut}>Sign out</button> }));
+vi.mock("./Workspace", () => ({ Brand: () => <span>EggGrade IoT</span>, Workspace: ({ onSignOut }: { onSignOut: () => void }) => <button onClick={onSignOut}>Sign out</button> }));
 
 describe("browser sign-in", () => {
   beforeEach(() => vi.stubGlobal("fetch", vi.fn()));

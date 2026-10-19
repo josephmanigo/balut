@@ -3,9 +3,9 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "balut-aiot-edge"
+name = "egggrade-iot-edge"
 version = "0.1.0"
-description = "Local-first Balut AIoT edge API and research tooling"
+description = "Local-first EggGrade IoT edge API and research tooling"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1",
@@ -24,6 +24,7 @@ dev = [
 ]
 
 [project.scripts]
+egggrade-ml = "balut_ml.cli:main"
 balut-ml = "balut_ml.cli:main"
 
 [tool.hatch.build.targets.wheel]

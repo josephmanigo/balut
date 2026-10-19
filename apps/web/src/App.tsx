@@ -191,7 +191,7 @@ export function App() {
         <div className="brand-lockup">
           <div className="brand-mark" aria-hidden="true"><ScanLine size={23} /></div>
           <div>
-            <strong>Balut AIoT</strong>
+            <strong>EggGrade IoT</strong>
             <span>Research workbench</span>
           </div>
         </div>

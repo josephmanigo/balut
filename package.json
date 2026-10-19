@@ -1,16 +1,16 @@
 {
-  "name": "balut-aiot",
+  "name": "egggrade-iot",
   "version": "0.1.0",
   "private": true,
-  "description": "Fail-closed Balut AIoT research prototype and simulator",
+  "description": "Fail-closed EggGrade IoT research prototype and simulator",
   "workspaces": [
     "apps/web"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace @balut/web",
-    "build": "npm run build --workspace @balut/web",
-    "test": "npm run test --workspace @balut/web",
-    "typecheck": "npm run typecheck --workspace @balut/web",
+    "dev": "npm run dev --workspace @egggrade/web",
+    "build": "npm run build --workspace @egggrade/web",
+    "test": "npm run test --workspace @egggrade/web",
+    "typecheck": "npm run typecheck --workspace @egggrade/web",
     "verify": "npm run typecheck && npm run test && npm run build"
   },
   "engines": {

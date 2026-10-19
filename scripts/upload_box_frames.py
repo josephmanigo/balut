@@ -84,9 +84,9 @@ def main():
                             raise SystemExit("Cloud capture protocol is outdated. Update the cloud app before scanning.")
                         capture_requested = motor_capture and payload["captureRequested"]
                         if stationary:
-                            print("Three-angle capture accepted by Balut cloud. Holder is spinning.", flush=True)
+                            print("Three-angle capture accepted by EggGrade IoT cloud. Holder is spinning.", flush=True)
                         if sequence == 1 or sequence % 30 == 0:
-                            print("Live frame accepted by Balut cloud.", flush=True)
+                            print("Live frame accepted by EggGrade IoT cloud.", flush=True)
                     elif response.status_code in {401, 403}:
                         raise SystemExit("Cloud rejected the camera credentials or clock. Check matching settings and sync Windows time.")
                     else:

@@ -2,6 +2,7 @@ param([ValidateSet('Start','Stop','Cloud','CopyKey','Drivers')][string]$Action =
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
 $taskPython = Join-Path $taskRoot 'runtime\python\python.exe'
+if (-not (Test-Path -LiteralPath $taskPython)) { $taskPython = Join-Path $taskRoot '.venv-serving\Scripts\python.exe' }
 $taskProfilePath = Join-Path $taskRoot 'deployment\private\windows.json'
 $taskLogs = Join-Path $taskRoot 'deployment\logs'
 $taskBridgePath = Join-Path $PSScriptRoot 'camera_usb_bridge.py'

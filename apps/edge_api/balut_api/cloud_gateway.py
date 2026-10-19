@@ -112,7 +112,7 @@ def main():
         response = client.get("http://127.0.0.1:8765/api/v1/auth/session")
         response.raise_for_status()
         if response.json().get("setupRequired") is not False:
-            raise ValueError("Create your account on the local Balut page before starting the cloud connector")
+            raise ValueError("Create your account on the local EggGrade IoT page before starting the cloud connector")
     key = (root / "deployment/private/cloud-key.txt").read_text(encoding="utf-8-sig").strip()
     uvicorn.run(create_gateway(key), host="127.0.0.1", port=8768, proxy_headers=False, access_log=False)
 

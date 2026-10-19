@@ -141,8 +141,8 @@ class _AutomaticBoxPageState extends State<AutomaticBoxPage>
         ? (
             t('Connection interrupted.', 'Naputol ang koneksyon.'),
             t(
-              'Check the Balut server. Reconnecting automatically.',
-              'Suriin ang Balut server. Kokonekta muli.',
+              'Check the EggGrade IoT server. Reconnecting automatically.',
+              'Suriin ang EggGrade IoT server. Kokonekta muli.',
             ),
           )
         : switch (status?.state) {

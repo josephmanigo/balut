@@ -107,7 +107,7 @@ class Brand extends StatelessWidget {
   final bool onDark;
   @override
   Widget build(BuildContext context) => Semantics(
-    label: 'Balut AIoT',
+    label: 'EggGrade IoT',
     child: ExcludeSemantics(
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -122,7 +122,7 @@ class Brand extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'balut',
+              'EggGrade',
               style: TextStyle(
                 fontFamily: 'BalutSerif',
                 fontSize: 29,
@@ -132,7 +132,7 @@ class Brand extends StatelessWidget {
             ),
             const SizedBox(width: 5),
             Text(
-              'AIoT',
+              'IoT',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,

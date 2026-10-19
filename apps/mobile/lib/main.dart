@@ -73,7 +73,7 @@ class _BalutOperatorAppState extends State<BalutOperatorApp> {
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
-    title: 'Balut AIoT',
+    title: 'EggGrade IoT',
     theme: balutTheme(Brightness.light),
     darkTheme: balutTheme(Brightness.dark),
     locale: Locale(_filipino ? 'fil' : 'en'),
@@ -147,8 +147,8 @@ class _BalutOperatorAppState extends State<BalutOperatorApp> {
                         const SizedBox(height: 12),
                         Text(
                           _filipino
-                              ? 'Gamitin ang parehong Balut server ng web app.'
-                              : 'Use the same Balut server as your web app.',
+                              ? 'Gamitin ang parehong EggGrade IoT server ng web app.'
+                              : 'Use the same EggGrade IoT server as your web app.',
                         ),
                         if (_error != null) Notice(_error!),
                         Text(
@@ -317,8 +317,8 @@ class _AccountPageState extends State<AccountPage> {
                         'Iyong username, password, at workbench.',
                       )
                     : t(
-                        'Sign in to your Balut workbench.',
-                        'Mag-sign in sa iyong Balut workbench.',
+                        'Sign in to your EggGrade IoT workbench.',
+                        'Mag-sign in sa iyong EggGrade IoT workbench.',
                       ),
                 style: theme.textTheme.bodyMedium!.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -506,8 +506,8 @@ class _AccountPageState extends State<AccountPage> {
               const SizedBox(height: 40),
               Text(
                 t(
-                  'Images and records stay on your Balut server.',
-                  'Naka-save sa Balut server ang mga larawan at tala.',
+                  'Images and records stay on your EggGrade IoT server.',
+                  'Naka-save sa EggGrade IoT server ang mga larawan at tala.',
                 ),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall,
@@ -561,7 +561,7 @@ class _AccountPageState extends State<AccountPage> {
                           ),
                           const Spacer(),
                           const Text(
-                            'Balut AIoT',
+                            'EggGrade IoT',
                             style: TextStyle(color: amber),
                           ),
                         ],
@@ -629,7 +629,7 @@ class _ServerPageState extends State<ServerPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.filipino ? 'Balut server' : 'Workspace connection'),
+      title: Text(widget.filipino ? 'EggGrade IoT server' : 'Workspace connection'),
     ),
     body: SafeArea(
       child: ListView(
@@ -642,8 +642,8 @@ class _ServerPageState extends State<ServerPage> {
           const SizedBox(height: 16),
           Text(
             widget.filipino
-                ? 'Ilagay ang address ng iyong Balut server.'
-                : 'Enter your Balut server address. Your account and records stay together.',
+                ? 'Ilagay ang address ng iyong EggGrade IoT server.'
+                : 'Enter your EggGrade IoT server address. Your account and records stay together.',
           ),
           const SizedBox(height: 28),
           TextField(

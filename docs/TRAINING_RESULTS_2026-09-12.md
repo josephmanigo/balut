@@ -1,4 +1,4 @@
-# Balut public-dataset training results — 2026-09-12
+# EggGrade IoT public-dataset training results — 2026-09-12
 
 Three MobileNetV3-Small classifiers were trained locally on the RTX 3080. These are exploratory source-label models; no operational model release was created.
 

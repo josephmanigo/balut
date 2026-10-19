@@ -128,7 +128,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             models.close()
 
     application = FastAPI(
-        title="Balut AIoT local edge API",
+        title="EggGrade IoT local edge API",
         version="0.1.0",
         description=(
             "Fail-closed research prototype API. Simulator data is synthetic and "

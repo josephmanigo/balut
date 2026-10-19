@@ -77,7 +77,7 @@ def require_box_operator(request: Request, settings: Settings) -> str:
     if not settings.cloud_origin:
         return require_local_operator(request, settings)
     if request.headers.get("X-Balut-Origin") != "local" or not valid_operator_request(request, settings):
-        raise HTTPException(401, "Sign in to the Balut workbench")
+        raise HTTPException(401, "Sign in to the EggGrade IoT workbench")
     return request.app.state.browser_sessions.username(request)
 
 

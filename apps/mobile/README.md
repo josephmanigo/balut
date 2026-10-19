@@ -1,4 +1,4 @@
-# Balut Android workspace
+# EggGrade IoT Android workspace
 
 The native Flutter Android app follows the current web workspace: account creation/sign-in, **Analyze**, and **History**. It uses the same authentication, model and prediction endpoints as the web app. This replaces the older device/review simulator screens.
 
@@ -18,7 +18,7 @@ The current 0.4.0 box preview APK is built for `https://192.168.2.2:8765` and in
 
 For the user's iPhone, use the web workspace in Safari. This repository does not currently contain an iOS native target. The optional local HTTPS setup, certificate installation, and current hardware status are documented in [physical box connection](../../docs/BOX_CONNECTION_2026-10-16.md).
 
-The model, account, and records live on the connected Balut server. Android stores the server address and session cookie in platform secure storage; it does not store the password or maintain a separate account database. Changing servers clears the session. Android backups are disabled for the app.
+The model, account, and records live on the connected EggGrade IoT server. Android stores the server address and session cookie in platform secure storage; it does not store the password or maintain a separate account database. Changing servers clears the session. Android backups are disabled for the app.
 
 The current Windows service is loopback-only. For a USB development connection, enable USB debugging on the Android device, connect it to this laptop, and run:
 
@@ -27,7 +27,7 @@ adb -s DEVICE_SERIAL reverse tcp:8765 tcp:8765
 adb -s DEVICE_SERIAL install -r artifacts/Balut-Android-0.4.0-preview.apk
 ```
 
-Start the existing Windows service, then open **Balut AIoT** on the device. The default address is `http://127.0.0.1:8765`. Sign in with the same account used in the web app. No password-copy command or pairing token is needed.
+Start the existing Windows service, then open **EggGrade IoT** on the device. The default address is `http://127.0.0.1:8765`. Sign in with the same account used in the web app. No password-copy command or pairing token is needed.
 
 For a deployed server, choose **Your workspace** on the account screen or **Change server** on the connection screen. Enter the HTTPS origin. Public hosting still requires backend deployment changes; changing this app setting does not expose the local Windows service. Cleartext HTTP is allowed only for loopback USB testing. Requests do not follow redirects with credentials.
 

@@ -168,7 +168,7 @@
   .login-form-wrap h1 { font-size: 40px; }
   .login-panel-foot { font-size: 11px; }
   .workspace-header { min-height: 120px; padding: 18px 20px 0; gap: 16px; flex-wrap: wrap; }
-  .workspace-header .workbench-brand > span { font-size: 29px; }
+  .workspace-header .workbench-brand > span { font-size: 26px; }
   .workspace-header .workbench-brand > svg { width: 24px; }
   .workspace-account { margin-left: auto; }
   .workspace-account .quiet-button { padding-inline: 6px; gap: 6px; font-size: 12px; }

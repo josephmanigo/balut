@@ -23,7 +23,7 @@ def main():
         assert metrics["checkpoint_sha256"] == hashlib.sha256((run / "best.pt").read_bytes()).hexdigest()
         assert parity["passed"] and parity["onnx_sha256"] == hashlib.sha256((run / "best.onnx").read_bytes()).hexdigest()
         entries.append((run_name, title, source, audit_name, metrics, config, audit, parity))
-    lines = ["# Balut public-dataset training results — 2026-09-12", "",
+    lines = ["# EggGrade IoT public-dataset training results — 2026-09-12", "",
              "Three MobileNetV3-Small classifiers were trained locally on the RTX 3080. These are exploratory source-label models; no operational model release was created.", "",
              "The Day 16/18 experiment is too weak for reliable age decisions, and its source does not document duck species. The duck-status model also misses abnormal examples despite high overall accuracy. Preserve the review workflow.", "",
              "| Model | Train / validation / test | Test accuracy | Balanced accuracy | Macro F1 | Selected epoch |",
@@ -68,7 +68,7 @@ def main():
     artifacts = ROOT / "artifacts"
     artifacts.mkdir(exist_ok=True)
     archive = artifacts / "balut-public-models-20260912.zip"
-    readme = "# Balut exploratory trained models\n\nThree source-label MobileNetV3-Small models. Read each model-card.md and metrics.json before use. None is an operational or food-safety release. Day 16/18 performance is weak and source species is unknown.\n\nInstall Python 3.12 and run `pip install torch torchvision pillow`. Then run:\n\n`python predict.py models/duck-candling-v1/best.pt path/to/egg.jpg`\n\nOther directories: source-age16-18-v1 (cropped egg, source day labels) and pat-balut-v1 (cropped egg, source Fertilized/Reject/Unfertilized labels).\n\nONNX models require RGB NCHW float32, resized to 224x224, values scaled to 0..1 and normalized with mean [0.485,0.456,0.406], std [0.229,0.224,0.225]. Outputs are logits, in config.json class_order.\n\nOriginal training-data licenses/attribution are in sources/. Precise training environment is recorded in the lock file. Full local source datasets and manifests remain in the Balut workspace.\n"
+    readme = "# EggGrade IoT exploratory trained models\n\nThree source-label MobileNetV3-Small models. Read each model-card.md and metrics.json before use. None is an operational or food-safety release. Day 16/18 performance is weak and source species is unknown.\n\nInstall Python 3.12 and run `pip install torch torchvision pillow`. Then run:\n\n`python predict.py models/duck-candling-v1/best.pt path/to/egg.jpg`\n\nOther directories: source-age16-18-v1 (cropped egg, source day labels) and pat-balut-v1 (cropped egg, source Fertilized/Reject/Unfertilized labels).\n\nONNX models require RGB NCHW float32, resized to 224x224, values scaled to 0..1 and normalized with mean [0.485,0.456,0.406], std [0.229,0.224,0.225]. Outputs are logits, in config.json class_order.\n\nOriginal training-data licenses/attribution are in sources/. Precise training environment is recorded in the lock file. Full local source datasets and manifests remain in the EggGrade IoT workspace.\n"
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
         bundle.writestr("README.md", readme)
         bundle.write(ROOT / "ml" / "balut_ml" / "predict_public.py", "predict.py")

@@ -72,7 +72,7 @@ class HttpGuard:
             if request.method not in {"GET", "HEAD", "OPTIONS"} and (auth_route or COOKIE_NAME in request.cookies):
                 origin = request.headers.get("Origin")
                 if request.headers.get("X-Balut-Origin") != "local" or (origin and origin != str(request.base_url).rstrip("/")):
-                    return await reject(403, "Sign in from the local Balut page")
+                    return await reject(403, "Sign in from the local EggGrade IoT page")
                 if request.headers.get("Sec-Fetch-Site") == "cross-site":
                     return await reject(403, "Cross-site requests are not accepted")
             public_page = request.method in {"GET", "HEAD"} and (

@@ -5,7 +5,7 @@ import type { SourcePrediction } from "./api";
 import { AutomaticBox } from "./AutomaticBox";
 
 export function Brand() {
-  return <div className="workbench-brand"><ScanLine size={28} strokeWidth={1.5} aria-hidden="true" /><span>balut<span className="brand-suffix">AIoT</span></span></div>;
+  return <div className="workbench-brand" role="img" aria-label="EggGrade IoT"><ScanLine size={28} strokeWidth={1.5} aria-hidden="true" /><span>EggGrade<span className="brand-suffix"> IoT</span></span></div>;
 }
 
 export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cloudDemo = false, sharedStorage = false }: {
@@ -16,7 +16,7 @@ export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cl
   const [view, setView] = useState<"analyze" | "history">("analyze");
   const [historyVersion, setHistoryVersion] = useState(0);
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
-  useEffect(() => { document.title = `${view === "analyze" ? "Analyze" : "History"} · Balut AIoT`; document.documentElement.lang = locale; }, [view, locale]);
+  useEffect(() => { document.title = `${view === "analyze" ? "Analyze" : "History"} · EggGrade IoT`; document.documentElement.lang = locale; }, [view, locale]);
   return <div className="workspace">
     <a href="#workspace-main" className="skip-link">{t("Skip to workspace", "Pumunta sa workspace")}</a>
     <header className="workspace-header">

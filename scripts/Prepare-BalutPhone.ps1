@@ -48,9 +48,9 @@ try {
     $taskProfile.ssl_keyfile = Join-Path $taskCertificateDir 'server-key.pem'
     $taskProfile | ConvertTo-Json | Set-Content -LiteralPath $taskProfilePath -Encoding utf8
     @"
-<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect Balut on iPhone</title>
+<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect EggGrade IoT on iPhone</title>
 <style>body{max-width:38rem;margin:3rem auto;padding:0 1.25rem;font:18px/1.6 system-ui;background:#f6f3eb;color:#15221d}a{color:#165f50}li{margin:1rem 0}</style>
-<h1>Connect your iPhone</h1><p>This PC hosts your Balut workspace. Keep both devices on the same router.</p>
+<h1>Connect your iPhone</h1><p>This PC hosts your EggGrade IoT workspace. Keep both devices on the same router.</p>
 <ol><li><a href="/Balut-Local-Box.cer">Download the Balut Local Box certificate</a>. Tap Allow.</li>
 <li>Open Settings, then Profile Downloaded. Install <b>Balut Local Box</b>.</li>
 <li>Open Settings &gt; General &gt; About &gt; Certificate Trust Settings. Enable full trust for <b>Balut Local Box</b>.</li>

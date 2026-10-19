@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-10-13T21:46:33.4000297Z",
-  "title": "Design System: Balut Evidence Workbench",
+  "title": "Design System: EggGrade IoT Evidence Workbench",
   "extensions": {
     "typographyMeta": {
       "workspace-heading": {
@@ -73,7 +73,7 @@
   ],
   "narrative": {
     "northStar": "The Daylight Vendor Instrument",
-    "overview": "This is a refinement of the established paper, ink, amber, Georgia, and sans-serif identity. It makes one image, one action, and one result easy to follow. Thin rules, quiet controls, short instructions, and progressive detail replace the simulator's dense operational shell. The source-built candling symbol is decorative; the image preview shows the user's selected file.",
+    "overview": "This is a refinement of the established paper, ink, amber, Georgia, and sans-serif identity. It makes one image, one action, and one result easy to follow. Thin rules, quiet controls, short instructions, and progressive detail replace the simulator's dense operational shell. The source-built candling symbol is decorative; the image preview shows the user's selected file.\n\nThe product name is exactly **EggGrade IoT** following the 2026-10-19 rename. The web wordmark pairs Georgia **EggGrade** with a small sans-serif **IoT** suffix and exposes **EggGrade IoT** as a single accessible image name. The rename preserves the existing cream, ink, amber, and teal identity.",
     "keyCharacteristics": [
       "Paper, ink, amber, Georgia, and sans-serif identity.",
       "One image, one action, and one result.",

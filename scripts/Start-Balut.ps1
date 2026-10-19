@@ -12,7 +12,7 @@ $taskExisting = Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" | Wh
     ($_.CommandLine.Contains((Join-Path $taskRoot 'deployment\private\windows.json')) -or
      $_.CommandLine.Contains((Join-Path $taskRoot 'deployment\private\windows-phone.json')))
 }
-if ($taskExisting) { throw 'Balut is already running. Stop that service before switching between PC and phone mode.' }
+if ($taskExisting) { throw 'EggGrade IoT is already running. Stop that service before switching between PC and phone mode.' }
 $taskOldPath = $env:PYTHONPATH
 try {
     $env:PYTHONPATH = Join-Path $taskRoot 'apps\edge_api'

@@ -1,6 +1,6 @@
 ---
-name: Balut Evidence Workbench
-description: An evidence-first daylight instrument for fail-closed Balut AIoT research operations.
+name: EggGrade IoT Evidence Workbench
+description: An evidence-first daylight instrument for fail-closed EggGrade IoT research operations.
 colors:
   ink: "#15221d"
   muted: "#64706a"
@@ -90,7 +90,7 @@ components:
     height: "42px"
 ---
 
-# Design System: Balut Evidence Workbench
+# Design System: EggGrade IoT Evidence Workbench
 
 ## Overview
 
@@ -101,6 +101,8 @@ components:
 The production `/` entry now opens the custom login, followed by **Analyze** and **History** only. Its source of truth is `apps/web/src/SessionGate.tsx`, `Workspace.tsx`, `AutomaticBox.tsx`, `ModelWorkbench.tsx`, and `workspace.css`; `main.tsx` selects this surface outside development. The native counterparts are `apps/mobile/lib/workspace.dart`, `automatic_box.dart`, and `theme.dart`. The retained `App.tsx` is the development simulator. Sections explicitly labeled **Legacy simulator** below describe that older surface and do not prescribe production navigation, density, geometry, or language behavior.
 
 This is a refinement of the established paper, ink, amber, Georgia, and sans-serif identity. It makes one image, one action, and one result easy to follow. Thin rules, quiet controls, short instructions, and progressive detail replace the simulator's dense operational shell. The source-built candling symbol is decorative; image areas show the selected file or the latest camera-service preview without substituting decorative egg imagery.
+
+The product name is exactly **EggGrade IoT** following the 2026-10-19 rename. The web wordmark pairs Georgia **EggGrade** with a small sans-serif **IoT** suffix and exposes **EggGrade IoT** as a single accessible image name. The rename preserves the existing cream, ink, amber, and teal identity.
 
 Analyze defaults to **Automatic**, with **Attach photo** beside it. The automatic surface follows one placement, one saved research result, then removal before the next placement. Its camera connection, current instruction, and latest saved result remain distinct. Camera setup uses progressive disclosure, while manual attachment keeps its existing image, analyze, and result sequence. Both modes use the same History destination. This extends the Daylight Vendor Instrument and inherited seed `2df5ec83`; it introduces no replacement visual world or token palette.
 
@@ -122,7 +124,7 @@ Frontmatter retains shared tokens and the simulator's observed scales. The `work
 
 ### Legacy simulator
 
-Balut AIoT is an evidence-first operational workbench, not a marketing dashboard and not a food-safety verdict machine. The implemented thesis is explicit: eight stopped candling views lead, while every grade remains subordinate to provenance, quality gates, device readiness, and human review. The screen reads like a physical inspection bench in daylight—chalk-colored work surfaces, dark ink markings, warm candling amber, restrained teal, hard safety red, dense ruled ledgers, and no ornamental imagery.
+EggGrade IoT is an evidence-first operational workbench, not a marketing dashboard and not a food-safety verdict machine. The implemented thesis is explicit: eight stopped candling views lead, while every grade remains subordinate to provenance, quality gates, device readiness, and human review. The screen reads like a physical inspection bench in daylight—chalk-colored work surfaces, dark ink markings, warm candling amber, restrained teal, hard safety red, dense ruled ledgers, and no ornamental imagery.
 
 The source direction is recorded in `apps/web/index.html` as **Daylight vendor instrument**, with assigned seed **`2df5ec83`**. That seed identifies the implemented visual direction; it is not an asset identifier, dataset reference, screenshot, or proof of an external design process. The current frontend uses React and TypeScript through Vite, hand-authored CSS, and `lucide-react`. It contains no bundled photography, candling raster imagery, webfont package, Tailwind theme, component framework, or external brand asset.
 
@@ -224,6 +226,8 @@ The desktop login pairs a dark brand panel with a paper form panel. The authenti
 The native Android workspace carries this identity through Material 3 roles in `apps/mobile/lib/theme.dart`. It bundles Libre Caslon Text for the serif voice rather than redistributing Georgia. Native fields, the system image picker, at least 48dp controls, scrollable forms, keyboard insets, and system dark mode preserve Android behavior. Compact screens use two Analyze/History segments; expanded screens use a navigation rail and image/result columns. Login uses a compact forest brand strip on phones and a split composition at 900dp. Supporting connection settings remain outside the main task navigation. Body text follows system scaling; the wordmark scales down only if necessary to fit.
 
 At 1000px and below, margins and column gaps tighten. At 700px and below, the login keeps a compact brand strip, navigation moves to a full-width header row, and image/result columns stack. Automatic places the current instruction and saved result before the camera preview and scrolls that region into view when a result arrives in the active mode. Manual completion also moves focus to its result panel. The native automatic layout uses equal columns at 760dp of available content width and above, with a 40dp gap and 1160dp maximum; below that width, it places the instruction and result first. A new automatic result scrolls the active native page to its top. History dates and record fields stack; long filenames and IDs wrap. Preserve the inherited 320px web minimum without introducing page-wide overflow.
+
+The web workspace header reduces the main wordmark to 26px at widths of 700px and below; the login wordmark retains its existing scale. The six rename-review screenshots in `.impeccable/review/egggrade/` cover login and workspace at 1440px, 375px, and 320px. Their fixture-backed checks establish layout and naming only, with no page-wide overflow at those widths; they do not establish live authentication, camera or model behavior, or native visual acceptance.
 
 ### Legacy simulator
 

@@ -1,4 +1,4 @@
-# Balut: Vercel website and AI, Supabase records
+# EggGrade IoT: Vercel website and AI, Supabase records
 
 Vercel runs the website and the existing ONNX model. Supabase stores the existing
 account, hashed browser sessions, history, private evidence images and camera state.
@@ -31,12 +31,12 @@ capturing; viewing history and signing in do not depend on that laptop.
    address. An explicit `BALUT_CLOUD_ORIGIN=https://name.vercel.app` can override it
    if needed. Preview URLs are intentionally not accepted as alternate origins.
 5. Deploy, then visit the production domain. `/ready` must return status 200,
-   `serviceReady: true`, and one loaded model. Sign in with the existing Balut
+   `serviceReady: true`, and one loaded model. Sign in with the existing EggGrade IoT
    username and password and confirm the same History on another device.
 
 The local admin token is generated internally and is never accepted for cloud
 requests. Supabase secrets stay in the Python backend. Anonymous and authenticated
-Supabase API clients cannot read the Balut tables or evidence bucket.
+Supabase API clients cannot read the EggGrade IoT tables or evidence bucket.
 
 ## Connect the USB box directly from the website
 
