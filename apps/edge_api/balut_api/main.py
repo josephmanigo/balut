@@ -31,6 +31,7 @@ from .security import (
     require_idempotency_key,
     require_local_operator,
     verify_device_signature,
+    valid_operator_credential,
 )
 from .simulator import build_simulated_ingest
 from .evidence import EvidenceStore
@@ -81,10 +82,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             evidence_store.store_jpeg(view, digest)
         return database.record_prediction(result, image_hash, actor, key, request_hash)
 
-    def predict_box(body, key):
+    def predict_box(body, key, owner=None):
         if models.analysis_model_id is None:
             raise ValueError("Egg analysis model is unavailable")
-        return persist_prediction(models.analysis_model_id, body, "automatic-box", key, "iot_box")
+        owner = owner or getattr(box, "config", {}).get("owner")
+        return persist_prediction(models.analysis_model_id, body, owner or "automatic-box", key, "iot_box")
 
     box = AutomaticBox(database, evidence_store, predict_box)
     if resolved_settings.serverless:
@@ -213,15 +215,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return models.describe()
 
     @application.get("/api/v1/model-predictions/records/{prediction_id}")
-    def prediction_record(prediction_id: str):
-        result = database.get_prediction(prediction_id)
+    def prediction_record(prediction_id: str, request: Request):
+        result = database.get_prediction(prediction_id, history_owner(request))
         if result is None:
             raise HTTPException(status_code=404, detail="Prediction not found")
         return result
 
     @application.get("/api/v1/model-predictions")
-    def prediction_history(limit: Annotated[int, Query(ge=1, le=100)] = 50):
-        return {"items": database.list_predictions(limit)}
+    def prediction_history(request: Request, limit: Annotated[int, Query(ge=1, le=100)] = 50):
+        return {"items": database.list_predictions(limit, history_owner(request))}
+
+    def history_owner(request):
+        username = application.state.browser_sessions.username(request)
+        if username:
+            return username
+        if valid_operator_credential(request.headers.get("Authorization", ""), resolved_settings):
+            return None
+        raise HTTPException(401, "Sign in to view your history")
 
     @application.post("/api/v1/model-predictions/{model_id}")
     async def predict_source_image(model_id: str, request: Request):

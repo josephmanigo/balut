@@ -54,15 +54,16 @@ class SupabaseDatabase(Database):
         super().initialize()
         self.cloud.check()
 
-    def get_operator_account(self):
+    def get_operator_account(self, username=None):
         rows = self.cloud.request("GET", "/rest/v1/balut_account", params={
-            "id": "eq.1", "select": "username,password_hash", "limit": "1"}).json()
+            **({"username": "eq." + username} if username is not None else {"order": "id.asc"}),
+            "select": "username,password_hash", "limit": "1"}).json()
         return rows[0] if rows else None
 
     def create_operator_account(self, username, password_hash):
-        rows = self.cloud.request("POST", "/rest/v1/balut_account", params={"on_conflict": "id"},
+        rows = self.cloud.request("POST", "/rest/v1/balut_account", params={"on_conflict": "username"},
             headers={"Prefer": "resolution=ignore-duplicates,return=representation"},
-            json={"id": 1, "username": username, "password_hash": password_hash}).json()
+            json={"username": username, "password_hash": password_hash}).json()
         return bool(rows)
 
     def prediction_replay(self, actor_id, key, request_hash):
@@ -83,13 +84,15 @@ class SupabaseDatabase(Database):
         response = {**result, "predictionId": str(uuid4()), "imageSha256": image_sha256, "createdAt": utc_now()}
         return self.import_prediction(response, actor_id, key, request_hash)
 
-    def get_prediction(self, prediction_id):
+    def get_prediction(self, prediction_id, owner=None):
         rows = self.cloud.request("GET", "/rest/v1/balut_predictions", params={
+            **({"owner_username": "eq." + owner} if owner is not None else {}),
             "id": "eq." + prediction_id, "select": "response", "limit": "1"}).json()
         return rows[0]["response"] if rows else None
 
-    def list_predictions(self, limit=50):
+    def list_predictions(self, limit=50, owner=None):
         rows = self.cloud.request("GET", "/rest/v1/balut_predictions", params={
+            **({"owner_username": "eq." + owner} if owner is not None else {}),
             "select": "response", "order": "created_at.desc,id.desc", "limit": str(limit)}).json()
         return [row["response"] for row in rows]
 

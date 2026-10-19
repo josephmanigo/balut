@@ -1,4 +1,4 @@
-"""One local account with persistent password hashing and revocable sessions."""
+"""Persistent accounts with password hashing and revocable sessions."""
 import asyncio
 import hashlib
 import hmac
@@ -112,20 +112,17 @@ def browser_auth_router(database, sessions: BrowserSessions) -> APIRouter:
             raise HTTPException(400, "Use 3–32 letters, numbers, dots, underscores or hyphens for your username.")
         if credentials.password != credentials.confirm_password:
             raise HTTPException(400, "Passwords do not match.")
-        if await run_in_threadpool(database.get_operator_account) is not None:
-            raise HTTPException(409, "This workspace already has an account. Sign in instead.")
         await check_attempts()
         async with password_gate:
             hashed = await run_in_threadpool(hash_password, credentials.password)
             if not await run_in_threadpool(database.create_operator_account, username, hashed):
-                raise HTTPException(409, "This workspace already has an account. Sign in instead.")
-        await run_in_threadpool(sessions.clear)
+                raise HTTPException(409, "That username is already taken. Choose another or sign in.")
         return await signed_in(response, username, request)
 
     @router.post("/login")
     async def login(credentials: LoginInput, response: Response, request: Request):
         await check_attempts()
-        account = await run_in_threadpool(database.get_operator_account)
+        account = await run_in_threadpool(database.get_operator_account, credentials.username.strip().lower())
         async with password_gate:
             valid_password = bool(account) and await run_in_threadpool(verify_password, credentials.password, account["password_hash"])
         if not account or credentials.username.strip().lower() != account["username"] or not valid_password:

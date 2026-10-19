@@ -312,41 +312,71 @@ class BoxEnabled(BaseModel):
     enabled: bool
 
 
+def camera_owner(box):
+    account = box.database.get_operator_account() if not box.config.get("owner") else None
+    return box.config.get("owner") or (account["username"] if account else None)
+
+
+def claim_camera(box, username):
+    if camera_owner(box) != username:
+        if box.config.get("pending"):
+            raise ValueError("Finish the pending analysis before switching accounts.")
+        box.require_new_reference()
+        box.config.pop("resultId", None)
+        box.result, box.preview = None, None
+    box.config["owner"] = username
+
+
+def private_camera_status(box, username, value=None):
+    value = box.status() if value is None else value
+    owner = camera_owner(box)
+    if owner and owner != username:
+        value.update(preview=None, result=None, calibrated=False, enabled=False, error=None,
+                     state="needs_reference" if value["connected"] else "not_connected")
+    return value
+
+
 def box_router(box, settings):
     router = APIRouter(prefix="/api/v1/box")
 
     @router.get("/status")
     def status(request: Request, preview: bool = True):
-        require_box_operator(request, settings)
-        value = box.status()
+        actor = require_box_operator(request, settings)
+        value = private_camera_status(box, actor)
         if not preview:
             value["preview"] = None
         return value
 
-    async def mutate(request, action):
-        require_box_operator(request, settings)
+    async def mutate(request, action, claim=False):
+        actor = require_box_operator(request, settings)
         try:
             await asyncio.wait_for(box.lock.acquire(), timeout=5)
         except TimeoutError as exc:
             raise HTTPException(status_code=409, detail="Camera is busy. Try again in a moment.")
         try:
+            if claim:
+                claim_camera(box, actor)
+            elif camera_owner(box) not in (None, actor):
+                raise ValueError("Save an empty view with your account before using this camera.")
             await action()
+            box.config["owner"] = actor
+            box.save()
         except (httpx.HTTPError, OSError, ValueError) as exc:
             detail = str(exc) if isinstance(exc, ValueError) else "Cannot reach the camera. Check its address and connection."
             raise HTTPException(status_code=400, detail=detail) from exc
         finally:
             box.lock.release()
-        return box.status()
+        return private_camera_status(box, actor)
 
     @router.post("/connect")
     async def connect(payload: CameraConnection, request: Request):
-        return await mutate(request, lambda: box.connect(payload.camera_url))
+        return await mutate(request, lambda: box.connect(payload.camera_url), claim=True)
 
     @router.post("/reference")
     async def reference(payload: EmptyReference, request: Request):
         if not payload.empty_confirmed:
             raise HTTPException(status_code=400, detail="Remove the egg and confirm the box is empty.")
-        return await mutate(request, box.calibrate)
+        return await mutate(request, box.calibrate, claim=True)
 
     @router.post("/enabled")
     async def enabled(payload: BoxEnabled, request: Request):

@@ -19,7 +19,7 @@ def test_missing_evidence_cannot_create_completed_backup(tmp_path):
     db = Database(tmp_path / "source.db")
     db.initialize()
     with db.connect() as connection:
-        connection.execute("INSERT INTO model_predictions VALUES (?, ?, ?, ?, ?, ?)", ("p", "model", "release", "a"*64, "{}", "now"))
+        connection.execute("INSERT INTO model_predictions(id, model_id, release_id, image_sha256, response_json, created_at) VALUES (?, ?, ?, ?, ?, ?)", ("p", "model", "release", "a"*64, "{}", "now"))
         connection.commit()
     profile = tmp_path / "profile.json"
     profile.write_text(json.dumps({"database_path": str(db.path), "evidence_path": str(tmp_path / "evidence"), "model_registry_sha256": "a"*64}))
@@ -53,7 +53,7 @@ def create_live_backup(tmp_path):
     output = tmp_path / "backup"
     with closing(sqlite3.connect(db.path)) as writer:
         writer.execute("PRAGMA journal_mode=WAL")
-        writer.execute("INSERT INTO model_predictions VALUES (?, ?, ?, ?, ?, ?)", ("p", "model", "release", digest, '{"saved":true}', "now"))
+        writer.execute("INSERT INTO model_predictions(id, model_id, release_id, image_sha256, response_json, created_at) VALUES (?, ?, ?, ?, ?, ?)", ("p", "model", "release", digest, '{"saved":true}', "now"))
         writer.commit()
         assert Path(str(db.path) + "-wal").is_file()
         manifest = backup_module.backup(profile, output)

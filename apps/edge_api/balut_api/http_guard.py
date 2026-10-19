@@ -57,7 +57,7 @@ class HttpGuard:
                     if str(request.base_url).rstrip("/") != self.settings.cloud_origin:
                         return await reject(400, "Use the configured cloud address")
                     cloud_routes = {"/", "/health", "/ready", "/api/v1/models", "/api/v1/model-predictions",
-                                    "/api/v1/auth/session", "/api/v1/auth/login", "/api/v1/auth/logout",
+                                    "/api/v1/auth/session", "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/logout",
                                     "/api/v1/box/status", "/api/v1/box/connect", "/api/v1/box/reference", "/api/v1/box/frame",
                                     "/api/v1/box/enabled", "/api/v1/device/box/frame", "/api/v1/device/box/views"}
                     if request.url.path not in cloud_routes and not request.url.path.startswith("/assets/") and not re.fullmatch(r"/api/v1/model-predictions/records/[a-z0-9-]{1,80}", request.url.path):
@@ -80,6 +80,13 @@ class HttpGuard:
                 request.url.path in {"/", "/health", "/ready", "/api/v1/auth/session"} or request.url.path.startswith("/assets/")
             )
             public_auth = request.method == "POST" and request.url.path in {"/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/logout"}
+            if request.url.path.startswith(tuple("/api/v1/" + route for route in (
+                "dashboard", "inspections", "scans", "simulator", "batches", "eggs", "audit", "sync", "export"))):
+                username = await run_in_threadpool(request.app.state.browser_sessions.username, request)
+                if username:
+                    primary = await run_in_threadpool(request.app.state.database.get_operator_account)
+                    if not primary or username != primary["username"]:
+                        return await reject(403, "This account can access only its own workbench and history")
             if production and request.method != "OPTIONS" and not (public_page or public_auth):
                 if not request.url.path.startswith("/api/v1/device/") and not await run_in_threadpool(valid_operator_request, request, self.settings):
                     return await reject(401, "Operator authentication required")

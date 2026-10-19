@@ -21,7 +21,7 @@ SECRET = "sb_secret_" + "x" * 40
 
 @pytest.fixture
 def provider(monkeypatch):
-    state = {"account": None, "predictions": {}, "images": {}, "down": False, "public": False}
+    state = {"account": None, "accounts": {}, "predictions": {}, "images": {}, "down": False, "public": False}
     upstream = httpx.Client.request
 
     def request(self, method, url, **kwargs):
@@ -37,9 +37,16 @@ def provider(monkeypatch):
         if path == "/storage/v1/bucket/balut-evidence":
             return reply({"public": state["public"]})
         if path == "/rest/v1/balut_account":
+            accounts = {**state["accounts"], **({state["account"]["username"]: state["account"]} if state["account"] else {})}
             if method == "POST":
-                if state["account"]: return reply([])
-                state["account"] = {name: body[name] for name in ("username", "password_hash")}
+                if body["username"] in accounts: return reply([])
+                created = {name: body[name] for name in ("username", "password_hash")}
+                state["accounts"][body["username"]] = created
+                if not state["account"]: state["account"] = created
+                return reply([created])
+            if "username" in params:
+                account = accounts.get(params["username"][3:])
+                return reply([account] if account else [])
             return reply([state["account"]] if state["account"] else [])
         if path.startswith("/storage/v1/object/"):
             if method == "GET":
@@ -55,7 +62,8 @@ def provider(monkeypatch):
             if key in state["predictions"]:
                 old = state["predictions"][key]
                 return reply(old["response"]) if old["request_hash"] == body["p_hash"] else reply({}, 409)
-            row = {"response": body["p_response"], "request_hash": body["p_hash"]}
+            owner = body["p_actor"] if body["p_actor"] in state["accounts"] else (state["account"]["username"] if state["account"] else body["p_actor"])
+            row = {"response": body["p_response"], "request_hash": body["p_hash"], "owner_username": owner}
             state["predictions"][key] = row
             return reply(row["response"])
         if path == "/rest/v1/balut_predictions":
@@ -64,6 +72,7 @@ def provider(monkeypatch):
                 row = state["predictions"].get((params["actor_id"][3:], params["request_key"][3:]))
                 rows = [row] if row else []
             if "id" in params: rows = [row for row in rows if row["response"]["predictionId"] == params["id"][3:]]
+            if "owner_username" in params: rows = [row for row in rows if row["owner_username"] == params["owner_username"][3:]]
             return reply(rows[:int(params.get("limit", 50))])
         raise AssertionError((method, path))
     monkeypatch.setattr(httpx.Client, "request", request)

@@ -100,7 +100,7 @@ def test_account_persists_and_cannot_be_replaced_or_impersonated(tmp_path):
         assert verify_password(credentials["password"], stored["password_hash"])
         assert not verify_password("different password", stored["password_hash"])
         assert client.get("/api/v1/test-actor", headers={**LOCAL, "X-Actor-Id": "forged"}).json()["actor"] == "my.name"
-        assert register(client, username="attacker", password="replacement passphrase").status_code == 409
+        assert register(client, username="my.name", password="replacement passphrase").status_code == 409
         assert app.state.database.get_operator_account() == stored
     with TestClient(create_app(settings), base_url="http://127.0.0.1") as client:
         assert client.get("/api/v1/auth/session").json()["setupRequired"] is False

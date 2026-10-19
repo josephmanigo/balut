@@ -118,7 +118,7 @@ def make_box(tmp_path, fail_first=False, prediction_class="DAY_16"):
     evidence = EvidenceStore(tmp_path / "evidence")
     predictions = []
 
-    def predict(body, key):
+    def predict(body, key, owner=None):
         if fail_first and not predictions:
             predictions.append("interrupted")
             raise OSError("test interruption")
@@ -127,7 +127,7 @@ def make_box(tmp_path, fail_first=False, prediction_class="DAY_16"):
         result = {"modelId": "test-only", "modelReleaseId": "synthetic-software-test", "sourcePrediction": prediction_class,
                   "analysisOutcome": "CLASSIFIED", "recaptureRequested": False, "recaptureReasons": [], "reviewRequired": False,
                   "operationalOutcome": "NOT_AUTHORIZED", "operationalUseAuthorized": False, "captureSource": "iot_box"}
-        return database.record_prediction(result, __import__('hashlib').sha256(body).hexdigest(), "automatic-box", key, canonical_sha256({"image": list(body)}))
+        return database.record_prediction(result, __import__('hashlib').sha256(body).hexdigest(), owner or "automatic-box", key, canonical_sha256({"image": list(body)}))
 
     return AutomaticBox(database, evidence, predict), predictions
 
@@ -286,7 +286,7 @@ def test_legacy_completed_multiview_recovers_without_capturing_more_images(tmp_p
         box.config = {"enabled": True, "latched": True,
                       "pending": {"key": "legacy-completed", "imageHash": hashes[0], "imageHashes": hashes}}
         original = box.predict
-        def predict(body, key):
+        def predict(body, key, owner=None):
             assert body == bodies
             return original(body, key)
         box.predict = predict

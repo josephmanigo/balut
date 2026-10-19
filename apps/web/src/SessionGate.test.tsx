@@ -7,10 +7,18 @@ vi.mock("./Workspace", () => ({ Brand: () => <span>EggGrade IoT</span>, Workspac
 
 describe("browser sign-in", () => {
   beforeEach(() => vi.stubGlobal("fetch", vi.fn()));
+  it("keeps sign up available after the workspace is configured", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetch).mockResolvedValue(new Response('{"authenticated":false,"setupRequired":false}'));
+    render(<SessionGate />);
+    await user.click(await screen.findByRole("button", { name: "Sign up" }));
+    expect(screen.getByRole("heading", { name: "Create your account." })).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirm password")).toBeInTheDocument();
+  });
   it("identifies shared storage without the temporary-history warning", () => {
     render(<Login cloudDemo sharedStorage onLogin={() => {}} />);
     expect(screen.getByText("Shared workspace")).toBeInTheDocument();
-    expect(screen.getByText(/same history on your laptops and phones/)).toBeInTheDocument();
+    expect(screen.getByText(/private history, on your laptops and phones/)).toBeInTheDocument();
     expect(screen.queryByText(/Temporary cloud history/)).not.toBeInTheDocument();
   });
   it("identifies the cloud account and temporary storage before sign-in", () => {
@@ -71,5 +79,23 @@ describe("browser sign-in", () => {
     vi.mocked(fetch).mockResolvedValue(new Response('{"authenticated":false,"setupRequired":true}'));
     render(<SessionGate />);
     expect(await screen.findByRole("heading", { name: "Create your account." })).toBeInTheDocument();
+  });
+  it("keeps signup open after a duplicate username so another name can be chosen", async () => {
+    const user = userEvent.setup();
+    const done = vi.fn();
+    vi.mocked(fetch).mockResolvedValueOnce(new Response('{"detail":"That username is already taken. Choose another or sign in."}', { status: 409 }))
+      .mockResolvedValueOnce(new Response('{"authenticated":true}', { status: 201 }));
+    render(<Login onLogin={done} />);
+    await user.click(screen.getByRole("button", { name: "Sign up" }));
+    await user.type(screen.getByLabelText("Username"), "operator");
+    await user.type(screen.getByLabelText("Password", { exact: true }), "my chosen passphrase");
+    await user.type(screen.getByLabelText("Confirm password"), "my chosen passphrase");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("That username is already taken.");
+    expect(screen.getByRole("heading", { name: "Create your account." })).toBeInTheDocument();
+    await user.clear(screen.getByLabelText("Username"));
+    await user.type(screen.getByLabelText("Username"), "another-user");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() => expect(done).toHaveBeenCalledOnce());
   });
 });

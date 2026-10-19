@@ -45,7 +45,7 @@ def test_cloud_uses_prepared_account_and_secure_cookies_and_blocks_local_admin_r
     assert client.get("/api/v1/models").status_code == 401
     assert client.get("/api/v1/models", headers={"Authorization": "Bearer " + settings.local_admin_token}).status_code == 401
     headers = {"Origin": ORIGIN, "X-Balut-Origin": "local"}
-    assert client.post("/api/v1/auth/register", json={}, headers=headers).status_code == 404
+    assert client.post("/api/v1/auth/register", json={}, headers=headers).status_code == 422
     response = client.post("/api/v1/auth/login", headers=headers, json={"username": "classroom", "password": PASSWORD})
     assert response.status_code == 200
     assert "Secure" in response.headers["set-cookie"] and "HttpOnly" in response.headers["set-cookie"]

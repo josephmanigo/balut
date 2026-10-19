@@ -38,6 +38,14 @@ The local admin token is generated internally and is never accepted for cloud
 requests. Supabase secrets stay in the Python backend. Anonymous and authenticated
 Supabase API clients cannot read the EggGrade IoT tables or evidence bucket.
 
+**Sign up** remains available for new users. Each account sees only its own
+inspection history and record URLs. The account migration preserves the original
+password hash and assigns existing records to that original account. Apply
+`20261019030252_private_account_history.sql` before deploying this version.
+The physical camera still serves one account at a time. When changing accounts,
+confirm a fresh empty view before capturing; the previous account's preview and
+latest result are hidden. Signing up does not sign out other users.
+
 ## Connect the USB box directly from the website
 
 On the computer attached to the camera, open the deployed website in Chrome or

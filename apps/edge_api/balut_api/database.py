@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS box_workspace (
 );
 
 CREATE TABLE IF NOT EXISTS operator_account (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
+    id INTEGER PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     created_at TEXT NOT NULL
@@ -205,17 +205,20 @@ class Database:
             connection.execute("INSERT INTO box_workspace VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET config_json = excluded.config_json", (canonical_json(value),))
             connection.commit()
 
-    def get_operator_account(self):
+    def get_operator_account(self, username=None):
         with self.connect() as connection:
-            row = connection.execute("SELECT username, password_hash FROM operator_account WHERE id = 1").fetchone()
+            row = connection.execute("SELECT username, password_hash FROM operator_account" +
+                (" WHERE username = ?" if username is not None else " ORDER BY id LIMIT 1"),
+                (username,) if username is not None else ()).fetchone()
         return dict(row) if row else None
 
     def create_operator_account(self, username: str, password_hash: str) -> bool:
         with self.connect() as connection:
             cursor = connection.execute(
-                "INSERT INTO operator_account(id, username, password_hash, created_at) VALUES (1, ?, ?, ?) ON CONFLICT DO NOTHING",
+                "INSERT INTO operator_account(username, password_hash, created_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
                 (username, password_hash, utc_now()),
             )
+            connection.execute("UPDATE model_predictions SET owner_username = (SELECT username FROM operator_account ORDER BY id LIMIT 1) WHERE owner_username IS NULL")
             connection.commit()
             return cursor.rowcount == 1
 
@@ -233,8 +236,9 @@ class Database:
             now, prediction_id = utc_now(), str(uuid4())
             response = {**result, "predictionId": prediction_id, "imageSha256": image_sha256, "createdAt": now}
             payload = canonical_json(response)
-            connection.execute("INSERT INTO model_predictions VALUES (?, ?, ?, ?, ?, ?)",
-                               (prediction_id, result["modelId"], result["modelReleaseId"], image_sha256, payload, now))
+            owner = connection.execute("SELECT username FROM operator_account ORDER BY username = ? DESC, id LIMIT 1", (actor_id,)).fetchone()
+            connection.execute("INSERT INTO model_predictions VALUES (?, ?, ?, ?, ?, ?, ?)",
+                               (prediction_id, result["modelId"], result["modelReleaseId"], image_sha256, payload, now, owner[0] if owner else actor_id))
             event_id, _ = self._append_audit(connection, inspection_id=None, event_type="SOURCE_MODEL_PREDICTION_RECORDED",
                                              actor_id=actor_id, context=response, created_at=now)
             connection.execute("INSERT INTO sync_outbox(event_id, aggregate_type, aggregate_id, payload_json, available_at) VALUES (?, ?, ?, ?, ?)",
@@ -243,15 +247,18 @@ class Database:
             connection.commit()
             return response
 
-    def get_prediction(self, prediction_id):
+    def get_prediction(self, prediction_id, owner=None):
         with self.connect() as connection:
-            row = connection.execute("SELECT response_json FROM model_predictions WHERE id = ?", (prediction_id,)).fetchone()
+            row = connection.execute("SELECT response_json FROM model_predictions WHERE id = ?" +
+                (" AND owner_username = ?" if owner is not None else ""),
+                (prediction_id, owner) if owner is not None else (prediction_id,)).fetchone()
             return json.loads(row["response_json"]) if row else None
 
-    def list_predictions(self, limit: int = 50):
+    def list_predictions(self, limit: int = 50, owner=None):
         with self.connect() as connection:
             rows = connection.execute(
-                "SELECT response_json FROM model_predictions ORDER BY created_at DESC, rowid DESC LIMIT ?", (limit,)
+                "SELECT response_json FROM model_predictions" + (" WHERE owner_username = ?" if owner is not None else "") +
+                " ORDER BY created_at DESC, rowid DESC LIMIT ?", (owner, limit) if owner is not None else (limit,)
             ).fetchall()
         return [json.loads(row["response_json"]) for row in rows]
 
@@ -271,6 +278,17 @@ class Database:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as connection:
             connection.executescript(SCHEMA)
+            connection.execute("BEGIN IMMEDIATE")
+            account_schema = connection.execute("SELECT sql FROM sqlite_master WHERE name = 'operator_account'").fetchone()[0]
+            if "CHECK (id = 1)" in account_schema:
+                connection.execute("ALTER TABLE operator_account RENAME TO operator_account_single")
+                connection.execute("CREATE TABLE operator_account (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at TEXT NOT NULL)")
+                connection.execute("INSERT INTO operator_account SELECT * FROM operator_account_single")
+                connection.execute("DROP TABLE operator_account_single")
+            if "owner_username" not in {row[1] for row in connection.execute("PRAGMA table_info(model_predictions)")}:
+                connection.execute("ALTER TABLE model_predictions ADD COLUMN owner_username TEXT")
+            connection.execute("UPDATE model_predictions SET owner_username = (SELECT username FROM operator_account ORDER BY id LIMIT 1) WHERE owner_username IS NULL")
+            connection.execute("CREATE INDEX IF NOT EXISTS predictions_owner_created ON model_predictions(owner_username, created_at DESC)")
             now = utc_now()
             connection.execute(
                 """

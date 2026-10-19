@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
 from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, empty_view_matches, prepare_camera_frame, CAMERA_FRAMING_VERSION
+from .automatic_box import camera_owner, claim_camera, private_camera_status
 from .model_service import decode_jpeg
 from .remote_camera import USB_ORIGIN
 from .security import require_box_operator, require_idempotency_key
@@ -21,6 +22,7 @@ class SavedBox(AutomaticBox):
         super().__init__(database, evidence, predict)
         self.cloud, self.token = cloud, token
         self.config = snapshot.get("config", {"cameraUrl": USB_ORIGIN, "enabled": False})
+        self.predict = lambda body, key: predict(body, key, self.config.get("owner"))
         for name in ("state", "error", "preview", "result", "previous", "occupied_frames", "empty_frames"):
             if name in snapshot:
                 setattr(self, name, snapshot[name])
@@ -151,7 +153,7 @@ class ServerlessBox:
     def box(self, snapshot, token=None):
         return SavedBox(self.database, self.evidence, self.predict, self.cloud, snapshot, token)
 
-    def status(self, preview=True):
+    def status(self, preview=True, owner=None):
         fields = ["config", "state", "error", "result", "received"]
         if preview:
             fields.append("preview")
@@ -159,7 +161,8 @@ class ServerlessBox:
         rows = self.cloud.request("GET", "/rest/v1/balut_camera", params={"id": "eq.1", "select": selection}).json()
         if not rows:
             raise CloudStorageError("Shared camera state is missing")
-        return self.box({name: value for name, value in rows[0].items() if value is not None}).status()
+        saved = self.box({name: value for name, value in rows[0].items() if value is not None})
+        return private_camera_status(saved, owner) if owner is not None else saved.status()
 
     def mutate(self, action):
         token = str(uuid4())
@@ -179,10 +182,10 @@ class ServerlessBox:
         box.save(release=True)
         return response
 
-    async def receive(self, body, key, camera_session="signed-usb"):
-        return await run_in_threadpool(self.receive_frame, body, key, camera_session)
+    async def receive(self, body, key, camera_session="signed-usb", owner=None):
+        return await run_in_threadpool(self.receive_frame, body, key, camera_session, owner)
 
-    def receive_frame(self, body, key, camera_session="signed-usb"):
+    def receive_frame(self, body, key, camera_session="signed-usb", owner=None):
         motor_frame = re.fullmatch(r"usb-motor-(preview|still|views)-([0-9a-f]{32})-[1-9][0-9]*", key)
         if key.startswith("usb-motor-"):
             if not motor_frame or camera_session != "signed-usb":
@@ -211,6 +214,10 @@ class ServerlessBox:
         digest = hashlib.sha256(b"".join(len(view).to_bytes(4, "big") + view for view in bodies)).hexdigest() if multiview else hashlib.sha256(body).hexdigest()
 
         def process(box):
+            if owner is not None:
+                if camera_owner(box) not in (None, owner) and box.connected:
+                    raise HTTPException(409, "Save an empty view with your account before using this camera.")
+                claim_camera(box, owner)
             def response(repeated):
                 result = {"accepted": True, "repeated": repeated}
                 if motor_frame:
@@ -265,11 +272,16 @@ class ServerlessBox:
 def serverless_box_router(box, settings):
     router = APIRouter(prefix="/api/v1/box")
 
-    def change(request, action):
-        require_box_operator(request, settings)
+    def change(request, action, claim=False):
+        actor = require_box_operator(request, settings)
         def apply(saved):
+            if claim:
+                claim_camera(saved, actor)
+            elif camera_owner(saved) not in (None, actor):
+                raise ValueError("Save an empty view with your account before using this camera.")
             action(saved)
-            return saved.status()
+            saved.config["owner"] = actor
+            return private_camera_status(saved, actor)
         try:
             return box.mutate(apply)
         except ValueError as exc:
@@ -277,19 +289,22 @@ def serverless_box_router(box, settings):
 
     @router.get("/status")
     def status(request: Request, preview: bool = True):
-        require_box_operator(request, settings)
-        return box.status(preview=preview)
+        actor = require_box_operator(request, settings)
+        return box.status(preview=preview, owner=actor)
 
     @router.post("/frame")
     async def browser_frame(request: Request):
-        require_box_operator(request, settings)
+        actor = require_box_operator(request, settings)
         if request.headers.get("Content-Type") != "image/jpeg" or request.url.query:
             raise HTTPException(400, "Send a single USB camera JPEG.")
         try:
             camera_session = str(UUID(request.headers.get("X-Balut-Camera-Session", "")))
         except ValueError as exc:
             raise HTTPException(400, "Reconnect the USB camera from this page.") from exc
-        return await box.receive(await request.body(), require_idempotency_key(request), "browser-" + camera_session)
+        try:
+            return await box.receive(await request.body(), require_idempotency_key(request), "browser-" + camera_session, owner=actor)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
 
     @router.post("/connect")
     def connect(payload: CameraConnection, request: Request):
@@ -302,13 +317,13 @@ def serverless_box_router(box, settings):
                 raise ValueError("Finish the pending analysis before changing cameras.")
             saved.require_new_reference()
             saved.state = "needs_reference"
-        return change(request, reset)
+        return change(request, reset, claim=True)
 
     @router.post("/reference")
     def reference(payload: EmptyReference, request: Request):
         if not payload.empty_confirmed:
             raise HTTPException(400, "Remove the egg and confirm the box is empty.")
-        return change(request, lambda saved: saved.request_reference())
+        return change(request, lambda saved: saved.request_reference(), claim=True)
 
     @router.post("/enabled")
     def enabled(payload: BoxEnabled, request: Request):

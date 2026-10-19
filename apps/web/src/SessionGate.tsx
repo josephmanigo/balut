@@ -61,7 +61,6 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
 }) {
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
   const [creating, setCreating] = useState(setupRequired);
-  const [canRegister, setCanRegister] = useState(setupRequired);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -76,7 +75,6 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
     setBusy(true); setError("");
     try { await authRequest(creating ? "register" : "login", { username: username.trim(), password, ...(creating ? { confirmPassword: confirmation } : {}) }); setPassword(""); setConfirmation(""); onLogin(); }
     catch (failure) {
-      if (failure instanceof AuthError && failure.status === 409) { setCreating(false); setCanRegister(false); setPassword(""); setConfirmation(""); }
       setError(failure instanceof Error && failure.name === "Error" ? failure.message : "Cannot connect. Check the EggGrade IoT service and try again.");
     }
     finally { setBusy(false); }
@@ -105,8 +103,8 @@ export function Login({ locale = "en", setLocale, notice = "", setupRequired = f
           {(error || notice) && <p className="inline-error" id="login-error" role="alert">{error || notice}</p>}
           <button className="solid-button" type="submit" disabled={busy}>{busy ? <><LoaderCircle className="spin" size={18} />{creating ? t("Creating account…", "Ginagawa ang account…") : t("Signing in…", "Nagsa-sign in…")}</> : <>{creating ? t("Create account", "Gumawa ng account") : t("Sign in", "Mag-sign in")}<ArrowRight size={18} /></>}</button>
         </form>
-        {canRegister && <p className="auth-switch">{creating ? t("Already set up?", "May account na?") : t("New to this laptop?", "Bago sa laptop na ito?")} <button type="button" disabled={busy} onClick={() => { setCreating(!creating); setError(""); setPassword(""); setConfirmation(""); setVisible(false); }}>{creating ? t("Sign in", "Mag-sign in") : t("Create account", "Gumawa ng account")}</button></p>}
-        <p className="account-note">{sharedStorage ? t("One account. The same history on your laptops and phones.", "Isang account. Parehong mga tala sa iyong laptop at telepono.") : cloudDemo ? t("Use the account prepared for this cloud demo.", "Gamitin ang account para sa cloud demo na ito.") : creating ? t("One account for this laptop. Your existing records stay here.", "Isang account para sa laptop. Mananatili ang mga tala.") : t("Use the account you created on this laptop.", "Gamitin ang account na ginawa sa laptop na ito.")}</p>
+        <p className="auth-switch">{creating ? t("Already have an account?", "May account na?") : t("New here?", "Bago rito?")} <button type="button" disabled={busy} onClick={() => { setCreating(!creating); setError(""); setPassword(""); setConfirmation(""); setVisible(false); }}>{creating ? t("Sign in", "Mag-sign in") : t("Sign up", "Gumawa ng account")}</button></p>
+        <p className="account-note">{sharedStorage ? t("Your own account and private history, on your laptops and phones.", "Sariling account at pribadong mga tala sa iyong laptop at telepono.") : t("Your account keeps your inspection history separate.", "Hiwalay ang mga tala ng pagsusuri para sa iyong account.")}</p>
       </div>
       <footer className="login-panel-foot"><LockKeyhole size={14} aria-hidden="true" />{sharedStorage ? t("Account, images and history saved securely online.", "Ligtas na naka-save online ang account, larawan at mga tala.") : cloudDemo ? t("Temporary cloud history · resets on server restart.", "Pansamantalang tala · mawawala kapag nag-restart ang server.") : t("Images and records stay on this laptop.", "Naka-save sa laptop na ito ang mga larawan at tala.")}</footer>
     </main>
