@@ -76,9 +76,11 @@ def difference(left, right):
     return sum(abs(value - shift) > 25 for value in differences) / len(differences)
 
 
-def empty_view_matches(samples, reference):
+def empty_view_matches(samples, reference, *, strict=False):
     if difference(samples, reference) <= .025 and abs(statistics.median(samples) - statistics.median(reference)) <= 25:
         return True
+    if strict:
+        return False
     # The calibrated lower holder stays in view when background content or exposure changes.
     holder, empty_holder = samples[30 * 48:], reference[30 * 48:]
     if min(statistics.pstdev(holder), statistics.pstdev(empty_holder)) < 12:
@@ -261,12 +263,13 @@ class AutomaticBox:
         changed = difference(samples, self.config["reference"])
         motion = difference(samples, self.previous) if self.previous else 1.0
         self.previous = samples
-        empty = empty_view_matches(samples, self.config["reference"])
+        full_empty = empty_view_matches(samples, self.config["reference"], strict=True)
+        empty = full_empty or empty_view_matches(samples, self.config["reference"])
         self.empty_frames = self.empty_frames + 1 if empty else 0
         if self.config.get("latched") or self.config.get("awaitingEmpty"):
             self.state = ("checking_empty" if self.config.get("awaitingEmpty") else
                           "recapture" if self.result and self.result["recaptureRequested"] else "remove_egg")
-            if self.empty_frames >= 2:
+            if (full_empty and not self.config.get("awaitingEmpty")) or self.empty_frames >= 2:
                 self.config["latched"] = False
                 self.config.pop("awaitingEmpty", None)
                 self.occupied_frames = 0
