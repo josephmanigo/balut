@@ -5,6 +5,7 @@ import json
 import threading
 import time
 import zlib
+from queue import Empty, Queue
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -50,6 +51,71 @@ def read_fresh_snapshot(port):
     # GC2145 uses one WHEN_EMPTY buffer; the first frame may predate this request.
     read_snapshot(port)
     return read_snapshot(port)
+
+
+class CameraStream:
+    """Continuously drain the sensor; keep one newest CRC-checked preview during uploads."""
+    def __init__(self, camera):
+        self.camera = camera
+        self.lock = threading.Lock()
+        self.frames = Queue(maxsize=1)
+        self.stopped = threading.Event()
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.thread.start()
+
+    def discard(self):
+        while True:
+            try:
+                self.frames.get_nowait()
+            except Empty:
+                return
+
+    def run(self):
+        warmup = True
+        while not self.stopped.is_set():
+            try:
+                with self.lock:
+                    if self.stopped.is_set():
+                        return
+                    body = read_snapshot(self.camera)
+                    if warmup:
+                        warmup = False
+                        continue
+                    self.discard()
+                    self.frames.put_nowait((time.monotonic(), body))
+            except (OSError, ValueError) as error:
+                self.discard()
+                self.frames.put_nowait(error)
+                if isinstance(error, OSError):
+                    return
+            self.stopped.wait(.01)
+
+    def next_frame(self):
+        deadline = time.monotonic() + 8
+        last_error = None
+        while time.monotonic() < deadline:
+            try:
+                value = self.frames.get(timeout=max(.01, deadline - time.monotonic()))
+            except Empty:
+                break
+            if isinstance(value, Exception):
+                if isinstance(value, OSError):
+                    raise value
+                last_error = value
+                continue
+            captured, body = value
+            if time.monotonic() - captured < 3:
+                return body
+        if last_error:
+            raise last_error
+        raise OSError("Camera did not supply a fresh preview")
+
+    def close(self):
+        self.stopped.set()
+        self.thread.join(timeout=6)
+        if self.thread.is_alive():
+            self.camera.close()
+            self.thread.join(timeout=1)
 
 
 class CameraHandler(BaseHTTPRequestHandler):

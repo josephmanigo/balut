@@ -45,7 +45,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
 
   function accept(value: BoxStatus) {
     pollDelay.current = value.cloudCapture || !value.connected ? 1500 : 250;
-    if (value.cloudCapture && ["analyzing", "capturing_views", "settling"].includes(value.state)) pollDelay.current = 500;
+    if (value.cloudCapture && value.connected) pollDelay.current = 500;
     setStatus(value);
     setUnreachable(false);
     if (!addressLoaded.current) { setAddress(value.cameraUrl); addressLoaded.current = true; }

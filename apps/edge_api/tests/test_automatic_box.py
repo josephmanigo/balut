@@ -105,6 +105,23 @@ def test_camera_preview_preserves_native_detail_and_bounds_large_images():
         assert image.size == (240, 320) and not image.getexif()
 
 
+def test_one_full_empty_match_rearms_immediately_but_an_egg_does_not(tmp_path):
+    async def scenario():
+        box, calls = make_box(tmp_path)
+        reference, _ = frame_data(frame())
+        box.config = {"cameraUrl": "http://192.168.1.50", "reference": reference,
+                      "enabled": True, "latched": True, "framingVersion": 2}
+        body = frame(True)
+        async def fetch(_): return body
+        box.fetch = fetch
+        await box.tick()
+        assert box.config["latched"] and box.state == "remove_egg"
+        body = frame()
+        await box.tick()
+        assert box.state == "waiting" and not box.config["latched"] and not calls
+    asyncio.run(scenario())
+
+
 @pytest.fixture
 def camera_clock(monkeypatch):
     now = [1000.0]

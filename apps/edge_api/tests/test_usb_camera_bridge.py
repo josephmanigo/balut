@@ -1,6 +1,7 @@
 import io
 import http.client
 import threading
+import time
 import zlib
 from types import SimpleNamespace
 from contextlib import closing
@@ -75,6 +76,47 @@ def test_fresh_capture_discards_the_queued_frame():
     camera = BufferedPort(b"")
     assert bridge.read_fresh_snapshot(camera) == jpeg()
     assert camera.requests == 2
+
+
+def test_continuous_preview_keeps_capturing_during_upload_and_only_keeps_the_latest(monkeypatch):
+    number = [0]
+    def read(_):
+        time.sleep(.01)
+        number[0] += 1
+        return str(number[0]).encode()
+    monkeypatch.setattr(bridge, "read_snapshot", read)
+    stream = bridge.CameraStream(object())
+    try:
+        first = int(stream.next_frame())
+        assert first >= 2  # Only startup discards a queued sensor frame.
+        deadline = time.monotonic() + 2
+        while number[0] < first + 5 and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert int(stream.next_frame()) >= first + 4
+        with stream.lock:
+            stream.discard()
+            held = number[0]
+            time.sleep(.05)
+            assert number[0] == held
+        assert int(stream.next_frame()) > held
+    finally:
+        stream.close()
+    assert not stream.thread.is_alive()
+
+
+def test_continuous_preview_discards_corruption_and_returns_the_next_valid_frame(monkeypatch):
+    calls = [0]
+    def read(_):
+        calls[0] += 1
+        if calls[0] == 2:
+            raise ValueError("Corrupt USB image: checksum mismatch")
+        return b"warmup" if calls[0] == 1 else b"verified-frame"
+    monkeypatch.setattr(bridge, "read_snapshot", read)
+    stream = bridge.CameraStream(object())
+    try:
+        assert stream.next_frame() == b"verified-frame"
+    finally:
+        stream.close()
 
 
 @pytest.mark.parametrize("bad", [b"BALUT_ERROR Capture failed\n", b"BALUT_JPEG 99999999 0\n", b"BALUT_JPEG 12\n", packet(jpeg(), 0), packet(b"not a jpeg")])

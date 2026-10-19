@@ -11,10 +11,10 @@ from uuid import uuid4
 import httpx
 
 if __package__:
-    from .camera_usb_bridge import open_camera, read_fresh_snapshot
+    from .camera_usb_bridge import CameraStream, open_camera
     from .spinner_control import open_spinner, capture_views
 else:
-    from camera_usb_bridge import open_camera, read_fresh_snapshot
+    from camera_usb_bridge import CameraStream, open_camera
     from spinner_control import open_spinner, capture_views
 
 FRAME_PATH = "/api/v1/device/box/frame"
@@ -52,7 +52,7 @@ def main():
     motor_capture = origin.endswith(".vercel.app")
     if len(profile.get("secret", "")) < 32:
         raise SystemExit("Camera credentials are missing")
-    camera = spinner = None
+    camera = spinner = stream = None
     capture_requested = False
     session = uuid4().hex
     sequence = 0
@@ -60,19 +60,21 @@ def main():
     try:
         with httpx.Client(trust_env=False, follow_redirects=False, timeout=httpx.Timeout(130, connect=10)) as client:
             while True:
-                started = time.monotonic()
                 try:
                     if camera is None:
                         camera = open_camera()
+                        stream = CameraStream(camera)
                     if motor_capture and spinner is None:
                         spinner = open_spinner()
                     stationary = capture_requested
                     if stationary:
-                        views = capture_views(camera, spinner)
+                        with stream.lock:
+                            stream.discard()
+                            views = capture_views(camera, spinner)
                         body = json.dumps({"views": [base64.b64encode(view).decode("ascii") for view, _ in views]}, separators=(",", ":")).encode()
                         path, content_type, mode = VIEWS_PATH, "application/json", "views"
                     else:
-                        body = read_fresh_snapshot(camera)
+                        body = stream.next_frame()
                         path, content_type, mode = FRAME_PATH, "image/jpeg", "preview"
                     sequence += 1
                     key = f"usb-motor-{mode}-{session}-{sequence}" if motor_capture else f"usb-{session}-{sequence}"
@@ -94,6 +96,9 @@ def main():
                             capture_requested = False
                         print("Cloud is starting or unavailable. Retrying with a new frame; analysis requires fresh images.", flush=True)
                 except OSError:
+                    if stream is not None:
+                        stream.close()
+                        stream = None
                     if camera is not None:
                         camera.close()
                         camera = None
@@ -112,10 +117,11 @@ def main():
                 except httpx.HTTPError:
                     print("Network unavailable. Reconnecting without resending old frames.", flush=True)
                     time.sleep(3)
-                time.sleep(max(0, 1 - (time.monotonic() - started)))
     except KeyboardInterrupt:
         print("Camera connector stopped.")
     finally:
+        if stream is not None:
+            stream.close()
         if camera is not None:
             camera.close()
         if spinner is not None:

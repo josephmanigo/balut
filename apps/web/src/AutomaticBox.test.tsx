@@ -62,7 +62,7 @@ describe("automatic camera capture", () => {
       unmount();
     } finally { visibility.mockRestore(); hidden.mockRestore(); vi.useRealTimers(); }
   });
-  it("checks cloud scan progress every half second while keeping slower idle polling", async () => {
+  it("checks connected cloud status every half second so removal does not wait for idle polling", async () => {
     vi.useFakeTimers();
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, connected: true, state: "capturing_views" });
     try {
@@ -73,9 +73,9 @@ describe("automatic camera capture", () => {
       await act(async () => { await vi.advanceTimersByTimeAsync(500); });
       expect(boxRequest).toHaveBeenCalledTimes(3);
       await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-      expect(boxRequest).toHaveBeenCalledTimes(3);
+      expect(boxRequest).toHaveBeenCalledTimes(5);
       await act(async () => { await vi.advanceTimersByTimeAsync(500); });
-      expect(boxRequest).toHaveBeenCalledTimes(4);
+      expect(boxRequest).toHaveBeenCalledTimes(6);
     } finally { vi.useRealTimers(); }
   });
   it("backs off failed status requests instead of retrying four times per second", async () => {
