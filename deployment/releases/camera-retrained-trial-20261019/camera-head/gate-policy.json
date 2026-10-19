@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "minimum_margin": {
+    "DAY_16": 2.6411075456237794,
+    "DAY_18": 6.192462308502197,
+    "REJECT": 0.0
+  },
+  "minimum_training_cosine": {
+    "DAY_16": 0.6352762579917908,
+    "DAY_18": 0.6261587142944336,
+    "REJECT": 0.7606804370880127
+  },
+  "review_required": false,
+  "on_uncertain": "RECAPTURE_REQUIRED",
+  "calibration_scope": "Development validation only; repeated views are correlated; margins only increased after a documented false acceptance",
+  "quality": {
+    "minimum_short_side": 64,
+    "minimum_grayscale_std": 8.0,
+    "minimum_edge_variance": 20.0,
+    "maximum_clipped_fraction": 0.85
+  },
+  "previous_validation_margin_gate_counts": {
+    "DAY_16": {
+      "accepted": 11,
+      "correct": 11
+    },
+    "DAY_18": {
+      "accepted": 12,
+      "correct": 12
+    },
+    "REJECT": {
+      "accepted": 332,
+      "correct": 332
+    }
+  }
+}

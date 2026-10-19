@@ -1,0 +1,95 @@
+{
+  "scope": "OPERATOR_REQUESTED_EXPERIMENTAL_CAMERA_TRIAL_AFTER_FAILED_ADMISSION",
+  "source_selection_lock_sha256": "fceacf76400fb2e16ac84a4dd00df2adbd2f1c4a3b8cc35286cd7aad187a5361",
+  "dataset_sha256": "2ce212014705768fbf4978e00e37cc9dff24daa08d851df7e5be086ba07c61d1",
+  "candidate_admission_passed": false,
+  "admission_failures": [
+    "No increase in correct accepted fifty-view validation scans",
+    "Insufficient or regressed DAY_16 camera validation support",
+    "Insufficient or regressed DAY_18 camera validation support",
+    "Insufficient or regressed REJECT camera validation support",
+    "Original three-view camera validation regressed",
+    "Retained historical validation regressed",
+    "Retained original camera frames validation regressed"
+  ],
+  "validation_before": {
+    "physical_eggs": 11,
+    "correlated_scans": 176,
+    "classified": 169,
+    "correct_classified": 153,
+    "wrong_classified": 16,
+    "raw_correct": 160,
+    "coverage": 0.9602272727272727,
+    "accepted_accuracy": 0.9053254437869822,
+    "correct_of_all_inputs": 0.8693181818181818,
+    "macro_correct_of_all_inputs": 0.6375000000000001,
+    "by_true_class": {
+      "DAY_16": {
+        "physical_eggs": 5,
+        "scans": 80,
+        "raw_correct": 80,
+        "classified": 75,
+        "correct_classified": 75,
+        "wrong_classified": 0
+      },
+      "DAY_18": {
+        "physical_eggs": 5,
+        "scans": 80,
+        "raw_correct": 80,
+        "classified": 78,
+        "correct_classified": 78,
+        "wrong_classified": 0
+      },
+      "REJECT": {
+        "physical_eggs": 1,
+        "scans": 16,
+        "raw_correct": 0,
+        "classified": 16,
+        "correct_classified": 0,
+        "wrong_classified": 16
+      }
+    }
+  },
+  "validation_after": {
+    "physical_eggs": 11,
+    "correlated_scans": 176,
+    "classified": 145,
+    "correct_classified": 129,
+    "wrong_classified": 16,
+    "raw_correct": 157,
+    "coverage": 0.8238636363636364,
+    "accepted_accuracy": 0.8896551724137931,
+    "correct_of_all_inputs": 0.7329545454545454,
+    "macro_correct_of_all_inputs": 0.5375,
+    "by_true_class": {
+      "DAY_16": {
+        "physical_eggs": 5,
+        "scans": 80,
+        "raw_correct": 77,
+        "classified": 72,
+        "correct_classified": 72,
+        "wrong_classified": 0
+      },
+      "DAY_18": {
+        "physical_eggs": 5,
+        "scans": 80,
+        "raw_correct": 80,
+        "classified": 57,
+        "correct_classified": 57,
+        "wrong_classified": 0
+      },
+      "REJECT": {
+        "physical_eggs": 1,
+        "scans": 16,
+        "raw_correct": 0,
+        "classified": 16,
+        "correct_classified": 0,
+        "wrong_classified": 16
+      }
+    }
+  },
+  "rollback_release": "camera-multiangle-trial-20261019",
+  "test_images_opened": 0,
+  "supports_99_percent_claim": false,
+  "activation_reason": "Operator requested the latest retrained model in the app for live testing after the failed comparison was reported."
+}

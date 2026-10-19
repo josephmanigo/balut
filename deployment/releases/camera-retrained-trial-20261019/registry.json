@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "scope": "SOURCE_LABEL_SHADOW_ONLY",
+  "release_id": "camera-retrained-trial-20261019",
+  "default_analysis_model": "egg-grade",
+  "models": [
+    {
+      "id": "egg-grade",
+      "model": {
+        "path": "egg-grade/best.onnx",
+        "sha256": "8189d47fc25d357c5efb2e4abf4d714fe644c5356ec8c775e4addc679c635253"
+      },
+      "config": {
+        "path": "egg-grade/config.json",
+        "sha256": "30d3ca33ca028988f9b4e010179abd08cf3ec45804ea5bb790133a9b76d2f532"
+      },
+      "gate_policy": {
+        "path": "egg-grade/gate-policy.json",
+        "sha256": "35e331bb28c799a76c352983754fdadc1bcd675e96dc213b37e959926753d76a"
+      },
+      "training_references": {
+        "path": "egg-grade/training-references.npz",
+        "sha256": "25835156420257e34976b624ab65b5bdb4b4174dc6425593e3d7e25b44bf014a"
+      },
+      "known_answer": {
+        "path": "egg-grade/day_16.jpg",
+        "sha256": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff"
+      },
+      "expected_scores": [
+        4.715503215789795,
+        -1.1316624879837036,
+        -3.58328914642334
+      ],
+      "expected_prediction": "DAY_16",
+      "input_description": "Single photo: retained model. Three paused camera views: latest retrained experimental head; validation regressed.",
+      "camera_head": {
+        "capture_contract": "three-paused-views-v1",
+        "head": {
+          "path": "camera-head/head.npz",
+          "sha256": "7655c5603fdd7e0e72921223d9fc24dd33c84dfa86730190a7a55e9a7e2a9431"
+        },
+        "gate_policy": {
+          "path": "camera-head/gate-policy.json",
+          "sha256": "fafd48b1023a16a4d19c36077902c754b8b051df808fb58ba7cac562dadd2605"
+        },
+        "training_references": {
+          "path": "camera-head/training-references.npz",
+          "sha256": "3fb28faef23349a10b5ba49a1b1c0a2afca30d78e0ace1160e82d1c2fdbb35ce"
+        },
+        "known_answers": [
+          {
+            "file": {
+              "path": "camera-head/day_16.jpg",
+              "sha256": "cf6a51eecfe8edc5d1072b0d5345358d2c4930a3c3ce21a52c724370fcf7e734"
+            },
+            "expected_scores": [
+              7.269608020782471,
+              -0.25861573219299316,
+              -7.0105299949646
+            ],
+            "expected_prediction": "DAY_16",
+            "expected_recapture_reasons": []
+          },
+          {
+            "file": {
+              "path": "camera-head/day_18.jpg",
+              "sha256": "6ea97deb8ac87713801dbe0f1ce4742dc6505eec739a38f55d9d42aa2256c304"
+            },
+            "expected_scores": [
+              -1.8674046993255615,
+              2.4136579036712646,
+              -0.5457999110221863
+            ],
+            "expected_prediction": null,
+            "expected_recapture_reasons": [
+              "AMBIGUOUS_APPEARANCE"
+            ]
+          },
+          {
+            "file": {
+              "path": "egg-grade/reject.jpg",
+              "sha256": "a6a8f2a73201fcaa955e38629fbc8cb31247273340195aca458b54a3a934c6f8"
+            },
+            "expected_scores": [
+              -4.936209678649902,
+              -1.3749897480010986,
+              6.311672687530518
+            ],
+            "expected_prediction": "REJECT",
+            "expected_recapture_reasons": []
+          },
+          {
+            "file": {
+              "path": "egg-grade/too-dark.jpg",
+              "sha256": "5f02e1a0ffb037db6fcefd4b253d327aa881daaa1a650df63f1d36b3822e6058"
+            },
+            "expected_scores": [
+              2.3966846466064453,
+              -4.045223236083984,
+              1.6489343643188477
+            ],
+            "expected_prediction": null,
+            "expected_recapture_reasons": [
+              "LOW_CONTRAST",
+              "IMAGE_TOO_BLURRY",
+              "EXPOSURE_CLIPPED",
+              "AMBIGUOUS_APPEARANCE",
+              "UNFAMILIAR_APPEARANCE"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "software_test_examples": [
+    {
+      "file": {
+        "path": "egg-grade/day_16.jpg",
+        "sha256": "ae64b5e727b7ec3ca69e3d6b0772b3e94dfb8f2d6a769d455a87d6bd9cf0ceff"
+      },
+      "expected_scores": [
+        4.715503215789795,
+        -1.1316624879837036,
+        -3.58328914642334
+      ],
+      "expected_prediction": "DAY_16",
+      "expected_analysis_outcome": "CLASSIFIED",
+      "expected_recapture_reasons": [],
+      "partition": "historical validation software fixture"
+    },
+    {
+      "file": {
+        "path": "egg-grade/day_18.jpg",
+        "sha256": "049c8faafe28d633f08d3c721f755f4a6a91f73ea8cefaca701e3d1acf91c20a"
+      },
+      "expected_scores": [
+        0.7289546728134155,
+        5.627501010894775,
+        -6.355915069580078
+      ],
+      "expected_prediction": "DAY_18",
+      "expected_analysis_outcome": "CLASSIFIED",
+      "expected_recapture_reasons": [],
+      "partition": "historical validation software fixture"
+    },
+    {
+      "file": {
+        "path": "egg-grade/reject.jpg",
+        "sha256": "a6a8f2a73201fcaa955e38629fbc8cb31247273340195aca458b54a3a934c6f8"
+      },
+      "expected_scores": [
+        -2.0622448921203613,
+        -2.517179489135742,
+        4.579951286315918
+      ],
+      "expected_prediction": "REJECT",
+      "expected_analysis_outcome": "CLASSIFIED",
+      "expected_recapture_reasons": [],
+      "partition": "historical validation software fixture"
+    },
+    {
+      "file": {
+        "path": "egg-grade/too-dark.jpg",
+        "sha256": "5f02e1a0ffb037db6fcefd4b253d327aa881daaa1a650df63f1d36b3822e6058"
+      },
+      "expected_scores": [
+        0.12536978721618652,
+        0.4187351167201996,
+        -0.543594479560852
+      ],
+      "expected_prediction": null,
+      "expected_analysis_outcome": "RECAPTURE_REQUIRED",
+      "expected_recapture_reasons": [
+        "LOW_CONTRAST",
+        "IMAGE_TOO_BLURRY",
+        "EXPOSURE_CLIPPED",
+        "AMBIGUOUS_APPEARANCE",
+        "UNFAMILIAR_APPEARANCE"
+      ],
+      "partition": "synthetic software fixture"
+    }
+  ]
+}

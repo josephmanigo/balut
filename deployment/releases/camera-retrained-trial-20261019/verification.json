@@ -1,0 +1,11 @@
+{
+  "serving_parity_passed": true,
+  "candidate_admission_passed": false,
+  "validation_eggs_checked": 11,
+  "validation_groups_checked": 11,
+  "test_images_opened": 0,
+  "single_photo_weights_and_gates_unchanged": true,
+  "registry_sha256": "4ef8a6770c90539d69dd211d0b668b49f97e170dc64f9253e22521ee9e637896",
+  "camera_head_sha256": "7655c5603fdd7e0e72921223d9fc24dd33c84dfa86730190a7a55e9a7e2a9431",
+  "active_release_changed": false
+}
