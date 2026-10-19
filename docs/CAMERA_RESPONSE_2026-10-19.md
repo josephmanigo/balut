@@ -26,3 +26,15 @@ The user confirmed an empty box. Its previous reference did not match the actual
 Regression coverage includes immediate full-match rearming, retaining two-frame fallback and reconnect checks, continuous acquisition through upload waits, dropping older queued images, CRC-error recovery, exclusive three-view camera access, durable prediction recovery, and existing authentication boundaries. The final isolated API suite passed 235 tests. The web build and 55 web tests passed. After the second confirmed reference settled, live state returned to `waiting`, calibrated and connected. Physical removal-to-ready acceptance must use that fixed camera position and the deployed code; a software replay alone is insufficient.
 
 Local measurements and live reference checks are saved under `output/camera-response-20261019/`. They are excluded from the public repository.
+
+## Final live acceptance and restart recovery
+
+The user tested the deployed page and reported: "Ready returns quickly; preview feels better." The observation window did not independently record a result-to-removal cycle, so there is no measured end-to-end removal latency claim.
+
+The final audit caught a stopped connector after an authentication/clock rejection. Fresh signed probes passed authentication; the original rejection was not reproduced and its cause remains unconfirmed. Windows reports an unsynchronized time service, and the attempt to resynchronize returned access denied. The device signature and clock validation were retained.
+
+Restarting the connector exposed a reproducible separate issue: the identified camera port opened but never answered `CAPTURE`. The Python opener did not perform the application reset and ready handshake already used by the browser. A camera-only RTS reset, with DTR held false, reached `BALUT_USB_READY` in 5.250 seconds and produced a CRC-checked, fully decoded 800x600 JPEG. The shared Python opener now performs that same startup sequence, waits at most 16 seconds, and closes the port on timeout or sensor startup failure. It does not command the spinner or rewrite firmware.
+
+With the corrected opener running on the capture laptop, the final check observed 19 distinct cloud frames over 46.358 seconds. The median interval between observed frame updates was 2.339 seconds. The last state was `waiting`, enabled and calibrated, with no reconnect-empty requirement, pending capture, or error. The connector remained running, with no further authentication rejection during that check.
+
+After integrating the concurrent signup release, the API suite passed 242 tests, the web suite passed 57 tests, and the production web build passed. Public JavaScript and CSS bytes matched that build; readiness and session checks returned 200, and unauthenticated box status remained protected with 401. The measured preview remains snapshot-based; the exclusive three-angle capture still takes longer than an ordinary preview.

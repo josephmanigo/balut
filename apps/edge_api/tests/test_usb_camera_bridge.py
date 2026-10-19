@@ -21,6 +21,47 @@ def test_camera_adapter_is_identified_on_any_com_port():
             bridge.find_camera_port(ports)
 
 
+@pytest.mark.parametrize("startup", ["ready", "timeout", "sensor-failure"])
+def test_open_camera_resets_into_the_app_and_waits_for_ready(monkeypatch, startup):
+    import serial
+    from serial.tools import list_ports
+    events = []
+    lines = iter([b"booting\n", b"BALUT_USB_READY\n"] if startup == "ready" else
+                 [b"Camera init failed\n"] if startup == "sensor-failure" else [])
+
+    class StartupPort:
+        def __setattr__(self, name, value):
+            if name in {"dtr", "rts"}:
+                events.append((name, value))
+            object.__setattr__(self, name, value)
+        def open(self): events.append("open")
+        def set_buffer_size(self, **kwargs): pass
+        def reset_input_buffer(self): events.append("drain")
+        def readline(self, size):
+            assert not self.dtr and not self.rts
+            events.append("read")
+            return next(lines, b"")
+        def close(self): events.append("close")
+
+    port = StartupPort()
+    monkeypatch.setattr(serial, "Serial", lambda **kwargs: port)
+    monkeypatch.setattr(list_ports, "comports", lambda: [
+        SimpleNamespace(device="COM9", vid=0x0403, pid=0x6001, serial_number="A5069RR4A")])
+    ticks = iter(range(100))
+    monkeypatch.setattr(bridge.time, "monotonic", lambda: next(ticks))
+    monkeypatch.setattr(bridge.time, "sleep", lambda seconds: events.append(("sleep", seconds)))
+    if startup == "ready":
+        assert bridge.open_camera() is port
+        assert events[-1] == "read" and events.count("read") == 2
+        assert "close" not in events
+    else:
+        with pytest.raises(ValueError, match="Camera"):
+            bridge.open_camera()
+        assert events[-1] == "close"
+    assert events.index(("rts", True)) < events.index(("sleep", .12)) < events.index("read")
+    assert not port.dtr and not port.rts
+
+
 class CameraPort:
     def __init__(self, packet):
         self.packet = packet

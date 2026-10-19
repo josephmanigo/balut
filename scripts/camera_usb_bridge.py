@@ -177,10 +177,28 @@ def open_camera():
     camera = serial.Serial(port=None, baudrate=USB_BAUD, timeout=0.25, write_timeout=2)
     camera.dtr = camera.rts = False
     camera.port = find_camera_port(list_ports.comports())
-    camera.open()
-    if hasattr(camera, "set_buffer_size"):
-        camera.set_buffer_size(rx_size=2 * MAX_IMAGE, tx_size=4096)
-    return camera
+    try:
+        camera.open()
+        if hasattr(camera, "set_buffer_size"):
+            camera.set_buffer_size(rx_size=2 * MAX_IMAGE, tx_size=4096)
+        camera.reset_input_buffer()
+        # Match the browser startup: release reset with GPIO0 high to boot the camera app.
+        camera.rts = True
+        try:
+            time.sleep(.12)
+        finally:
+            camera.rts = False
+        deadline = time.monotonic() + 16
+        while time.monotonic() < deadline:
+            line = camera.readline(256).strip()
+            if b"Camera init failed" in line or b"Camera self-check failed" in line:
+                raise ValueError("Camera sensor did not start; check its power and ribbon cable")
+            if line == b"BALUT_USB_READY":
+                return camera
+        raise ValueError("Camera did not finish starting; reconnect its USB cable")
+    except BaseException:
+        camera.close()
+        raise
 
 
 def main():
