@@ -37,6 +37,15 @@ def frame_headers(body, secret, key, timestamp, path=FRAME_PATH, content_type="i
             "X-Device-Signature": hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()}
 
 
+def update_display(spinner, label):
+    if spinner is not None:
+        try:
+            return spinner.display(label)
+        except OSError:
+            pass
+    return False
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     profile_path = root / "deployment/private/cloud-device.json"
@@ -66,8 +75,10 @@ def main():
                         stream = CameraStream(camera)
                     if motor_capture and spinner is None:
                         spinner = open_spinner()
+                        update_display(spinner, "OFFLINE")
                     stationary = capture_requested
                     if stationary:
+                        update_display(spinner, "CAPTURING")
                         with stream.lock:
                             stream.discard()
                             views = capture_views(camera, spinner)
@@ -85,17 +96,21 @@ def main():
                         if motor_capture and not isinstance(payload.get("captureRequested"), bool):
                             raise SystemExit("Cloud capture protocol is outdated. Update the cloud app before scanning.")
                         capture_requested = motor_capture and payload["captureRequested"]
+                        update_display(spinner, payload.get("displayLabel", "UNCLASSIFIED"))
                         if stationary:
                             print("Three-angle capture accepted by EggGrade IoT cloud. Holder is spinning.", flush=True)
                         if sequence == 1 or sequence % 30 == 0:
                             print("Live frame accepted by EggGrade IoT cloud.", flush=True)
                     elif response.status_code in {401, 403}:
+                        update_display(spinner, "OFFLINE")
                         raise SystemExit("Cloud rejected the camera credentials or clock. Check matching settings and sync Windows time.")
                     else:
+                        update_display(spinner, "OFFLINE")
                         if response.status_code == 409:
                             capture_requested = False
                         print("Cloud is starting or unavailable. Retrying with a new frame; analysis requires fresh images.", flush=True)
                 except OSError:
+                    update_display(spinner, "OFFLINE")
                     if stream is not None:
                         stream.close()
                         stream = None
@@ -109,12 +124,14 @@ def main():
                     print("USB disconnected. Waiting for the identified camera and spinner adapters.", flush=True)
                     time.sleep(2)
                 except ValueError as error:
+                    update_display(spinner, "UNCLASSIFIED")
                     if spinner is not None:
                         spinner.close()
                         spinner = None
                     print(f"Camera frame unavailable: {error}. Check the USB cable and close other camera programs.", flush=True)
                     time.sleep(2)
                 except httpx.HTTPError:
+                    update_display(spinner, "OFFLINE")
                     print("Network unavailable. Reconnecting without resending old frames.", flush=True)
                     time.sleep(3)
     except KeyboardInterrupt:
@@ -125,6 +142,7 @@ def main():
         if camera is not None:
             camera.close()
         if spinner is not None:
+            update_display(spinner, "OFFLINE")
             spinner.close()
 
 

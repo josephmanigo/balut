@@ -13,6 +13,7 @@ else:
 
 MOTOR_MAC = "3c:8a:1f:09:88:8c"
 STEPS_PER_VIEW = 683  # Approximately 120 degrees with the recovered 2048-step gearing.
+LCD_CODES = {"UNCLASSIFIED", "DAY_16", "DAY_18", "REJECT", "WAITING", "CAPTURING", "OFFLINE", "CALIBRATE"}
 
 
 def next_angle(spinner, previous_steps):
@@ -74,6 +75,22 @@ class Spinner:
                     raise ValueError("Spinner did not acknowledge its capture state")
                 return state, steps
         raise ValueError("Spinner did not answer the capture protocol")
+
+    def display(self, label):
+        if not isinstance(label, str) or label not in LCD_CODES:
+            label = "UNCLASSIFIED"
+        nonce = uuid4().hex[:16]
+        self.port.reset_input_buffer()
+        self.port.write(f"LCD {nonce} {label}\n".encode())
+        self.port.flush()
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            line = self.port.readline(180).decode("ascii", errors="replace").strip()
+            if line == f"BALUT_LCD_V1 {nonce} READY label={label}":
+                return True
+            if line == f"BALUT_LCD_V1 {nonce} MISSING label={label}":
+                return False
+        return False
 
     @contextmanager
     def capture_hold(self):

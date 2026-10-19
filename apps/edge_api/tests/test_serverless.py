@@ -109,13 +109,15 @@ def test_motion_preview_requests_a_separate_held_frame_before_inference(tmp_path
     worker().mutate(lambda box: box.calibrate_saved())
     for _ in range(3): response = send(True)
     assert response["captureRequested"] is True
+    assert response["displayLabel"] == "CAPTURING"
     assert predictions == [] and local.database.list_predictions() == []
-    send(True, "still")
+    assert send(True, "still")["displayLabel"] == "DAY_16"
     assert len(local.database.list_predictions()) == 1 and predictions[0].startswith("box-still-")
     for _ in range(3): send(True)
     assert len(predictions) == 1
     for _ in range(3): response = send()
     assert not response["captureRequested"] and worker().status()["state"] == "waiting"
+    assert response["displayLabel"] == "WAITING"
 
 
 def test_browser_cannot_claim_the_signed_motor_capture_protocol(tmp_path, shared):

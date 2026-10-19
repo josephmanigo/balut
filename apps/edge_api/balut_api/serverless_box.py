@@ -13,6 +13,7 @@ from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEn
 from .automatic_box import camera_owner, claim_camera, private_camera_status
 from .model_service import decode_jpeg
 from .remote_camera import USB_ORIGIN
+from .box_display import box_display_code
 from .security import require_box_operator, require_idempotency_key
 from .supabase_store import CloudStorageError
 
@@ -220,6 +221,8 @@ class ServerlessBox:
                 claim_camera(box, owner)
             def response(repeated):
                 result = {"accepted": True, "repeated": repeated}
+                if camera_session.startswith("signed-usb"):
+                    result["displayLabel"] = box_display_code(box)
                 if motor_frame:
                     result["captureRequested"] = bool(box.config.get("stationaryRequested"))
                 return result

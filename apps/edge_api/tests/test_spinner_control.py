@@ -75,3 +75,31 @@ def test_unverified_hold_rejects_capture_and_resumes(monkeypatch, drift, fail_ho
         with spinner_control.Spinner(port).capture_hold():
             pass
     assert port.commands[-1] == "RUN" and port.state == "RUNNING"
+
+
+@pytest.mark.parametrize("label,expected", [("DAY_16", "DAY_16"), ("DAY_18", "DAY_18"), ("REJECT", "REJECT"),
+                                          ("UNCLASSIFIED", "UNCLASSIFIED"), ("DAY_16\nRUN", "UNCLASSIFIED"),
+                                          (None, "UNCLASSIFIED"), ({}, "UNCLASSIFIED")])
+def test_lcd_acknowledges_only_allowlisted_labels_without_motor_commands(label, expected):
+    class DisplayPort(Port):
+        def write(self, body):
+            self.body = body
+            super().write(body)
+
+        def readline(self, _):
+            return f"BALUT_LCD_V1 {self.nonce} READY label={expected}\n".encode()
+
+    port = DisplayPort()
+    assert spinner_control.Spinner(port).display(label)
+    assert port.commands == ["LCD"] and port.body.endswith(f" {expected}\n".encode())
+    assert port.state == "RUNNING" and port.steps == 12
+
+
+def test_missing_lcd_does_not_change_spinner_state():
+    class MissingPort(Port):
+        def readline(self, _):
+            return f"BALUT_LCD_V1 {self.nonce} MISSING label=OFFLINE\n".encode()
+
+    port = MissingPort()
+    assert not spinner_control.Spinner(port).display("OFFLINE")
+    assert port.state == "RUNNING"
