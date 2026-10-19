@@ -127,7 +127,7 @@ class ModelService:
             model_path, config_path = verified(entry["model"]), verified(entry["config"])
             config = json.loads(config_path.read_text(encoding="utf-8"))
             classes = config["class_order"]
-            if config["status"] not in {"EXPLORATORY_PUBLIC_SOURCE_CLASSIFIER", "EXPLORATORY_FROZEN_FEATURE_CLASSIFIER"} or config["operational_use_authorized"] is not False:
+            if config["status"] not in {"EXPLORATORY_PUBLIC_SOURCE_CLASSIFIER", "EXPLORATORY_FROZEN_FEATURE_CLASSIFIER", "EXPLORATORY_EPOCH_FINETUNED_CLASSIFIER"} or config["operational_use_authorized"] is not False:
                 raise ValueError("Model contract does not permit source-label-only serving")
             if config["input_size"] != 224 or config["normalization_mean"] != [0.485, 0.456, 0.406] or config["normalization_std"] != [0.229, 0.224, 0.225]:
                 raise ValueError("Unsupported input transform")

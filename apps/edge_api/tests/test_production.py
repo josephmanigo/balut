@@ -125,6 +125,24 @@ def test_corrupt_model_or_registry_prevents_startup(tmp_path, registry):
     assert not service.models
 
 
+@pytest.mark.parametrize("operational", [False, True])
+def test_epoch_finetuned_contract_stays_source_label_only(tmp_path, registry, operational):
+    config_path = tmp_path / "config.json"
+    config = json.loads(config_path.read_text())
+    config.update(status="EXPLORATORY_EPOCH_FINETUNED_CLASSIFIER", operational_use_authorized=operational)
+    config_path.write_text(json.dumps(config))
+    value = json.loads(registry.read_text())
+    value["models"][0]["config"]["sha256"] = sha256_file(config_path)
+    registry.write_text(json.dumps(value))
+    service = ModelService()
+    if operational:
+        with pytest.raises(ValueError, match="source-label-only"):
+            service.load(registry, sha256_file(registry))
+    else:
+        service.load(registry, sha256_file(registry))
+        assert service.describe()["operationalUseAuthorized"] is False
+
+
 def test_wrong_known_answer_prevents_startup(registry):
     data = json.loads(registry.read_text())
     data["models"][0]["expected_scores"] = [1.0, 0.0]

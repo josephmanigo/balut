@@ -102,7 +102,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     : t("Unclassified · adjust the view and replace the egg.", "Walang klasipikasyon · ayusin ang kuha at ilagay muli.");
   const cameraLive = !!localPreview || !!status?.connected && !unreachable;
   const label = result?.recaptureRequested ? t("Another image needed", "Kailangan ng ibang larawan")
-    : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: t("Reject — suspected", "Posibleng reject"), UNFERTILIZED: t("Unfertilized", "Hindi pertilisado") }[result?.sourcePrediction ?? ""]);
+    : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: "Reject", UNFERTILIZED: "Reject" }[result?.sourcePrediction ?? ""]);
 
   return <section className="automatic-box" aria-label={t("Automatic box", "Awtomatikong kahon")}>
     <div className="box-status-line"><span><Radio size={17} />{cameraLive ? t("Camera connected", "Konektado ang camera") : t("Camera not connected", "Hindi konektado ang camera")}</span>

@@ -1,7 +1,7 @@
 name: balut_operator
 description: EggGrade IoT candling workspace for Android, matching the web workflow.
 publish_to: none
-version: 0.4.3+7
+version: 0.4.4+8
 
 environment:
   sdk: ">=3.10.0 <4.0.0"

@@ -28,9 +28,10 @@ void main() {
   });
   test('unfertilized is distinct from historical reject records', () {
     final result = Prediction.fromJson({...predictionJson(), 'sourcePrediction': 'UNFERTILIZED'});
-    expect(result.title(false), 'Unfertilized');
-    expect(result.title(true), 'Hindi pertilisado');
-    expect(Prediction.fromJson({...predictionJson(), 'sourcePrediction': 'REJECT'}).title(false), 'Reject — suspected');
+    expect(result.title(false), 'Reject');
+    expect(result.title(true), 'Reject');
+    expect(result.label, 'UNFERTILIZED');
+    expect(Prediction.fromJson({...predictionJson(), 'sourcePrediction': 'REJECT'}).title(false), 'Reject');
   });
   test('unsupported or operational result fails closed', () {
     for (final change in [

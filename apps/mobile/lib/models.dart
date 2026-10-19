@@ -86,8 +86,8 @@ class Prediction {
       : switch (label) {
           'DAY_16' => 'Day 16',
           'DAY_18' => 'Day 18',
-          'UNFERTILIZED' => filipino ? 'Hindi pertilisado' : 'Unfertilized',
-          _ => filipino ? 'Posibleng reject' : 'Reject — suspected',
+          'UNFERTILIZED' => 'Reject',
+          _ => 'Reject',
         };
 
   String nextStep(bool filipino) {

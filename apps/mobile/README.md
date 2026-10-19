@@ -1,6 +1,6 @@
 # EggGrade IoT Android workspace
 
-Current preview: **0.4.3+7**, built for `https://egggradeiot.vercel.app`, supports Day 16, Day 18 and Unfertilized. Install `artifacts/EggGrade-IoT-Android-0.4.3-preview.apk` for clearer typography, camera setup collapsed by default, and the simplified footer. Earlier Reject history keeps its original labels. This is a debug-signed preview; physical-phone installation remains unverified.
+Current preview: **0.4.4+8**, built for `https://egggradeiot.vercel.app`, displays Day 16, Day 18 and the requested **Reject** name. `UNFERTILIZED` source records also display Reject while retaining their original stored labels and appearance-only description. Install `artifacts/EggGrade-IoT-Android-0.4.4-preview.apk`. This naming change does not establish a general defect or food-safety diagnosis. This is a debug-signed preview; physical-phone installation remains unverified.
 
 The native Flutter Android app follows the current web workspace: account creation/sign-in, **Analyze**, and **History**. It uses the same authentication, model and prediction endpoints as the web app. This replaces the older device/review simulator screens.
 

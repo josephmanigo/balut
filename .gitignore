@@ -59,4 +59,7 @@ deployment/phone-setup/
 artifacts/
 output/
 tmp/
+# Failed epoch-head comparison is retained locally, not published as an app release.
+deployment/model-parts/epochs-reject-20261019/
 .impeccable/review/
+deployment/model-parts/finetuned-epochs-reject-20261019/
