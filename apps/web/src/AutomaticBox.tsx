@@ -141,7 +141,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     {setupError && <p className="inline-error" role="alert">{setupError}</p>}
     {status?.cloudCapture && <details className="box-settings">
       <summary><Settings2 size={17} />{t("Box setup", "Setup ng kahon")}</summary>
-      <UsbCameraConnect locale={locale} onPreview={setLocalPreview} />
+      <UsbCameraConnect locale={locale} onPreview={setLocalPreview} scanning={status?.state === "settling" || status?.state === "capturing_views"} />
     </details>}
     {status?.cloudCapture && ["checking_empty", "needs_reference"].includes(status.state) && <details className="box-settings">
       <summary>{t("Box is empty but still waiting?", "Bakante pero naghihintay pa rin?")}</summary>

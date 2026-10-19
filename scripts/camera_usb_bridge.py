@@ -176,7 +176,15 @@ def open_camera():
 
     camera = serial.Serial(port=None, baudrate=USB_BAUD, timeout=0.25, write_timeout=2)
     camera.dtr = camera.rts = False
-    camera.port = find_camera_port(list_ports.comports())
+    deadline = time.monotonic() + 3
+    while True:
+        try:
+            camera.port = find_camera_port(list_ports.comports())
+            break
+        except ValueError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(0.2)
     try:
         camera.open()
         if hasattr(camera, "set_buffer_size"):

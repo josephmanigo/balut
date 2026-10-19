@@ -27,7 +27,7 @@ export function watchUsbCamera(found: (port: CameraPort) => void) {
         return info.usbVendorId === 0x0403 && info.usbProductId === 0x6001;
       });
       if (!stopped && cameras.length === 1) found(cameras[0]);
-    }).catch(() => {});
+    }).catch(() => { });
   }
   serial?.addEventListener("connect", check);
   check();
@@ -89,7 +89,7 @@ export class UsbCamera {
   private uploadError?: unknown;
 
   constructor(private changed: (state: UsbCameraState, error?: string) => void,
-    private preview?: (frame: Uint8Array<ArrayBuffer>) => void) {}
+    private preview?: (frame: Uint8Array<ArrayBuffer>) => void) { }
 
   async connect(grantedPort?: CameraPort) {
     const serial = (navigator as Navigator & { serial?: CameraSerial }).serial;
@@ -114,7 +114,7 @@ export class UsbCamera {
 
   async close() {
     this.stopped = true; this.abort.abort();
-    await this.reader?.cancel().catch(() => {});
+    await this.reader?.cancel().catch(() => { });
     if (this.running) await this.running;
     else await this.release();
   }
@@ -125,7 +125,7 @@ export class UsbCamera {
     try { await new Promise(resolve => window.setTimeout(resolve, 120)); }
     finally { await this.port!.setSignals({ dataTerminalReady: false, requestToSend: false }); }
     if (this.stopped) return;
-    const timer = window.setTimeout(() => { void this.reader?.cancel().catch(() => {}); }, 16000);
+    const timer = window.setTimeout(() => { void this.reader?.cancel().catch(() => { }); }, 16000);
     const decoder = new TextDecoder();
     let text = "", received = 0;
     try {
@@ -146,7 +146,7 @@ export class UsbCamera {
 
   private async capture() {
     const parser = new UsbFrameParser();
-    const timer = window.setTimeout(() => { void this.reader?.cancel().catch(() => {}); }, 8000);
+    const timer = window.setTimeout(() => { void this.reader?.cancel().catch(() => { }); }, 8000);
     try {
       await this.writer!.write(new TextEncoder().encode("CAPTURE\n"));
       while (!this.stopped) {
@@ -205,13 +205,13 @@ export class UsbCamera {
       }
     } catch (error) {
       this.uploadError = error;
-      await this.reader?.cancel().catch(() => {});
+      await this.reader?.cancel().catch(() => { });
     }
   }
 
   private async release() {
     this.reader?.releaseLock(); this.writer?.releaseLock();
     this.reader = undefined; this.writer = undefined;
-    await this.port?.close().catch(() => {}); this.port = undefined;
+    await this.port?.close().catch(() => { }); this.port = undefined;
   }
 }
