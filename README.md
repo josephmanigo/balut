@@ -4,6 +4,8 @@ EggGrade IoT is the current product name. Open `Start EggGrade IoT.cmd` for the 
 
 The current experimental model uses **Day 16 / Day 18 / Unfertilized**. Its 3,719-image dataset preserves all 1,620 camera age views and excludes R1/R2/R3 plus the historical Reject examples. Only explicit public Unfertilized annotations supply the third class; Reject was not renamed or relabelled. No confirmed physical Unfertilized egg is available for a camera check. See [the current model and dataset](docs/UNFERTILIZED_MODEL_2026-10-19.md).
 
+The locked test of 649 reserved images measured 84.75% raw accuracy, 95.27% accepted accuracy at 68.41% coverage, and 65.18% correct over all images. Repeated camera views represent ten test eggs; this is not a live Unfertilized test or a 99% field claim. The current local panel report is `output/pdf/EggGrade-IoT-Unfertilized-Training-Results-20261019.pdf`, with matrices and evidence in `output/model-results/EggGrade-IoT-Unfertilized-Results-20261019.zip`.
+
 The earlier Reject retraining and live check remain documented in `docs/REJECT_CAMERA_COLLECTION_20261019.md`. Its original downloadable report is `output/pdf/EggGrade-IoT-Training-Results-20261019.pdf`; that report describes the earlier Reject experiment, not the current Unfertilized head.
 
 Deploy the **website and AI on Vercel**, with the account, sessions, prediction
