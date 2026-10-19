@@ -3,3 +3,7 @@ deployment/model-parts/*.part* binary
 deployment/model-parts/**/*.part* binary
 # Release manifests and configuration are also sealed with SHA-256 hashes.
 deployment/releases/** -text
+# Preserve published report bytes and embedded image streams on every platform.
+docs/reports/**/*.pdf binary
+docs/reports/**/*.png binary
+docs/reports/**/*.json -text

@@ -58,8 +58,11 @@ deployment/drivers/
 deployment/phone-setup/
 artifacts/
 output/
+outputs/
 tmp/
 # Failed epoch-head comparison is retained locally, not published as an app release.
 deployment/model-parts/epochs-reject-20261019/
 .impeccable/review/
 deployment/model-parts/finetuned-epochs-reject-20261019/
+# Grouped candidate improves raw accuracy but fails serving coverage; keep weights local.
+deployment/model-parts/grouped-camera-20261019/

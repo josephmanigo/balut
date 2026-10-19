@@ -4,7 +4,9 @@ EggGrade IoT is the current product name. Open `Start EggGrade IoT.cmd` for the 
 
 The apps display **Day 16 / Day 18 / Reject**. Reject is the requested name for the current model's Unfertilized source category; existing API/history labels remain readable. Its 3,719-image dataset preserves all 1,620 camera age views and excludes R1/R2/R3 plus historical Reject examples. No confirmed physical Unfertilized egg is available for a camera check. See [the source model and dataset](docs/UNFERTILIZED_MODEL_2026-10-19.md).
 
-New image fine-tuning completed **11 epochs**, selecting **epoch 6**. Historical raw accuracy improved to 85.21%, but accepted Day 18 errors increased, so the current model stays active. The [epoch retraining report](docs/EPOCH_RETRAINING_2026-10-19.md) records the comparison and actual graphs at `output/model-results/EggGrade-IoT-Finetuned-Epoch-Results-20261019/results.png`.
+Start with the [easy technical-defense PDF](docs/reports/20261019/EggGrade-IoT-Defense-Guide.pdf): short spoken answers, visible metrics, confusion matrices, actual epoch graphs and evidence limits. The [latest comparison and public aggregate evidence](docs/reports/20261019/README.md) explain why `unfertilized-trial-20261019` remains active after 236 development configurations. All 1,590 requested new views are included and grouped by physical egg. No candidate meets the complete accuracy, per-class and coverage requirements.
+
+An earlier image fine-tuning experiment completed **11 epochs**, selecting **epoch 6**. Historical raw accuracy improved to 85.21%, but accepted Day 18 errors increased, so it was not activated. The [earlier epoch report](docs/EPOCH_RETRAINING_2026-10-19.md) is separate from the newer CPU MLP experiment shown in the defense guide. Neither experiment's curves describe the current logistic classifier.
 
 The active model's earlier locked test of 649 reserved images measured 84.75% raw accuracy, 95.27% accepted accuracy at 68.41% coverage, and 65.18% correct over all images. Those images now serve as a historical regression set. Repeated camera views represent ten test eggs; this is not a live Unfertilized test or a 99% field claim. The active model's local panel report is `output/pdf/EggGrade-IoT-Unfertilized-Training-Results-20261019.pdf`, with matrices and evidence in `output/model-results/EggGrade-IoT-Unfertilized-Results-20261019.zip`.
 
@@ -16,7 +18,7 @@ history, camera state and private images in Supabase. See
 [Supabase setup and local-data migration](docs/SUPABASE_SETUP.md).
 The USB laptop sends signed frames; any signed-in laptop or phone can view results.
 
-This repository implements the software side of a single-egg, eight-view Balut candling research prototype. It contains a runnable local API and simulator, a bilingual React dashboard, ESP32-S3 firmware and hardware interfaces, a Flutter Android workspace, leakage-safe ML tooling, and Supabase schema/RLS definitions.
+This repository implements a single-egg, three-view camera workflow and a separate eight-view research simulator. It contains a runnable local API, a bilingual React dashboard, ESP32-S3 firmware and hardware interfaces, a Flutter Android workspace, ML grouping and leakage-audit tools, and Supabase schema/RLS definitions.
 
 The GitHub checkout includes source code, documentation, test fixtures, and the
 current model release. Its model is stored in five chunks; the Vercel and Docker

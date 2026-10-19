@@ -1,0 +1,48 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { Workbook, SpreadsheetFile } from '@oai/artifact-tool';
+
+const root = process.cwd();
+const packet = path.join(root, 'output/model-results/EggGrade-IoT-Scientific-Defense-20261019');
+const output = path.join(root, 'outputs/01a14f30-3fda-79d1-938c-4bf71af88388');
+await fs.mkdir(output, {recursive: true});
+const workbook = await Workbook.fromCSV(await fs.readFile(path.join(packet, 'field-registration.csv'), 'utf8'), {sheetName: 'Registration'});
+const sheet = workbook.worksheets.getItem('Registration');
+sheet.showGridLines = false;
+sheet.getRange('A1:L91').format = {font: {name: 'Arial', size: 10}, verticalAlignment: 'center', rowHeight: 24};
+sheet.getRange('A1:L1').format = {fill: '#203B50', font: {name: 'Arial', size: 10, bold: true, color: '#FFFFFF'}, rowHeight: 42, wrapText: true, horizontalAlignment: 'center'};
+sheet.getRange('A2:C91').format.fill = '#EDF2F5';
+sheet.getRange('D2:L91').format.fill = '#FFF5D8';
+sheet.getRange('C2:C91').values = sheet.getRange('C2:C91').values.map(([x]) => [Number(x)]);
+sheet.getRange('C2:C91').setNumberFormat('0');
+for (const [range, width] of [['A1:A91', 100], ['B1:B91', 160], ['C1:C91', 90], ['D1:E91', 150], ['F1:F91', 150], ['G1:G91', 225], ['H1:H91', 160], ['I1:I91', 240], ['J1:J91', 260], ['K1:K91', 400], ['L1:L91', 280]]) sheet.getRange(range).format.columnWidthPx = width;
+sheet.getRange('F2:G91').dataValidation = {rule: {type: 'list', values: ['YES', 'NO']}};
+sheet.freezePanes.freezeRows(1);
+sheet.freezePanes.freezeColumns(1);
+sheet.getRange('N1').values = [['PLANNED STUDY — NO COLLECTED RESULTS']];
+sheet.getRange('N2').values = [['Amber cells require documented inputs before collection.']];
+sheet.getRange('N3').values = [['90 new eggs; 30 per class; at least 3 batches per class.']];
+sheet.getRange('N4').values = [['Reject uses the internal UNFERTILIZED reference class.']];
+sheet.getRange('N5').values = [['Selected repeat slots 01/11/21 per class: use different batches.']];
+sheet.getRange('N6').values = [['ISO incubation timestamp requires timezone, e.g. 2026-10-19T00:00:00+00:00.']];
+sheet.getRange('N7').values = [['Keep slots, class allocation and repeats fixed before predictions.']];
+sheet.getRange('N8').values = [['Export only columns A:L as CSV for the collector.']];
+sheet.getRange('N9').values = [['Read field-protocol.txt and fill field-conditions.json.']];
+sheet.getRange('N1:N9').format = {font: {name: 'Arial', size: 10}, columnWidthPx: 660, rowHeight: 25};
+sheet.getRange('N1').format.font = {name: 'Arial', size: 12, bold: true, color: '#203B50'};
+const data = sheet.getRange('A2:L91').values;
+assert.equal(data.length, 90);
+assert.equal(data.reduce((total, row) => total + row[2], 0), 171);
+assert.equal(new Set(data.map(row => row[0])).size, 90);
+assert(data.every(row => row.slice(3).every(value => value === '' || value === null)));
+workbook.recalculate();
+console.log((await workbook.inspect({kind: 'table', range: 'Registration!A1:G5', include: 'values,formulas', tableMaxRows: 5, tableMaxCols: 7})).ndjson);
+console.log((await workbook.inspect({kind: 'match', searchTerm: '#REF!|#DIV/0!|#VALUE!|#NAME\\?|#NUM!|#NULL!', options: {useRegex: true, maxResults: 20}})).ndjson);
+for (const [name, range] of [['identity', 'A1:G8'], ['reference', 'H1:N9']]) {
+  const preview = await workbook.render({sheetName: 'Registration', range, scale: 1.5, format: 'png'});
+  await fs.writeFile(path.join(output, `field-${name}-preview.png`), new Uint8Array(await preview.arrayBuffer()));
+}
+const target = path.join(output, 'EggGrade-IoT-Field-Collection.xlsx');
+await (await SpreadsheetFile.exportXlsx(workbook)).save(target);
+console.log(JSON.stringify({output: target, plannedSlots: data.length, plannedAttempts: 171, observations: 0}));

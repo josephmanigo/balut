@@ -1,0 +1,58 @@
+EggGrade IoT - reproducible scientific audit, 2026-10-19
+Project root: C:/Users/My Pc/Downloads/balut
+
+Current data and identity
+The1,590 requested photos are included:90 physical-multiangle +1,500 physical-50views. They are30 eggs,53 newer views/egg. The30 original camera views are also retained, for1,620 physical images. Public data contributes173 age images and1,926 explicit Unfertilized images. Vendor R1/R2/R3 views are excluded, not deleted. The complete manifest has3,719 rows.
+Manifest: data/local/retained-camera-epochs-reject-20261019/manifest.jsonl
+SHA256: efec2f696feb38f5204f5a9f8b3550ec88fc5793ea4cdad40c19aa703aa999ba
+Active: deployment/releases/unfertilized-trial-20261019/registry.json
+SHA256: d83a2fddd1d2bc46f910850cba7f56780e0bbfbcab33479e5a9e40801d64ab04
+Original active manifest differs only in retained label metadata; original source label UNFERTILIZED maps to app display Reject.
+
+Environment
+Use .venv-serving for deployed CPU ONNX/camera code and .venv-ml for training/metrics. .venv is not the ML environment. The reproducible classifier fit records NumPy2.5.2, scikit-learn1.9.1, SciPy1.18.1, Torch2.11.0+cu128 and ONNXRuntime1.30.0; presence of a CUDA-capable wheel does not mean the CPU runs used GPU. Exact project dependencies are in the local requirements and pyproject files. Keep the protected source/config hashes in each experiment-plan.json and selection-lock.json. Version changes may change full-precision results and require new verification.
+
+Verified commands (new outputs preserve prior evidence)
+  .venv-ml/Scripts/python.exe scripts/reproduce_retained_classifier_fit.py --output output/scientific-audit-20261019/classifier-fit-script-verification.json
+  .venv-serving/Scripts/python.exe scripts/reproduce_scientific_baseline.py --output ml/runs/baseline-reproduction-20261019-v3
+These paths now exist. Choose new output paths for repetition; the scripts intentionally refuse to overwrite evidence. The first refits the active logistic head from sealed training features and checks exact float32 equality, convergence and data hashes. The second performs649 fresh historical inferences and compares counts and every full-precision score to the earlier sealed result. Neither changes the active release.
+
+Focused tests
+  .venv-ml/Scripts/python.exe -m pytest ml/tests/test_scientific_metrics.py ml/tests/test_scientific_field_scan.py ml/tests/test_nested_feature_epochs.py ml/tests/test_camera_photometry.py -q -p no:cacheprovider
+Checks cover actual confusion-matrix counts and metric formulas, clustered resampling, nonwinning-score differences, failed repeats, input-population validation, raw scan scores versus app abstentions, discarded raw-frame preservation, blank-registration rejection and training-only feature normalization.
+
+Field registration self-check (no hardware opened)
+  .venv-serving/Scripts/python.exe scripts/check_scientific_field_validation.py
+This creates temporary synthetic reference records, validates all 90 planned slots, verifies inference/gate/measurement hashes and runtime versions, and confirms validation creates no study output. Its report is software evidence only, not a physical field result.
+
+Audit and deterministic repeat scripts
+  scripts/audit_scientific_dataset.py
+  scripts/check_saved_repeatability.py
+Their source constants point to this completed audit. Read the saved protocol first; choose a new dated output constant before a genuinely new run. Do not overwrite the evidence seals. The saved-input protocol selects bundles by labels/groups before reading predictions, reopens the model once, and saves270 fresh view inferences. No hardware is opened by these scripts.
+
+Training experiments already run
+All completed experiments use the3070-row development pool; the649 historical test rows are excluded from those fits. Five grouped folds preserve known egg and public-family identities. Each ml/runs/<run>/experiment-plan.json records configuration, protected data/source hashes and rules; metrics.json, logs/OOF files and selection-lock.json retain results. The report ledger records all236 bounded settings:
+  train_grouped_camera -> grouped-camera-20261019:18 frozen logistic settings
+  train_grouped_kernel -> grouped-kernel-20261019:6 RBF settings
+  search_camera_representation -> representation-search-20261019:72 representation/RBF settings
+  search_camera_stack -> nested-camera-stack-20261019:3 nested meta-head settings
+  search_camera_hierarchy -> camera-hierarchy-20261019:108 age-hierarchy settings
+  train_nested_feature_epochs -> nested-feature-epochs-20261019:2 MLP sizes with60max/8patience
+  search_camera_photometry -> camera-photometry-20261019:27 color/geometry RBF settings
+Each module lives in ml/balut_ml. CPU cached-feature experiments consume already sealed encodings; their learned normalizers fit within training folds. For a new reproduction, set PYTHONPATH to ml and apps/edge_api, import the module, set its RUN constant to a new folder, and call main under threadpoolctl.threadpool_limits(limits=4). Do not change the grid/folds after inspecting its holdout. These commands are development reruns, not a new independent test.
+
+Example CPU-only rerun from existing frozen features (new output required)
+  $env:PYTHONPATH='ml;apps/edge_api'
+  .venv-ml/Scripts/python.exe -c 'from pathlib import Path; from threadpoolctl import threadpool_limits; import balut_ml.train_nested_feature_epochs as m; m.RUN=Path("ml/runs/nested-feature-epochs-reproduction"); threadpool_limits(limits=4); m.main()'
+This trains only the MLP on cached frozen features. It does not make new images or retrain encoders. The saved complete experiment is sufficient for report regeneration; an identical rerun is not additional scientific evidence.
+
+Incomplete runs
+grouped-image-cv-v1-20261019 and grouped-image-cv-resumed-20261019 are interrupted GPU fine-tuning experiments. Fold2 performed poorly; a partial fold3 is not a complete cross-validation result. Windows recorded two automatic restarts, user-confirmed. The logs do not establish whether the cause was power, temperature, driver or another hardware fault. Do not resume this resource-intensive path until diagnosed.
+
+Report regeneration
+Use the bundled document Python to run scripts/build_scientific_defense.py. It verifies evidence seals, recomputes metric counts and renders figures from actual history.jsonl. It creates blank collection templates, so keep completed human observations outside its output directory. The workbook builder is scripts/build_scientific_collection_sheet.mjs and uses the bundled @oai/artifact-tool. Render and inspect the PDF before delivery. The active PNG and epoch PNG intentionally describe different identified models. No epoch curves are invented for the logistic release.
+
+The easier public guide is built with scripts/build_easy_defense.py from docs/reports/20261019/model-evidence.json. It needs NumPy, Matplotlib, pypdf and ReportLab; existing tmp/pdfdeps is reused. It checks actual matrix computations and creates the PDF under output/pdf plus its public copy under docs/reports/20261019. The --refresh-evidence option reads the completed local audit packet. The committed aggregate snapshot permits a guide rebuild without distributing private datasets or credentials. Render and review all pages before publishing.
+
+Evidence limits
+No fresh physical field study was run. No new99% or96% independently evaluated claim is supported. Identical-input zero-gap passed; fresh physical zero-gap is unmeasured. Unknown public egg/batch identities, user-reported ages, source/class confounding and historical test reuse remain unresolved. Current three-view motion behavior and the working model are preserved.
