@@ -10,7 +10,7 @@ and power cables, a charger, and a computer with internet and Chrome or Edge.
 1. Plug in both box USB cables and turn on normal candling light. Windows must
    detect the camera's FTDI USB serial adapter. The other board powers the
    existing spinner; the website sends no motor or lighting commands.
-2. Open [EggGrade IoT](https://balutaiot.vercel.app), sign in with the existing
+2. Open [EggGrade IoT](https://egggradeiot.vercel.app), sign in with the existing
    account, and open **Analyze**.
 3. Click **Connect USB camera** and select the camera's FTDI USB serial port.
    The browser requires this permission on each new computer/browser profile.

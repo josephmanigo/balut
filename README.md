@@ -1,6 +1,6 @@
 # EggGrade IoT research prototype
 
-EggGrade IoT is the current product name. Open `Start EggGrade IoT.cmd` for the school box, or run `scripts/Start-EggGrade.ps1 -Supervise` from the source checkout. The current web address remains <https://balutaiot.vercel.app>.
+EggGrade IoT is the current product name. Open `Start EggGrade IoT.cmd` for the school box, or run `scripts/Start-EggGrade.ps1 -Supervise` from the source checkout. The current web address is <https://egggradeiot.vercel.app>.
 
 The latest camera dataset includes all 90 earlier views, 1,500 age sweep photos, and 150 vendor-labeled Reject photos. See `docs/REJECT_CAMERA_COLLECTION_20261019.md` for the completed retraining comparison. The new candidate was saved but not activated because validation regressed. The downloadable report is `output/pdf/EggGrade-IoT-Training-Results-20261019.pdf`; the results ZIP is under `output/model-results/`.
 
