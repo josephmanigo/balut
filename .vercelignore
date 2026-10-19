@@ -8,6 +8,12 @@ deployment/private
 deployment/runtime
 deployment/logs
 deployment/releases/**/best.onnx
+deployment/releases/automatic-recapture-20260912
+deployment/releases/automatic-three-class-20260912
+deployment/releases/camera-multiangle-trial-20261019
+deployment/releases/camera-retrained-trial-20261019
+deployment/releases/camera-trial-20261018
+deployment/releases/source-labels-20260912
 data
 artifacts
 output
