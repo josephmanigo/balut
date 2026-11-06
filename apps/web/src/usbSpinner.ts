@@ -1,8 +1,6 @@
 export const SPINNER_VENDOR_ID = 0x10c4;
 export const SPINNER_PRODUCT_ID = 0xea60;
 export const SPINNER_MAC = "3c:8a:1f:09:88:8c";
-const HOLD_DURATION_MS = 12000;
-const HOLD_REFRESH_MS = 6000;
 const RESPONSE_TIMEOUT_MS = 2000;
 
 export type HolderState = "connecting" | "connected" | "disconnected";
@@ -52,13 +50,9 @@ export class UsbSpinner {
   private reader?: ReadableStreamDefaultReader<Uint8Array>;
   private writer?: WritableStreamDefaultWriter<Uint8Array>;
   private stopped = false;
-  private ready = false;
   private running?: Promise<void>;
   private queue: Promise<unknown> = Promise.resolve();
   private pending: Pending | null = null;
-  private scanning = false;
-  private holding = false;
-  private refresh?: number;
 
   constructor(private changed: (state: HolderState, error?: string) => void) {}
 
@@ -79,8 +73,8 @@ export class UsbSpinner {
       // Release the ESP32 auto-program lines so opening the port does not reset the motor controller.
       await port.setSignals?.({ dataTerminalReady: false, requestToSend: false }).catch(() => {});
       this.running = this.pump();
-      await this.command("STATUS");
-      this.ready = true;
+      const status = await this.command("STATUS");
+      if (status.state === "HELD") await this.command("RUN");
       this.changed("connected");
     } catch (error) {
       if (this.stopped) return;
@@ -91,33 +85,10 @@ export class UsbSpinner {
   }
 
   async close() {
-    if (this.holding && !this.stopped) { try { await this.command("RUN"); } catch { /* the firmware resumes on its own */ } }
     await this.halt();
   }
 
-  setScanning(scanning: boolean) {
-    if (this.stopped || !this.ready || scanning === this.scanning) return;
-    this.scanning = scanning;
-    if (scanning) {
-      this.refresh = window.setInterval(() => { void this.hold(); }, HOLD_REFRESH_MS);
-      void this.hold();
-    } else {
-      this.stopRefresh();
-      void this.resume();
-    }
-  }
-
-  private hold() {
-    return this.command("HOLD").then(() => { this.holding = true; },
-      error => { this.lost(error instanceof Error ? error.message : "The holder did not answer."); });
-  }
-
-  private resume() {
-    return this.command("RUN").then(() => { this.holding = false; },
-      error => { this.lost(error instanceof Error ? error.message : "The holder did not answer."); });
-  }
-
-  private command(verb: "STATUS" | "HOLD" | "RUN"): Promise<Reply> {
+  private command(verb: "STATUS" | "RUN"): Promise<Reply> {
     return this.enqueue(() => this.send(verb));
   }
 
@@ -127,7 +98,7 @@ export class UsbSpinner {
     return next;
   }
 
-  private async send(verb: "STATUS" | "HOLD" | "RUN"): Promise<Reply> {
+  private async send(verb: "STATUS" | "RUN"): Promise<Reply> {
     if (!this.writer) throw new Error("Connect the holder first.");
     const nonce = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
     let settle!: Pending;
@@ -136,9 +107,9 @@ export class UsbSpinner {
       if (this.pending === settle) { this.pending = null; settle.reject(new Error("The holder did not answer. Check its USB cable and reconnect.")); }
     }, RESPONSE_TIMEOUT_MS);
     try {
-      await this.writer.write(new TextEncoder().encode(verb === "HOLD" ? `HOLD ${nonce} ${HOLD_DURATION_MS}\n` : `${verb} ${nonce}\n`));
+      await this.writer.write(new TextEncoder().encode(`${verb} ${nonce}\n`));
       const reply = await response;
-      if (verb === "HOLD" && reply.state !== "HELD" || verb === "RUN" && reply.state !== "RUNNING") throw new Error("The holder did not acknowledge its capture state.");
+      if (verb === "RUN" && reply.state !== "RUNNING") throw new Error("The holder did not resume rotation.");
       return reply;
     } finally {
       window.clearTimeout(timer);
@@ -170,7 +141,6 @@ export class UsbSpinner {
     } catch (error) {
       this.lost(error instanceof Error ? error.message : "Holder disconnected. Connect again.");
     } finally {
-      this.stopRefresh();
       await this.release();
     }
   }
@@ -182,7 +152,6 @@ export class UsbSpinner {
   }
 
   private async halt() {
-    this.stopRefresh();
     this.stopped = true;
     const pending = this.pending; this.pending = null;
     pending?.reject(new Error("Holder connection closed."));
@@ -191,14 +160,9 @@ export class UsbSpinner {
     else await this.release();
   }
 
-  private stopRefresh() {
-    if (this.refresh !== undefined) { window.clearInterval(this.refresh); this.refresh = undefined; }
-  }
-
   private async release() {
     this.reader?.releaseLock(); this.writer?.releaseLock();
     this.reader = undefined; this.writer = undefined;
     await this.port?.close().catch(() => {}); this.port = undefined;
-    this.ready = false; this.scanning = false; this.holding = false;
   }
 }

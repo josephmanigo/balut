@@ -4,7 +4,7 @@ import type { CameraPort, UsbCameraState } from "./usbCamera";
 import { UsbSpinner, usbSpinnerSupported, watchUsbSpinner } from "./usbSpinner";
 import type { SpinnerPort, HolderState } from "./usbSpinner";
 
-export function UsbCameraConnect({ locale, onPreview, scanning = false }: { locale: "en" | "fil"; onPreview?: (url: string | null) => void; scanning?: boolean }) {
+export function UsbCameraConnect({ locale, onPreview, autoConnect = true }: { locale: "en" | "fil"; onPreview?: (url: string | null) => void; autoConnect?: boolean }) {
   const t = (en: string, fil: string) => locale === "en" ? en : fil;
   const [state, setState] = useState<UsbCameraState>("disconnected");
   const [holderState, setHolderState] = useState<HolderState>("disconnected");
@@ -23,7 +23,7 @@ export function UsbCameraConnect({ locale, onPreview, scanning = false }: { loca
   useEffect(() => {
     alive.current = true;
     const unwatchCamera = watchUsbCamera(port => {
-      if (!paused.current && phase.current === "disconnected") void connect(port);
+      if (autoConnect && !paused.current && phase.current === "disconnected") void connect(port);
     });
     const unwatchSpinner = watchUsbSpinner(port => {
       if (alive.current && !spinner.current) void connectSpinner(port);
@@ -37,11 +37,6 @@ export function UsbCameraConnect({ locale, onPreview, scanning = false }: { loca
       void spinner.current?.close();
     };
   }, []);
-
-  // Wire the scanning prop to the spinner's hold/run state.
-  useEffect(() => {
-    spinner.current?.setScanning(scanning);
-  }, [scanning, holderState]);
 
   const supported = usbCameraSupported();
   async function connect(port?: CameraPort) {
@@ -69,8 +64,6 @@ export function UsbCameraConnect({ locale, onPreview, scanning = false }: { loca
     });
     spinner.current = holder;
     await holder.connect(port);
-    // Apply the current scanning state after connecting.
-    if (scanning) holder.setScanning(true);
   }
   async function disconnect() {
     phase.current = "disconnected"; paused.current = true; setState("disconnected"); setError("");
@@ -93,8 +86,8 @@ export function UsbCameraConnect({ locale, onPreview, scanning = false }: { loca
         : state === "retrying" ? t("Camera connected. Cloud connection is retrying; keep this tab open.", "Konektado ang camera. Kumokonekta muli sa cloud; panatilihing bukas ang tab.")
           : t("USB camera connected. Keep this tab open and this computer awake.", "Konektado ang USB camera. Panatilihing bukas ang tab at gising ang computer.")}</p>}
     {live && usbSpinnerSupported() && <p role="status">{holderLive
-      ? t("Holder connected. It pauses automatically during capture.", "Konektado ang holder. Awtomatikong humihinto habang kinukuha ang larawan.")
-      : t("Holder not detected. Connect its USB adapter for automatic pausing.", "Hindi nahanap ang holder. Ikonekta ang USB adapter nito para awtomatikong huminto.")}</p>}
+      ? t("Holder connected. Rotation continues during scanning.", "Konektado ang holder. Tuloy ang pag-ikot habang nag-scan.")
+      : t("Scanning does not pause the holder.", "Hindi pinapahinto ng pag-scan ang holder.")}</p>}
     {error && <p className="inline-error" role="alert">{error}</p>}
   </div>;
 }

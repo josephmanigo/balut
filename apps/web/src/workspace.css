@@ -2,7 +2,7 @@
 .workspace, .login-page, .session-loading { --focus: #245864; font-family: "Segoe UI", Aptos, Arial, sans-serif; font-size: 1rem; line-height: 1.55; -webkit-font-smoothing: antialiased; }
 .workspace { scrollbar-color: var(--rule) var(--paper); }
 .workspace ::selection, .login-page ::selection { color: var(--ink); background: var(--amber-soft); }
-.workspace :is(button, input, summary, a):focus-visible, .login-page :is(button, input, summary):focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+.workspace :is(button, input, select, summary, a):focus-visible, .login-page :is(button, input, summary):focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
 .workspace button, .login-page button, .workspace summary, .login-page summary { cursor: pointer; }
 .workspace button:disabled, .login-page button:disabled { cursor: not-allowed; opacity: .55; }
 .workspace button, .login-page button { transition: background-color 160ms, color 160ms; }
@@ -212,7 +212,7 @@
 .box-camera-signal i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .box-camera-signal[data-live="true"] { color: #a3d5b5; }
 .box-camera-stage { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 3; background: #0a120f; overflow: hidden; }
-.box-camera-stage > img { position: absolute; width: 100%; height: 100%; object-fit: contain; }
+.box-camera-stage > img, .box-camera-stage > video { position: absolute; width: 100%; height: 100%; object-fit: contain; }
 .box-camera-direct { position: relative; height: 100%; aspect-ratio: 3 / 4; }
 /* Raw USB frames are landscape; match the server's full-view 90-degree counterclockwise rotation. */
 .box-camera-direct img { position: absolute; left: 50%; top: 50%; width: 133.333333%; height: 75%; max-width: none; object-fit: contain; transform: translate(-50%, -50%) rotate(-90deg); }
@@ -238,6 +238,8 @@
 .usb-camera-connect { max-width: 650px; margin-block: 16px; }
 .usb-camera-connect > p { color: var(--muted); font-size: .875rem; line-height: 1.65; margin: 12px 0; }
 .usb-camera-connect .inline-error { color: var(--red); }
+.usb-camera-connect > label { display: block; margin-bottom: 8px; }
+.usb-camera-connect > select { max-width: 100%; margin: 0 12px 12px 0; padding: 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); color: inherit; }
 .box-reference { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 24px; }
 .box-setup-note { max-width: 650px; }
 @media (max-width: 700px) {

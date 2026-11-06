@@ -97,7 +97,9 @@ describe("automatic camera capture", () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, state: "recapture", result: { ...prediction,
       sourcePrediction: null, recaptureRequested: true, analysisOutcome: "RECAPTURE_REQUIRED", recaptureReasons: ["IMAGE_TOO_BLURRY"] } });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByText("Image too blurry · check camera focus, then replace the egg.")).toBeInTheDocument();
+    expect(await screen.findByText("Video is too blurry. Check camera focus and reduce movement in the holder.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Unable to classify" })).toBeInTheDocument();
+    expect(screen.queryByText("Another image needed")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
   });
   it("uses the requested Reject name while preserving an Unfertilized source record", async () => {
@@ -117,7 +119,7 @@ describe("automatic camera capture", () => {
       sourcePrediction: null, recaptureRequested: true, analysisOutcome: "RECAPTURE_REQUIRED",
       recaptureReasons: ["MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS", "AMBIGUOUS_APPEARANCE", "IMAGE_TOO_BLURRY", "UNFAMILIAR_APPEARANCE"] } });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
-    expect(await screen.findByText("These views are unfamiliar. The model cannot give a reliable result.")).toBeInTheDocument();
+    expect(await screen.findByText("The live view does not match what the model learned. Check that candling light reveals the egg's interior; camera-specific training may be needed.")).toBeInTheDocument();
     expect(screen.getByText("Some views also have low detail. Check lens focus and reduce vibration.")).toBeInTheDocument();
     expect(screen.queryByText("Image too blurry · check camera focus, then replace the egg.")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Day 16" })).not.toBeInTheDocument();
@@ -130,12 +132,25 @@ describe("automatic camera capture", () => {
     expect(screen.queryByText(/Views captured|three views|Leave the egg rotating/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /capture|analyze|start/i })).not.toBeInTheDocument();
   });
+  it("keeps uncertain video scans automatic and hides the previous result while retrying", async () => {
+    vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, connected: true,
+      calibrated: true, enabled: true, state: "settling", result: { ...prediction,
+        sourcePrediction: null, analysisOutcome: "RECAPTURE_REQUIRED", recaptureRequested: true,
+        recaptureReasons: ["UNFAMILIAR_APPEARANCE"] } });
+    render(<AutomaticBox locale="en" onSaved={() => {}} />);
+    await screen.findByRole("heading", { name: "Checking more live frames." });
+    expect(screen.getByText("Keep the egg in the holder. AI scanning continues automatically.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Unable to classify" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Another image needed")).not.toBeInTheDocument();
+    expect(screen.queryByText("Latest saved result")).not.toBeInTheDocument();
+  });
   it("keeps USB controls inside collapsed setup without a manual cloud address or start button", async () => {
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, cameraUrl: "http://127.0.0.1:8767", state: "offline" });
     render(<AutomaticBox locale="en" onSaved={() => {}} />);
     const setup = await screen.findByText("Box setup");
     expect(setup.closest("details")).not.toHaveAttribute("open");
-    expect(screen.getByRole("button", { name: "Connect USB camera" }).closest("details")).toBe(setup.closest("details"));
+    expect(setup.closest("details")).toContainElement(screen.getByRole("button", { name: "Connect USB camera" }));
+    expect(setup.closest("details")).toContainElement(screen.getByRole("button", { name: "Connect EMEET / webcam" }));
     await userEvent.setup().click(setup);
     expect(screen.getByRole("button", { name: "Connect USB camera" })).toBeDisabled();
     expect(screen.getByText(/Use Chrome or Edge on a computer/)).toBeInTheDocument();

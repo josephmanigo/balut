@@ -156,7 +156,8 @@ class AutomaticBox:
 
     async def read_frame(self, origin):
         body = await self.fetch(origin)
-        body = await run_in_threadpool(prepare_camera_frame, body)
+        if self.config.get("cameraKind") != "webcam":
+            body = await run_in_threadpool(prepare_camera_frame, body)
         samples, preview = await run_in_threadpool(frame_data, body)
         self.preview, self.connected = preview, True
         return body, samples
@@ -233,7 +234,7 @@ class AutomaticBox:
         hashes = [hashlib.sha256(view).hexdigest() for view in bodies]
         for view, digest in zip(bodies, hashes, strict=True):
             await run_in_threadpool(self.evidence.store_jpeg, view, digest)
-        prefix = "box-views-" if isinstance(body, list) else "box-still-" if stationary else "box-"
+        prefix = ("box-webcam-views-" if self.config.get("cameraKind") == "webcam" else "box-views-") if isinstance(body, list) else "box-still-" if stationary else "box-"
         pending = {"key": prefix + uuid4().hex, "imageHash": hashes[0]}
         if isinstance(body, list):
             pending["imageHashes"] = hashes

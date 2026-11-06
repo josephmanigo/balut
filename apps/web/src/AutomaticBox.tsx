@@ -3,6 +3,8 @@ import { Camera, Check, LoaderCircle, Pause, Play, Radio, Settings2 } from "luci
 import { boxRequest } from "./api";
 import type { BoxStatus } from "./api";
 import { UsbCameraConnect } from "./UsbCameraConnect";
+import { WebcamConnect, WebcamPreview } from "./WebcamConnect";
+import { webcamSupported } from "./webcam";
 
 const states: Record<string, [string, string, string, string]> = {
   not_connected: ["Connect your box.", "Ikonekta ang kahon.", "Set up the camera once. Then place an egg.", "I-setup ang camera. Ilagay ang itlog pagkatapos."],
@@ -13,9 +15,10 @@ const states: Record<string, [string, string, string, string]> = {
   waiting: ["Ready for an egg.", "Handa para sa itlog.", "Box is empty. Place one egg and keep your hands clear.", "Bakante ang kahon. Maglagay ng isang itlog at ilayo ang mga kamay."],
   settling: ["Scanning egg.", "Ini-scan ang itlog.", "Keep your hands clear. The camera analyzes the egg automatically.", "Ilayo ang mga kamay. Awtomatikong sinusuri ng camera ang itlog."],
   analyzing: ["Analyzing egg.", "Sinusuri ang itlog.", "Your result saves automatically.", "Awtomatikong mase-save ang resulta."],
+  rescanning: ["Checking more live frames.", "Sinusuri ang mga susunod na kuha.", "Keep the egg in the holder. AI scanning continues automatically.", "Panatilihin ang itlog sa lalagyan. Awtomatikong nagpapatuloy ang AI scan."],
   capturing_views: ["Scanning egg.", "Ini-scan ang itlog.", "Keep your hands clear until the result appears.", "Ilayo ang mga kamay hanggang lumabas ang resulta."],
   remove_egg: ["Result saved.", "Nai-save ang resulta.", "Remove the egg before placing the next one.", "Alisin ang itlog bago ilagay ang susunod."],
-  recapture: ["Another view needed.", "Kailangan ng ibang kuha.", "Remove the egg, adjust it, then place it again.", "Alisin, ayusin, at ilagay muli ang itlog."],
+  recapture: ["Scan inconclusive.", "Hindi malinaw ang resulta ng scan.", "Check the lighting and camera guidance below before scanning this egg again.", "Suriin ang gabay sa ilaw at camera sa ibaba bago muling i-scan ang itlog."],
   paused: ["Automatic mode paused.", "Naka-pause ang awtomatikong mode.", "Live view continues. Resume when the box is ready.", "Tuloy ang live na kuha. Ituloy ang pagsusuri kapag handa na ang kahon."],
   offline: ["Camera disconnected.", "Hindi konektado ang camera.", "Check camera power and connection. We’ll reconnect.", "Suriin ang kuryente at koneksyon ng camera. Kokonekta muli."],
   error: ["Capture saved. Retrying…", "Nai-save ang kuha. Inuulit…", "The same capture will be retried without duplicate records.", "Uulitin ang parehong kuha nang walang dobleng tala."],
@@ -29,6 +32,8 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   const [notice, setNotice] = useState("");
   const [unreachable, setUnreachable] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
+  const [webcamFps, setWebcamFps] = useState<number | null>(null);
   const lastResult = useRef<string | undefined>(undefined);
   const pollDelay = useRef(250);
   const generation = useRef(0);
@@ -70,7 +75,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         const controller = new AbortController();
         pollAbort.current = controller;
         try {
-          const value = await boxRequest("status", undefined, { signal: controller.signal, preview: active && !localPreview });
+          const value = await boxRequest("status", undefined, { signal: controller.signal, preview: active && !localPreview && !webcamStream });
           if (!stopped && !controller.signal.aborted && current === generation.current) acceptRef.current(value);
         } catch {
           if (!stopped && !controller.signal.aborted && current === generation.current) {
@@ -88,7 +93,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     document.addEventListener("visibilitychange", visibilityChanged);
     void poll();
     return () => { stopped = true; alive.current = false; clearTimeout(timer); pollAbort.current?.abort(); document.removeEventListener("visibilitychange", visibilityChanged); };
-  }, [active, !!localPreview]);
+  }, [active, !!localPreview, !!webcamStream]);
 
   async function change(action: string, body: Record<string, unknown>) {
     if (changing.current) return;
@@ -102,20 +107,24 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
       if (alive.current) setNotice(error instanceof Error ? error.message : "Connection interrupted. Try again.");
     } finally { changing.current = false; if (alive.current) setBusy(false); }
   }
-  const copy = status?.cloudCapture && status.state === "needs_reference"
+  const copy = webcamStream && status?.state === "offline"
+    ? ["Live camera connected.", "Konektado ang live camera.", "Waiting for the scan service. Video continues while uploads reconnect.", "Hinihintay ang scan service. Tuloy ang video habang kumokonekta muli."]
+    : status?.cloudCapture && status.state === "needs_reference"
     ? ["Camera calibration needed.", "Kailangang i-calibrate ang camera.", "Remove the egg, turn on the candling light, then save a fresh empty view below.", "Alisin ang itlog, buksan ang ilaw, at mag-save ng bagong bakanteng kuha sa ibaba."]
+    : status?.state === "settling" && status.result?.recaptureRequested ? states.rescanning
     : states[status?.state ?? "not_connected"] ?? states.offline;
   const calibrating = status?.state === "calibrating";
   const setupError = notice || (status?.state === "needs_reference" ? status.error : null);
   const result = status?.result;
+  const scanning = ["settling", "capturing_views", "analyzing"].includes(status?.state ?? "");
   const unfamiliar = result?.recaptureReasons.includes("UNFAMILIAR_APPEARANCE");
   const blurry = result?.recaptureReasons.includes("IMAGE_TOO_BLURRY");
   const recaptureHelp = unfamiliar
-    ? t("These views are unfamiliar. The model cannot give a reliable result.", "Hindi pamilyar ang mga larawang ito. Hindi makapagbigay ng maaasahang resulta ang modelo.")
-    : blurry ? t("Image too blurry · check camera focus, then replace the egg.", "Malabo ang larawan · suriin ang focus ng camera, saka ilagay muli ang itlog.")
-    : t("Unclassified · adjust the view and replace the egg.", "Walang klasipikasyon · ayusin ang kuha at ilagay muli.");
-  const cameraLive = !!localPreview || !!status?.connected && !unreachable;
-  const label = result?.recaptureRequested ? t("Another image needed", "Kailangan ng ibang larawan")
+    ? t("The live view does not match what the model learned. Check that candling light reveals the egg's interior; camera-specific training may be needed.", "Hindi tugma ang live na kuha sa natutunan ng modelo. Tiyaking nakikita ang loob ng itlog sa ilaw; maaaring kailangan ng pagsasanay para sa camera na ito.")
+    : blurry ? t("Video is too blurry. Check camera focus and reduce movement in the holder.", "Malabo ang video. Suriin ang focus ng camera at bawasan ang paggalaw sa lalagyan.")
+    : t("The model could not establish a consistent result from the live video. Check candling light and keep the egg centered.", "Hindi makabuo ng magkakatugmang resulta ang modelo mula sa live video. Suriin ang ilaw at igitna ang itlog.");
+  const cameraLive = !!webcamStream || !!localPreview || !!status?.connected && !unreachable;
+  const label = result?.recaptureRequested ? t("Unable to classify", "Hindi matukoy ang klase")
     : ({ DAY_16: "Day 16", DAY_18: "Day 18", REJECT: "Reject", UNFERTILIZED: "Reject" }[result?.sourcePrediction ?? ""]);
 
   return <section className="automatic-box" aria-label={t("Automatic box", "Awtomatikong kahon")}>
@@ -124,9 +133,9 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     </div>
     <div className="box-layout">
       <figure className="box-camera">
-        <figcaption><span><Camera size={16} strokeWidth={1.5} />{t("Box camera", "Camera ng kahon")}</span><span className="box-camera-signal" data-live={cameraLive}><i aria-hidden="true" />{cameraLive ? t("Live", "Live") : status?.preview ? t("Last image", "Huling larawan") : t("Offline", "Offline")}</span></figcaption>
+        <figcaption><span><Camera size={16} strokeWidth={1.5} />{t("Box camera", "Camera ng kahon")}</span><span className="box-camera-signal" data-live={cameraLive}><i aria-hidden="true" />{webcamStream && webcamFps !== null && `${Math.round(webcamFps)} fps · `}{cameraLive ? t("Live", "Live") : status?.preview ? t("Last image", "Huling larawan") : t("Offline", "Offline")}</span></figcaption>
         <div className="box-camera-stage">
-          {localPreview ? <div className="box-camera-direct"><img src={localPreview} alt={t("Latest view inside the candling box", "Huling kuha sa loob ng kahon")} /></div>
+          {webcamStream ? <WebcamPreview stream={webcamStream} onFps={setWebcamFps} /> : localPreview ? <div className="box-camera-direct"><img src={localPreview} alt={t("Latest view inside the candling box", "Huling kuha sa loob ng kahon")} /></div>
             : status?.preview ? <img src={`data:image/jpeg;base64,${status.preview}`} alt={t("Latest view inside the candling box", "Huling kuha sa loob ng kahon")} />
             : <div className="box-camera-empty"><Camera size={40} strokeWidth={1} /><span>{t("Waiting for camera", "Hinihintay ang camera")}</span></div>}
         </div>
@@ -134,14 +143,17 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
       <div ref={livePanel} className="box-live" role="status" aria-live="polite" aria-atomic="true">
         <h2>{unreachable ? t("Connection interrupted.", "Naputol ang koneksyon.") : copy[locale === "en" ? 0 : 1]}</h2>
         <p>{unreachable ? t("Check the EggGrade IoT server. Reconnecting automatically.", "Suriin ang EggGrade IoT server. Kokonekta muli.") : copy[locale === "en" ? 2 : 3]}</p>
-        {(status?.state === "analyzing" || status?.state === "capturing_views" || calibrating) && <LoaderCircle className="spin" size={24} />}
-        {result && <div className="box-result"><span><Check size={15} />{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? recaptureHelp : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p>{result.recaptureRequested && unfamiliar && blurry && <p>{t("Some views also have low detail. Check lens focus and reduce vibration.", "Kulang din sa detalye ang ilang kuha. Suriin ang focus ng lens at bawasan ang pagyanig.")}</p>}<time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
+        {(scanning || calibrating) && <LoaderCircle className="spin" size={24} />}
+        {result && !scanning && <div className="box-result"><span>{result.recaptureRequested ? <Camera size={15} /> : <Check size={15} />}{t("Latest saved result", "Huling nai-save na resulta")}</span><h3>{label}</h3><p>{result.recaptureRequested ? recaptureHelp : t("Research estimate · appearance only", "Tantiya para sa pananaliksik · hitsura lamang")}</p>{result.recaptureRequested && unfamiliar && blurry && <p>{t("Some views also have low detail. Check lens focus and reduce vibration.", "Kulang din sa detalye ang ilang kuha. Suriin ang focus ng lens at bawasan ang pagyanig.")}</p>}<time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>}
       </div>
     </div>
     {setupError && <p className="inline-error" role="alert">{setupError}</p>}
     {status?.cloudCapture && <details className="box-settings">
       <summary><Settings2 size={17} />{t("Box setup", "Setup ng kahon")}</summary>
-      <UsbCameraConnect locale={locale} onPreview={setLocalPreview} scanning={status?.state === "settling" || status?.state === "capturing_views"} />
+      <WebcamConnect locale={locale} onStream={setWebcamStream} />
+      {!webcamStream && <details><summary>{t("Older ESP32 camera", "Lumang ESP32 camera")}</summary>
+        <UsbCameraConnect locale={locale} onPreview={setLocalPreview} autoConnect={!webcamSupported()} />
+      </details>}
     </details>}
     {status?.cloudCapture && ["checking_empty", "needs_reference"].includes(status.state) && <details className="box-settings">
       <summary>{t("Box is empty but still waiting?", "Bakante pero naghihintay pa rin?")}</summary>

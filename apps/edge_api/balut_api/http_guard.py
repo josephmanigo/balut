@@ -40,7 +40,7 @@ class HttpGuard:
                     (b"x-request-id", request_id.encode()), (b"x-content-type-options", b"nosniff"),
                     (b"cache-control", cache), (b"referrer-policy", b"no-referrer"),
                     (b"x-frame-options", b"DENY"),
-                    (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), serial=(self)"),
+                    (b"permissions-policy", b"camera=(self), microphone=(), geolocation=(), serial=(self)"),
                     (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"),
                 ])
                 if self.settings.cloud_origin:

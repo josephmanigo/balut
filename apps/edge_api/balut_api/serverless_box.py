@@ -63,6 +63,9 @@ class SavedBox(AutomaticBox):
             empty_view_matches(samples, self.frames[0]) for samples in self.frames[1:])
 
     def require_new_reference(self):
+        self.config.pop("webcamViews", None)
+        self.config.pop("webcamScanAttempts", None)
+        self.config.pop("webcamRetryAfter", None)
         self.config.pop("referenceDeadline", None)
         self.error = None
         super().require_new_reference()
@@ -82,6 +85,9 @@ class SavedBox(AutomaticBox):
     async def tick(self):
         previous_error = self.error
         await super().tick()
+        if self.state == "waiting":
+            self.config.pop("webcamScanAttempts", None)
+            self.config.pop("webcamRetryAfter", None)
         deadline = self.config.get("referenceDeadline")
         if deadline:
             if time.time() > deadline:
@@ -94,10 +100,33 @@ class SavedBox(AutomaticBox):
         elif not self.config.get("enabled"):
             self.error = previous_error
         if self.state != "settling":
+            self.config.pop("webcamViews", None)
             self.config.pop("stationaryRequested", None)
             self.config.pop("stationaryRequestedAt", None)
 
     async def capture_frame(self, body):
+        if self.config.get("cameraKind") == "webcam":
+            now = time.time()
+            if now < self.config.get("webcamRetryAfter", 0):
+                return
+            views = self.config.get("webcamViews", [])
+            if views and now - views[0]["at"] > 15:
+                views = []
+            digest = hashlib.sha256(body).hexdigest()
+            if any(view["hash"] == digest for view in views) or views and now - views[-1]["at"] < .5:
+                return
+            await run_in_threadpool(self.evidence.store_jpeg, body, digest)
+            views.append({"hash": digest, "at": now})
+            self.config["webcamViews"] = views
+            if len(views) < 3:
+                return
+            for view in views:
+                if not await run_in_threadpool(self.evidence.contains, view["hash"]):
+                    raise ValueError("Webcam scan evidence is unavailable; remove the egg and retry.")
+            bodies = [self.evidence.path_for(view["hash"]).read_bytes() for view in views]
+            self.config.pop("webcamViews", None)
+            await super().capture_frame(bodies)
+            return
         if self.config.get("stationaryCapture") and not self.stationary_frame:
             self.config["stationaryRequested"] = True
             self.config.setdefault("stationaryRequestedAt", time.time())
@@ -110,21 +139,39 @@ class SavedBox(AutomaticBox):
     def status(self):
         result = super().status()
         result["cloudCapture"] = True
-        if self.config.get("stationaryCapture"):
+        if self.config.get("stationaryCapture") or self.config.get("cameraKind") == "webcam":
             result["targetViews"] = 3
+        if self.config.get("webcamViews") and self.connected and self.config.get("enabled"):
+            result.update(state="capturing_views", capturedViews=len(self.config["webcamViews"]))
         if (self.config.get("stationaryRequested") and self.config.get("enabled")
                 and 0 <= time.time() - self.config.get("stationaryRequestedAt", 0) <= 90):
             result.update(state="capturing_views", connected=True, targetViews=3)
             return result
         if not self.connected:
-            result.update(state="offline", error="Start the USB cloud connector to receive fresh camera frames.", preview=None)
+            result.update(state="offline", error="Connect the webcam in Box setup to receive fresh camera frames.", preview=None)
         return result
+
+    def enable(self, enabled):
+        self.config.pop("webcamViews", None)
+        self.config.pop("webcamScanAttempts", None)
+        self.config.pop("webcamRetryAfter", None)
+        super().enable(enabled)
 
     async def finish_pending(self):
         self.state, self.error = "analyzing", None
         self.save()
         try:
             await super().finish_pending()
+            if self.config.get("cameraKind") == "webcam" and self.result["recaptureRequested"]:
+                attempts = self.config.get("webcamScanAttempts", 0) + 1
+                self.config["webcamScanAttempts"] = attempts
+                # Bound repeated inference on one egg; never weaken the model's acceptance gates.
+                if attempts < 3:
+                    self.config.update(latched=False, webcamRetryAfter=time.time() + 2)
+                    self.previous = None
+                    self.occupied_frames = 0
+                    self.state = "settling"
+                self.save()
         except (OSError, RuntimeError, ValueError):
             self.state, self.error = "error", "Capture saved. The next camera upload will retry analysis."
             self.save()
@@ -138,6 +185,9 @@ class SavedBox(AutomaticBox):
         if not self.reference_ready():
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=self.frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
+        self.config.pop("webcamViews", None)
+        self.config.pop("webcamScanAttempts", None)
+        self.config.pop("webcamRetryAfter", None)
         self.config.pop("collection", None)
         self.config.pop("awaitingEmpty", None)
         self.config.pop("referenceDeadline", None)
@@ -187,6 +237,9 @@ class ServerlessBox:
         return await run_in_threadpool(self.receive_frame, body, key, camera_session, owner)
 
     def receive_frame(self, body, key, camera_session="signed-usb", owner=None):
+        webcam = re.fullmatch(r"webcam-([0-9a-f-]{36})-[1-9][0-9]*", key)
+        if key.startswith("webcam-") and (not webcam or camera_session != "browser-" + webcam[1]):
+            raise HTTPException(400, "Webcam frames require the matching browser camera session")
         motor_frame = re.fullmatch(r"usb-motor-(preview|still|views)-([0-9a-f]{32})-[1-9][0-9]*", key)
         if key.startswith("usb-motor-"):
             if not motor_frame or camera_session != "signed-usb":
@@ -196,8 +249,9 @@ class ServerlessBox:
         bodies = body if isinstance(body, list) else [body]
         if multiview != isinstance(body, list) or multiview and len(bodies) != 3:
             raise HTTPException(400, "Send exactly three paused views for a multiangle scan")
-        if any(not isinstance(view, bytes) or not 4 < len(view) <= 128 * 1024 for view in bodies):
-            raise HTTPException(413, "USB frame exceeds 128 KB")
+        limit = 512 * 1024 if webcam else 128 * 1024
+        if any(not isinstance(view, bytes) or not 4 < len(view) <= limit for view in bodies):
+            raise HTTPException(413, "Webcam frame exceeds 512 KB" if webcam else "USB frame exceeds 128 KB")
         if multiview and len({hashlib.sha256(view).digest() for view in bodies}) != 3:
             raise HTTPException(400, "Multiangle scan requires three distinct camera frames")
         try:
@@ -205,8 +259,9 @@ class ServerlessBox:
             for view in bodies:
                 with decode_jpeg(view) as image:
                     sizes.append(list(image.size))
-                    if image.size not in {(640, 480), (800, 600)}:
-                        raise ValueError("Expected a 640 by 480 or 800 by 600 box camera frame")
+                    allowed = {(1920, 1080), (1280, 720), (640, 480)} if webcam else {(640, 480), (800, 600)}
+                    if image.size not in allowed:
+                        raise ValueError("Expected a 1080p, 720p or VGA webcam frame" if webcam else "Expected a 640 by 480 or 800 by 600 box camera frame")
             source_size = sizes[0]
             if any(size != source_size for size in sizes):
                 raise ValueError("All camera views must have the same dimensions")
@@ -245,10 +300,12 @@ class ServerlessBox:
             if multiview and not expected_views:
                 raise HTTPException(409, "Scan expired or was not requested; remove the egg before retrying")
             framing_changed = (box.config.get("sourceSize", [640, 480]) != source_size
-                               or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION)
+                               or box.config.get("framingVersion") != CAMERA_FRAMING_VERSION
+                               or box.config.get("cameraKind", "serial") != ("webcam" if webcam else "serial"))
             # Keep the armed state through short USB retry gaps; status still reports missing previews after 12 seconds.
             reconnect_seconds = 45 if motor_frame else 12
             if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > reconnect_seconds and not expected_views:
+                box.config.pop("webcamViews", None)
                 if not framing_changed and box.config.get("reference"):
                     # Reuse only a confirmed view, and require fresh empty matches before capturing again.
                     box.config["awaitingEmpty"] = True
@@ -257,6 +314,7 @@ class ServerlessBox:
                     box.require_new_reference()
                 box.frames = []
             box.config["cameraSession"] = camera_session
+            box.config["cameraKind"] = "webcam" if webcam else "serial"
             box.config["sourceSize"] = source_size
             box.config["framingVersion"] = CAMERA_FRAMING_VERSION
             box.config["stationaryCapture"] = bool(motor_frame)
