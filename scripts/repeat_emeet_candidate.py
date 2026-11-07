@@ -33,17 +33,29 @@ def summarize(attempts, truth):
     return result
 
 
-def run_repeats(dataset, egg):
+def run_repeats(dataset, egg, study=None):
     lock = verify_candidate(dataset)
     plan = json.loads((dataset / "collection-plan.json").read_text())
-    if egg not in SELECTED_EGGS or plan["eggs"][egg]["partition"] != "test":
-        raise ValueError("Use the preselected first reserved egg of each age")
+    selected_eggs = list(SELECTED_EGGS)
+    protocol_sha = None
+    if study is not None:
+        protocol = json.loads((study / "protocol.json").read_text())
+        protocol_sha = sha(study / "protocol.json")
+        selected_eggs = protocol["selected_eggs"]
+        heldout = {key for key, value in plan["eggs"].items() if value["partition"] == "test"}
+        if (len(selected_eggs) != len(set(selected_eggs)) or set(selected_eggs) != heldout
+                or protocol["candidate_lock_sha256"] != sha(dataset / "candidate-lock.json")
+                or protocol["attempts_per_egg"] != REPEATS):
+            raise ValueError("Physical study must preserve the candidate, all reserved egg identities and ten attempts per egg")
+    if egg not in selected_eggs or plan["eggs"][egg]["partition"] != "test":
+        raise ValueError("Use a reserved egg listed in the chosen physical test protocol")
     captured = [p for p in (dataset / "captures" / egg).glob("*/record.json") if json.loads(p.read_text())["status"] == "complete"]
     if len(captured) != 1:
         raise ValueError("Complete this egg's reserved dataset capture before repeating scans")
     identity = finish(dataset, captured[0].parent)
     run = Path(lock["run"])
-    output = run / "repeatability" / egg
+    study_root = study if study is not None else run / "repeatability"
+    output = study_root / egg
     output.mkdir(parents=True, exist_ok=False)
     policy = json.loads((run / "calibration/gate-policy.json").read_text())
     with np.load(run / "calibration/training-references.npz", allow_pickle=False) as bank:
@@ -52,7 +64,8 @@ def run_repeats(dataset, egg):
     session = ort.InferenceSession(str(run / "best.onnx"), sess_options=options, providers=["CPUExecutionProvider"])
     config = {"normalization_mean": [.485, .456, .406], "normalization_std": [.229, .224, .225]}
     record = {"egg_id": egg, "physical_egg_id": identity["physical_egg_id"], "truth": identity["source_label"],
-              "candidate_lock_sha256": sha(dataset / "candidate-lock.json"), "selected_eggs": list(SELECTED_EGGS),
+              "candidate_lock_sha256": sha(dataset / "candidate-lock.json"), "selected_eggs": selected_eggs,
+              "physical_study_protocol_sha256": protocol_sha,
               "scope": "Fresh separate camera acquisitions in the same holder, local CPU model and production decision rules; not a deployed browser or repositioning test",
               "rotation_angles_verified": False, "new_independent_eggs": 0, "included_in_training_dataset": False,
               "capture_protocol": "Each attempt reopens EMEET, samples 1fps, discards two warmup frames, then analyzes three fresh views",
@@ -99,8 +112,10 @@ def run_repeats(dataset, egg):
         if attempt["result"] is None:
             break
     verify_candidate(dataset)
-    records = [json.loads(p.read_text()) for p in (run / "repeatability").glob("*/record.json")]
-    write(run / "repeatability/metrics.json", {"selected_eggs": list(SELECTED_EGGS), "eggs_tested": len(records),
+    if study is not None and sha(study / "protocol.json") != protocol_sha:
+        raise ValueError("Physical study protocol changed during capture")
+    records = [json.loads(p.read_text()) for p in study_root.glob("*/record.json")]
+    write(study_root / "metrics.json", {"selected_eggs": selected_eggs, "eggs_tested": len(records),
           "per_egg": [{"egg_id": r["egg_id"], "truth": r["truth"], "scope": r["scope"], **r["metrics"]} for r in records],
           "field_accuracy_established": False, "fresh_physical_reject_eggs": 0})
     if len(record["attempts"]) != REPEATS or record["metrics"]["failures"]:
@@ -110,6 +125,7 @@ def run_repeats(dataset, egg):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("dataset", type=Path)
-    parser.add_argument("--egg", choices=SELECTED_EGGS, required=True)
+    parser.add_argument("--egg", required=True)
+    parser.add_argument("--study", type=Path, help="Separate physical-only study with a frozen protocol; preserves the original repeat study")
     args = parser.parse_args()
-    run_repeats(args.dataset.resolve(), args.egg)
+    run_repeats(args.dataset.resolve(), args.egg, args.study.resolve() if args.study else None)

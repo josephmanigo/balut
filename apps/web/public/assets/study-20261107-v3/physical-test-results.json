@@ -1,0 +1,906 @@
+{
+  "protocol_sha256": "c3b0a37ec2dcd457c210c3ef3907422f741877f2b432435b1b9f2f87870d66d3",
+  "candidate_lock_sha256": "b482ba1a1a64e496ee8117ff752c7a1ab5d94eaab06ddb5319a2ce57917a6068",
+  "record_sha256": {
+    "D16-17": "3750b1bccdc7bffeea403e62c763b8f9c533acf24d23bfacc42529ea1ce8028f",
+    "D18-09": "6e8c163e6fac0ff2d5c05127bc8184b0865b2ebf4b9a8aa02c2de575934f227e",
+    "D16-18": "bc337530cd36728488f608a77c4c2cd57ecf39b915bc8091b4e031762c01e37a",
+    "D18-10": "2e02066186dbc84b3c3f2aa4fa391f6f3109495e99945b79efd67b4349258ce3",
+    "D16-19": "3b0ee0e7aaf9442d7af95a3a81ba88de9a989e2356b0ae8f5819fa882bd2f53c",
+    "D16-20": "d287dcef55b456111a122cdaafab2c322ca5c2f8d27cc474de62851031b7690b"
+  },
+  "scope": "Physical-only controlled camera testing; same six reserved eggs, previously examined; not a new independent field study",
+  "planned_eggs": 6,
+  "eggs_tested": 6,
+  "planned_attempts": 60,
+  "completed_eggs": 6,
+  "primary_first_attempt_per_egg": {
+    "attempts": 6,
+    "correct": 2,
+    "wrong_classified": 1,
+    "unclassified": 3,
+    "acquisition_failures": 0,
+    "accuracy": 0.3333333333333333,
+    "classified": 3,
+    "coverage": 0.5,
+    "accuracy_among_classified": 0.6666666666666666,
+    "class_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT"
+    ],
+    "outcome_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT",
+      "UNCLASSIFIED",
+      "ACQUISITION_FAILURE"
+    ],
+    "confusion_matrix": [
+      [
+        2,
+        0,
+        0,
+        2,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "per_class": [
+      {
+        "class": "DAY_16",
+        "support": 4,
+        "TP": 2,
+        "FP": 1,
+        "FN": 2,
+        "precision": 0.6666666666666666,
+        "recall": 0.5,
+        "f1": 0.5714285714285714
+      },
+      {
+        "class": "DAY_18",
+        "support": 2,
+        "TP": 0,
+        "FP": 0,
+        "FN": 2,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      {
+        "class": "REJECT",
+        "support": 0,
+        "TP": 0,
+        "FP": 0,
+        "FN": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    ],
+    "macro_f1_represented_classes": 0.2857142857142857,
+    "unrepresented_classes": [
+      "REJECT"
+    ],
+    "counting": "Unclassified and acquisition failures count as incorrect and as FN for the known class; unsupported classes are not scored"
+  },
+  "repeated_attempts": {
+    "attempts": 60,
+    "correct": 17,
+    "wrong_classified": 7,
+    "unclassified": 36,
+    "acquisition_failures": 0,
+    "accuracy": 0.2833333333333333,
+    "classified": 24,
+    "coverage": 0.4,
+    "accuracy_among_classified": 0.7083333333333334,
+    "class_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT"
+    ],
+    "outcome_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT",
+      "UNCLASSIFIED",
+      "ACQUISITION_FAILURE"
+    ],
+    "confusion_matrix": [
+      [
+        17,
+        0,
+        0,
+        23,
+        0
+      ],
+      [
+        7,
+        0,
+        0,
+        13,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "per_class": [
+      {
+        "class": "DAY_16",
+        "support": 40,
+        "TP": 17,
+        "FP": 7,
+        "FN": 23,
+        "precision": 0.7083333333333334,
+        "recall": 0.425,
+        "f1": 0.53125
+      },
+      {
+        "class": "DAY_18",
+        "support": 20,
+        "TP": 0,
+        "FP": 0,
+        "FN": 20,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      {
+        "class": "REJECT",
+        "support": 0,
+        "TP": 0,
+        "FP": 0,
+        "FN": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    ],
+    "macro_f1_represented_classes": 0.265625,
+    "unrepresented_classes": [
+      "REJECT"
+    ],
+    "counting": "Unclassified and acquisition failures count as incorrect and as FN for the known class; unsupported classes are not scored"
+  },
+  "unique_scored_camera_views": 180,
+  "scan_log": [
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 1,
+      "outcome": "DAY_16",
+      "seconds": 6.633127799999784,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 2,
+      "outcome": "DAY_16",
+      "seconds": 6.607730199997604,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 3,
+      "outcome": "DAY_16",
+      "seconds": 6.621183800001745,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 4,
+      "outcome": "DAY_16",
+      "seconds": 6.479785000003176,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 5,
+      "outcome": "DAY_16",
+      "seconds": 6.483452600001328,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 6,
+      "outcome": "DAY_16",
+      "seconds": 6.490250900002138,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 7,
+      "outcome": "DAY_16",
+      "seconds": 6.514199799999915,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 8,
+      "outcome": "DAY_16",
+      "seconds": 6.508168700001988,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 9,
+      "outcome": "DAY_16",
+      "seconds": 6.525980399997934,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "attempt": 10,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.64860740000222,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "AMBIGUOUS_APPEARANCE",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 1,
+      "outcome": "DAY_16",
+      "seconds": 6.508753500002058,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 2,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.46147899999778,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 3,
+      "outcome": "DAY_16",
+      "seconds": 6.466130799999519,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 4,
+      "outcome": "DAY_16",
+      "seconds": 6.4582292000013695,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 5,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.479366799998388,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 6,
+      "outcome": "DAY_16",
+      "seconds": 6.480776100001094,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 7,
+      "outcome": "DAY_16",
+      "seconds": 6.485464100001991,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 8,
+      "outcome": "DAY_16",
+      "seconds": 6.633519299997715,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 9,
+      "outcome": "DAY_16",
+      "seconds": 6.475767600000836,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 10,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.471128900000622,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "AMBIGUOUS_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 1,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 7.230567000002338,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 2,
+      "outcome": "DAY_16",
+      "seconds": 6.534351699996478,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 3,
+      "outcome": "DAY_16",
+      "seconds": 6.670025600000372,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 4,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.546424899999693,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 5,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.524245799999335,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 6,
+      "outcome": "DAY_16",
+      "seconds": 6.628673599996546,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 7,
+      "outcome": "DAY_16",
+      "seconds": 6.5107285999984015,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 8,
+      "outcome": "DAY_16",
+      "seconds": 6.501998300002015,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 9,
+      "outcome": "DAY_16",
+      "seconds": 6.580881199999567,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "attempt": 10,
+      "outcome": "DAY_16",
+      "seconds": 6.5162491999981285,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 1,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.761232299999392,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 2,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.487688799999887,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 3,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.614517500001966,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 4,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.628276899999037,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 5,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.6207643000016105,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 6,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.500544900001842,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 7,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.531691799998953,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 8,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.647462400000222,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 9,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.721988799999963,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 10,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.559854099999939,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 1,
+      "outcome": "DAY_16",
+      "seconds": 6.632319300002564,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 2,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.524172599998565,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 3,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.530055200000788,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 4,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.506309999997029,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 5,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.558487699996476,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 6,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.503579200001695,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 7,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.636364999998477,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 8,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.494301700000506,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 9,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.643987400002516,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "attempt": 10,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.508155600000464,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 1,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.6483606999972835,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 2,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 8.522277899999608,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 3,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.490064099998563,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 4,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.516503899998497,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 5,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.50926790000085,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 6,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.491170500001317,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 7,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.497779600002104,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 8,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.518289100000402,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 9,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.504286699997465,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "attempt": 10,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.656516900002316,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    }
+  ],
+  "per_egg": [
+    {
+      "egg_id": "D16-17",
+      "truth": "DAY_16",
+      "imported_original_session": true,
+      "first_outcome": "DAY_16",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 0.9,
+      "decision_agreement": 0.9,
+      "maximum_score_difference": 7.417566299438477,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 9,
+      "correct_over_attempts": 0.9,
+      "class_counts": {
+        "DAY_16": 9,
+        "UNCLASSIFIED": 1
+      },
+      "median_attempt_seconds": 6.520090099998924,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "imported_original_session": true,
+      "first_outcome": "DAY_16",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 0.7,
+      "decision_agreement": 0.7,
+      "maximum_score_difference": 5.064943552017212,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 0,
+      "correct_over_attempts": 0.0,
+      "class_counts": {
+        "DAY_16": 7,
+        "UNCLASSIFIED": 3
+      },
+      "median_attempt_seconds": 6.477567199999612,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D16-18",
+      "truth": "DAY_16",
+      "imported_original_session": false,
+      "first_outcome": "UNCLASSIFIED",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 0.7,
+      "decision_agreement": 0.7,
+      "maximum_score_difference": 5.334536671638489,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 7,
+      "correct_over_attempts": 0.7,
+      "class_counts": {
+        "UNCLASSIFIED": 3,
+        "DAY_16": 7
+      },
+      "median_attempt_seconds": 6.540388299998085,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "imported_original_session": false,
+      "first_outcome": "UNCLASSIFIED",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 1.0,
+      "decision_agreement": 1.0,
+      "maximum_score_difference": 4.749811172485352,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 0,
+      "correct_over_attempts": 0.0,
+      "class_counts": {
+        "UNCLASSIFIED": 10
+      },
+      "median_attempt_seconds": 6.617640900001788,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D16-19",
+      "truth": "DAY_16",
+      "imported_original_session": false,
+      "first_outcome": "DAY_16",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 0.9,
+      "decision_agreement": 0.9,
+      "maximum_score_difference": 4.718966960906982,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 1,
+      "correct_over_attempts": 0.1,
+      "class_counts": {
+        "DAY_16": 1,
+        "UNCLASSIFIED": 9
+      },
+      "median_attempt_seconds": 6.5271138999996765,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D16-20",
+      "truth": "DAY_16",
+      "imported_original_session": false,
+      "first_outcome": "UNCLASSIFIED",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 1.0,
+      "decision_agreement": 1.0,
+      "maximum_score_difference": 3.4289402961730957,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 0,
+      "correct_over_attempts": 0.0,
+      "class_counts": {
+        "UNCLASSIFIED": 10
+      },
+      "median_attempt_seconds": 6.512885899999674,
+      "expected_repeats": 10
+    }
+  ],
+  "physical_reject_eggs": 0,
+  "new_independent_eggs": 0,
+  "field_accuracy_established": false,
+  "measurement_scope": "Physical EMEET camera + local locked MobileNetV2 + production decision rules; no saved-dataset replay, deployed-browser, verified repositioning, or production-field test",
+  "generated_at": "2026-11-07T01:38:31.033990+00:00"
+}
