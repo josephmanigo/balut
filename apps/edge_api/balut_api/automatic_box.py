@@ -254,13 +254,13 @@ class AutomaticBox:
         self.state = "recapture" if result["recaptureRequested"] else "remove_egg"
         self.save()
 
-    async def capture_frame(self, body, *, stationary=False):
+    async def capture_frame(self, body, *, stationary=False, key_prefix=None):
         bodies = body if isinstance(body, list) else [body]
         hashes = [hashlib.sha256(view).hexdigest() for view in bodies]
         for view, digest in zip(bodies, hashes, strict=True):
             await run_in_threadpool(self.evidence.store_jpeg, view, digest)
         prefix = ("box-webcam-views-" if self.config.get("cameraKind") == "webcam" else "box-views-") if isinstance(body, list) else "box-still-" if stationary else "box-"
-        pending = {"key": prefix + uuid4().hex, "imageHash": hashes[0]}
+        pending = {"key": (key_prefix or prefix) + uuid4().hex, "imageHash": hashes[0]}
         if isinstance(body, list):
             pending["imageHashes"] = hashes
         self.config.update(latched=True, pending=pending)

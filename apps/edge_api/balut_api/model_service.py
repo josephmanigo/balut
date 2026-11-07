@@ -11,6 +11,8 @@ import warnings
 from pathlib import Path
 
 MULTIVIEW_POLICY = "three-timed-views-v1"
+WEBCAM_ROTATION_KEY = "box-webcam-rotation-"
+WEBCAM_VIEW_SPACING = 2.0  # About one third of a turn on the 10 RPM holder.
 
 
 def active_registry(root: Path) -> Path:
@@ -262,6 +264,19 @@ class ModelService:
 
     def predict(self, model_id, body):
         return self._predict(model_id, body)
+
+    def webcam_view_rank(self, body):
+        import numpy as np
+        from PIL import Image
+        from .selective_gate import image_quality
+        model = self.models.get(self.analysis_model_id)
+        policy = (model.get("camera") or model)["policy"] if model else None
+        image = decode_jpeg(body)
+        usable = policy is None or not image_quality(image, policy)[1]
+        # The center of this candling rig contains the shell. Exclude the exposed lamp below it.
+        red = np.asarray(image.resize((64, 36), Image.Resampling.BICUBIC))[12:26, 27:37, 0]
+        low, high = np.percentile(red, [10, 90])
+        return [usable, float(high - low)]
 
     def _predict(self, model_id, body, camera=False):
         import numpy as np

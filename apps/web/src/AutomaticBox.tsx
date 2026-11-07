@@ -115,6 +115,8 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
     ? ["No egg detected.", "Walang nakitang itlog.", "Place one egg in the lit holder. Scanning starts automatically.", "Maglagay ng isang itlog sa lalagyang may ilaw. Awtomatikong magsisimula ang pag-scan."]
     : status?.eggPresence === "present" && status.state === "checking_empty"
     ? ["Egg detected.", "May nakitang itlog.", "Remove this egg to reset the holder for the next scan.", "Alisin ang itlog upang maihanda ang lalagyan para sa susunod na pag-scan."]
+    : status?.eggPresence === "present" && status.state === "capturing_views"
+    ? ["Scanning egg.", "Ini-scan ang itlog.", "Keep the egg turning under the light while the scanner selects clear views.", "Panatilihing umiikot ang itlog sa ilaw habang pumipili ang scanner ng malilinaw na kuha."]
     : status?.cloudCapture && status.state === "needs_reference"
     ? ["Camera calibration needed.", "Kailangang i-calibrate ang camera.", "Remove the egg, turn on the candling light, then save a fresh empty view below.", "Alisin ang itlog, buksan ang ilaw, at mag-save ng bagong bakanteng kuha sa ibaba."]
     : status?.state === "settling" && status.result?.recaptureRequested ? states.rescanning
@@ -125,9 +127,12 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   const scanning = ["settling", "capturing_views", "analyzing"].includes(status?.state ?? "");
   const unfamiliar = result?.recaptureReasons.includes("UNFAMILIAR_APPEARANCE");
   const blurry = result?.recaptureReasons.includes("IMAGE_TOO_BLURRY");
+  const conflicting = result?.recaptureReasons.some(reason => ["AMBIGUOUS_APPEARANCE", "MULTIVIEW_DISAGREEMENT"].includes(reason));
   const recaptureHelp = unfamiliar
     ? t("The live view does not match what the model learned. Check that candling light reveals the egg's interior; camera-specific training may be needed.", "Hindi tugma ang live na kuha sa natutunan ng modelo. Tiyaking nakikita ang loob ng itlog sa ilaw; maaaring kailangan ng pagsasanay para sa camera na ito.")
     : blurry ? t("Video is too blurry. Check camera focus and reduce movement in the holder.", "Malabo ang video. Suriin ang focus ng camera at bawasan ang paggalaw sa lalagyan.")
+    : conflicting && status?.eggPresence === "present"
+    ? t("The views do not establish a grade. Remove the egg until “No egg detected” appears, then turn it a quarter turn and place it back under the light.", "Hindi matukoy ang grado sa mga kuha. Alisin ang itlog hanggang lumabas ang “Walang nakitang itlog,” saka ikutin ito nang isang-kapat at ibalik sa ilaw.")
     : t("The model could not establish a consistent result from the live video. Check candling light and keep the egg centered.", "Hindi makabuo ng magkakatugmang resulta ang modelo mula sa live video. Suriin ang ilaw at igitna ang itlog.");
   const cameraLive = !!webcamStream || !!localPreview || !!status?.connected && !unreachable;
   const label = result?.recaptureRequested ? t("Unable to classify", "Hindi matukoy ang klase")

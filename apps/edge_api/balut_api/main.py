@@ -37,7 +37,7 @@ from .simulator import build_simulated_ingest
 from .evidence import EvidenceStore
 from .http_guard import HttpGuard
 from .browser_auth import BrowserSessions, browser_auth_router
-from .model_service import ModelService, ModelBusyError, MULTIVIEW_POLICY
+from .model_service import ModelService, ModelBusyError, MULTIVIEW_POLICY, WEBCAM_ROTATION_KEY, WEBCAM_VIEW_SPACING
 from .automatic_box import AutomaticBox, box_router
 from .supabase_store import CloudStorageError, Supabase, SupabaseDatabase, SupabaseEvidence
 
@@ -81,6 +81,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if source == "iot_box" and key.startswith("box-webcam-views-"):
             result["captureProtocol"] = "webcam-continuous-three-views-v1"
             result["multiView"] = {**result["multiView"], "capture": "continuous_video_frames", "anglesVerified": False}
+        if source == "iot_box" and key.startswith(WEBCAM_ROTATION_KEY):
+            result["captureProtocol"] = "webcam-rotation-three-views-v2"
+            result["multiView"].update(capture="continuous_video_frames", anglesVerified=False,
+                                       minimumSpacingSeconds=WEBCAM_VIEW_SPACING, sampledFrames=6)
         for view, digest in zip(bodies, hashes, strict=True):
             evidence_store.store_jpeg(view, digest)
         return database.record_prediction(result, image_hash, actor, key, request_hash)
@@ -95,7 +99,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if resolved_settings.serverless:
         from .serverless_box import ServerlessBox, serverless_box_router
         from .remote_camera import remote_camera_router
-        box = ServerlessBox(database, evidence_store, predict_box, cloud)
+        box = ServerlessBox(database, evidence_store, predict_box, cloud, models.webcam_view_rank)
         remote_camera = box
     elif resolved_settings.cloud_origin:
         from .remote_camera import RemoteCamera, USB_ORIGIN, remote_camera_router

@@ -11,7 +11,7 @@ from starlette.concurrency import run_in_threadpool
 
 from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, empty_view_matches, prepare_camera_frame, CAMERA_FRAMING_VERSION
 from .automatic_box import camera_owner, claim_camera, emeet_holder_presence, private_camera_status
-from .model_service import decode_jpeg
+from .model_service import decode_jpeg, WEBCAM_ROTATION_KEY, WEBCAM_VIEW_SPACING
 from .remote_camera import USB_ORIGIN
 from .box_display import box_display_code
 from .security import require_box_operator, require_idempotency_key
@@ -19,9 +19,10 @@ from .supabase_store import CloudStorageError
 
 
 class SavedBox(AutomaticBox):
-    def __init__(self, database, evidence, predict, cloud, snapshot, token=None):
+    def __init__(self, database, evidence, predict, cloud, snapshot, token=None, webcam_view_rank=None):
         super().__init__(database, evidence, predict)
         self.cloud, self.token = cloud, token
+        self.webcam_view_rank = webcam_view_rank
         self.config = snapshot.get("config", {"cameraUrl": USB_ORIGIN, "enabled": False})
         self.predict = lambda body, key: predict(body, key, self.config.get("owner"))
         for name in ("state", "error", "preview", "result", "previous", "occupied_frames", "empty_frames"):
@@ -125,22 +126,31 @@ class SavedBox(AutomaticBox):
             if now < self.config.get("webcamRetryAfter", 0):
                 return
             views = self.config.get("webcamViews", [])
-            if views and now - views[0]["at"] > 15:
+            spacing = WEBCAM_VIEW_SPACING if self.webcam_view_rank else .5
+            window = 45 if self.webcam_view_rank else 15
+            if views and (now - views[0]["at"] > window or self.webcam_view_rank and "rank" not in views[0]):
+                self.config.pop("webcamViews", None)
                 views = []
             digest = hashlib.sha256(body).hexdigest()
-            if any(view["hash"] == digest for view in views) or views and now - views[-1]["at"] < .5:
+            if any(view["hash"] == digest for view in views) or views and now - views[-1]["at"] < spacing:
                 return
-            await run_in_threadpool(self.evidence.store_jpeg, body, digest)
-            views.append({"hash": digest, "at": now})
+            current = {"hash": digest, "at": now}
+            if self.webcam_view_rank:
+                current["rank"] = await run_in_threadpool(self.webcam_view_rank, body)
+            if not self.webcam_view_rank or len(views) % 2 == 0 or current["rank"] > views[-1]["rank"]:
+                await run_in_threadpool(self.evidence.store_jpeg, body, digest)
+            views.append(current)
             self.config["webcamViews"] = views
-            if len(views) < 3:
+            if len(views) < (6 if self.webcam_view_rank else 3):
                 return
+            if self.webcam_view_rank:
+                views = [max(views[i:i+2], key=lambda view: view["rank"]) for i in (0, 2, 4)]
             for view in views:
                 if not await run_in_threadpool(self.evidence.contains, view["hash"]):
                     raise ValueError("Webcam scan evidence is unavailable; remove the egg and retry.")
             bodies = [self.evidence.path_for(view["hash"]).read_bytes() for view in views]
             self.config.pop("webcamViews", None)
-            await super().capture_frame(bodies)
+            await super().capture_frame(bodies, key_prefix=WEBCAM_ROTATION_KEY if self.webcam_view_rank else None)
             return
         if self.config.get("stationaryCapture") and not self.stationary_frame:
             self.config["stationaryRequested"] = True
@@ -159,7 +169,8 @@ class SavedBox(AutomaticBox):
         if self.config.get("stationaryCapture") or self.config.get("cameraKind") == "webcam":
             result["targetViews"] = 3
         if self.config.get("webcamViews") and self.connected and self.config.get("enabled"):
-            result.update(state="capturing_views", capturedViews=len(self.config["webcamViews"]))
+            samples = len(self.config["webcamViews"])
+            result.update(state="capturing_views", capturedViews=samples // 2 if self.webcam_view_rank else samples)
         if (self.config.get("stationaryRequested") and self.config.get("enabled")
                 and 0 <= time.time() - self.config.get("stationaryRequestedAt", 0) <= 90):
             result.update(state="capturing_views", connected=True, targetViews=3)
@@ -221,11 +232,12 @@ class SavedBox(AutomaticBox):
 
 
 class ServerlessBox:
-    def __init__(self, database, evidence, predict, cloud):
+    def __init__(self, database, evidence, predict, cloud, webcam_view_rank=None):
         self.database, self.evidence, self.predict, self.cloud = database, evidence, predict, cloud
+        self.webcam_view_rank = webcam_view_rank
 
     def box(self, snapshot, token=None):
-        return SavedBox(self.database, self.evidence, self.predict, self.cloud, snapshot, token)
+        return SavedBox(self.database, self.evidence, self.predict, self.cloud, snapshot, token, self.webcam_view_rank)
 
     def status(self, preview=True, owner=None):
         fields = ["config", "state", "error", "result", "received"]

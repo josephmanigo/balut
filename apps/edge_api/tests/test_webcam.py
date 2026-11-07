@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw
 
 from balut_api.main import create_app
+from balut_api.model_service import ModelService
 from balut_api.serverless_box import ServerlessBox
 from balut_api.supabase_store import Supabase, SupabaseEvidence
 from test_automatic_box import make_box
@@ -86,6 +87,61 @@ def webcam_frame(occupied=False, variation=0, size=(1920, 1080)):
     output = io.BytesIO()
     image.save(output, "JPEG", quality=90)
     return output.getvalue()
+
+
+def test_frame_rank_measures_detail_inside_the_shell():
+    def view(detail, lamp):
+        image = Image.new("RGB", (640, 360), (40, 15, 18))
+        draw = ImageDraw.Draw(image)
+        draw.rectangle((0, 300, 639, 359), fill=(lamp,) * 3)
+        draw.rectangle((313, 121, 359, 259), fill=(detail, 15, 18))
+        output = io.BytesIO()
+        image.save(output, "JPEG", quality=94)
+        return output.getvalue()
+
+    service = ModelService()
+    detail = service.webcam_view_rank(view(160, 50))[1]
+    assert detail > service.webcam_view_rank(view(40, 255))[1] + 50
+    assert abs(detail - service.webcam_view_rank(view(160, 255))[1]) < 1
+
+
+@pytest.mark.parametrize("always_blurry", [False, True])
+def test_rotating_webcam_selects_one_view_per_pair_and_finishes_with_blur(tmp_path, shared, monkeypatch, always_blurry):
+    local, _ = make_box(tmp_path)
+    now, ranked, analyzed = [time.time()], [], []
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    start = now[0]
+
+    def rank(body):
+        i = len(ranked)
+        score = [not always_blurry and i % 2 == 1, 6 - i]
+        ranked.append((score, now[0], body))
+        return score
+
+    def predict(bodies, key, owner=None):
+        analyzed.append(bodies)
+        assert key.startswith("box-webcam-rotation-")
+        return local.predict(bodies, key, owner)
+
+    # Each upload creates another serverless worker.
+    def send(i, occupied):
+        now[0] += .5
+        body = lit_holder_frame(occupied, i)
+        box = ServerlessBox(local.database, local.evidence, predict, Supabase(URL, SECRET), rank)
+        box.receive_frame(body, f"webcam-{SESSION}-{i}", "browser-" + SESSION)
+
+    for i in range(1, 6):
+        send(i, False)
+    start = now[0]
+    for i in range(6, 32):
+        send(i, True)
+    assert len(analyzed) == 1
+    assert len(ranked) == 6
+    winners = [max(ranked[i:i+2], key=lambda record: record[0]) for i in (0, 2, 4)]
+    assert analyzed[0] == [body for _, _, body in winners]
+    first, middle, last = (at for _, at, _ in winners)
+    assert middle - first >= 2 and last - middle >= 2
+    assert last - start <= 13
 
 
 def test_site_allows_own_webcam_but_not_microphone(tmp_path):
