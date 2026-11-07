@@ -7,3 +7,5 @@ deployment/releases/** -text
 docs/reports/**/*.pdf binary
 docs/reports/**/*.png binary
 docs/reports/**/*.json -text
+# Keep the refinement protocol and measured epoch evidence hash-verifiable.
+apps/web/public/assets/study-20261107-v2/* -text

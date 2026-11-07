@@ -188,3 +188,38 @@ def test_fresh_repeat_summary_keeps_failures_and_exact_score_variation():
     unclassified = summarize([{"result": uncertain, "score_vector": [1.] * 9, "elapsed_seconds": 6.}] * 10, "DAY_16")
     assert unclassified["correct_over_attempts"] == 0 and unclassified["failures"] == 0
     assert unclassified["class_counts"] == {"UNCLASSIFIED": 10} and unclassified["class_agreement"] == 1
+
+
+def test_refinement_selection_uses_validation_and_report_preserves_test_disclosure(collection, tmp_path):
+    from scripts.build_emeet_refinement_report import build, choose
+    from ml.balut_ml.scientific_metrics import classification_metrics
+
+    dataset, _ = collection
+    original, refinement, output = tmp_path / "original", tmp_path / "refinement", tmp_path / "report"
+    candidates = {"full": original, "egg-roi": refinement / "egg-roi", "egg-roi-gamma": refinement / "egg-roi-gamma"}
+    for name, run in candidates.items():
+        run.mkdir(parents=True)
+        matrix = [[4, 1, 0], [1, 4, 0], [0, 0, 5]] if name == "full" else [[5, 0, 0], [0, 5, 0], [0, 0, 5]]
+        metrics = classification_metrics(matrix, [row + [0] for row in matrix])
+        metrics["loss"] = .1 if name == "egg-roi" else .2
+        write(run / "metrics.json", {"validation": metrics, "epochs_completed": 12, "selected_epoch": 4, "stop_reason": "validation_patience"})
+        Image.new("RGB", (5, 5)).save(run / "epoch-curves.png")
+        (run / "history.jsonl").write_text('{}\n')
+        write(run / "training-lock.json", {"artifacts": {file: sha(run / file) for file in ("metrics.json", "epoch-curves.png", "history.jsonl")}})
+    write(dataset / "candidate-lock.json", {"schema_version": 1, "run": str(original),
+          "collection_plan_sha256": sha(dataset / "collection-plan.json"),
+          "artifacts": [{"path": str(original / "training-lock.json"), "sha256": sha(original / "training-lock.json")}]})
+    write(refinement / "protocol.json", {"candidates": ["egg-roi", "egg-roi-gamma"],
+          "selection": "Validation macro F1, then loss", "original_candidate_lock_sha256": sha(dataset / "candidate-lock.json")})
+    selection = build(dataset, original, refinement, output)
+    assert selection["selected"] == "egg-roi" and selection["fresh_independent_test"] is False
+    assert selection["test_used_for_candidate_selection"] is False
+    assert build(dataset, original, refinement, output) == selection
+    html = (output / "index.html").read_text(encoding="utf-8")
+    assert "Evaluation pending. No retest score is claimed." in html
+    assert "original test failures were already seen" in html and "FIELD ACCURACY NOT YET ESTABLISHED" in html
+    assert choose({"a": {"validation": {"macro_f1": .9, "loss": .2}, "test_accuracy": 0},
+                   "b": {"validation": {"macro_f1": .8, "loss": .1}, "test_accuracy": 1}}) == "a"
+    (refinement / "egg-roi/metrics.json").write_text('{}')
+    with pytest.raises(ValueError, match="changed training run"):
+        build(dataset, original, refinement, output)

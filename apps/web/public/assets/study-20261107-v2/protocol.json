@@ -1,0 +1,25 @@
+{
+  "scope": "Exploratory refinement after the first test was examined",
+  "candidates": [
+    "egg-roi",
+    "egg-roi-gamma"
+  ],
+  "selection": "Highest development validation macro F1; tie prefers lower validation loss; compare with original full-frame checkpoint",
+  "maximum_epochs_per_candidate": 30,
+  "patience": 8,
+  "seed": 42,
+  "fit_partitions": [
+    "train"
+  ],
+  "selection_partitions": [
+    "validation"
+  ],
+  "test_images_used_for_fitting_or_selection": 0,
+  "previous_test_has_been_examined": true,
+  "any_later_test_is_a_retest": true,
+  "original_candidate_lock_sha256": "b482ba1a1a64e496ee8117ff752c7a1ab5d94eaab06ddb5319a2ce57917a6068",
+  "original_report_preserved": true,
+  "new_original_images_created": 0,
+  "physical_reject_eggs": 0,
+  "field_accuracy_established": false
+}

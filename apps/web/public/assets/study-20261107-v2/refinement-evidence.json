@@ -1,0 +1,1037 @@
+{
+  "generated_at": "2026-11-07T01:19:55.320885+00:00",
+  "protocol": {
+    "scope": "Exploratory refinement after the first test was examined",
+    "candidates": [
+      "egg-roi",
+      "egg-roi-gamma"
+    ],
+    "selection": "Highest development validation macro F1; tie prefers lower validation loss; compare with original full-frame checkpoint",
+    "maximum_epochs_per_candidate": 30,
+    "patience": 8,
+    "seed": 42,
+    "fit_partitions": [
+      "train"
+    ],
+    "selection_partitions": [
+      "validation"
+    ],
+    "test_images_used_for_fitting_or_selection": 0,
+    "previous_test_has_been_examined": true,
+    "any_later_test_is_a_retest": true,
+    "original_candidate_lock_sha256": "b482ba1a1a64e496ee8117ff752c7a1ab5d94eaab06ddb5319a2ce57917a6068",
+    "original_report_preserved": true,
+    "new_original_images_created": 0,
+    "physical_reject_eggs": 0,
+    "field_accuracy_established": false
+  },
+  "selection": {
+    "selected": "full",
+    "criterion": "Highest development validation macro F1; tie prefers lower validation loss; compare with original full-frame checkpoint",
+    "training_lock_sha256": {
+      "full": "9d0cab06b27c6f7ba3877d2c7e480997ddda3868a1e0b19c55d1eb0d689e4178",
+      "egg-roi": "031824132ed3cfdcbc08c0fef26f26e5e518befbdabf9db3104aa13fe45599fd",
+      "egg-roi-gamma": "a0bbd96f2f549ed85e6b248ca941e13ddf6083e0dc12768969214539c26118ad"
+    },
+    "protocol_sha256": "6e84fb22989422e2c03ae831f177adad175be0becf038826f1ac3f9d14fbeb28",
+    "test_used_for_candidate_selection": false,
+    "prior_test_examined": true,
+    "fresh_independent_test": false
+  },
+  "candidates": {
+    "full": {
+      "architecture": "MobileNetV2",
+      "epochs_completed": 12,
+      "selected_epoch": 4,
+      "stop_reason": "validation_patience",
+      "training_images": 4833,
+      "validation_images": 1170,
+      "test_images_opened": 0,
+      "age_training_eggs": 18,
+      "age_validation_eggs": 6,
+      "train": {
+        "evaluated": 4833,
+        "raw_correct": 4774,
+        "raw_accuracy": 0.9877922615352783,
+        "balanced_accuracy": 0.9781481481481481,
+        "macro_precision": 0.9784718866543329,
+        "macro_recall": 0.9781481481481481,
+        "macro_f1": 0.9781424746361633,
+        "weighted_f1": 0.9877890919755101,
+        "per_class": [
+          {
+            "class_index": 0,
+            "support": 900,
+            "TP": 885,
+            "FP": 44,
+            "FN": 15,
+            "TN": 3889,
+            "precision": 0.9526372443487621,
+            "recall": 0.9833333333333333,
+            "f1": 0.967741935483871
+          },
+          {
+            "class_index": 1,
+            "support": 900,
+            "TP": 856,
+            "FP": 15,
+            "FN": 44,
+            "TN": 3918,
+            "precision": 0.9827784156142365,
+            "recall": 0.9511111111111111,
+            "f1": 0.9666854884246189
+          },
+          {
+            "class_index": 2,
+            "support": 3033,
+            "TP": 3033,
+            "FP": 0,
+            "FN": 0,
+            "TN": 1800,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        ],
+        "accepted": 4833,
+        "correct_accepted": 4774,
+        "wrong_accepted": 59,
+        "accepted_accuracy": 0.9877922615352783,
+        "coverage": 1.0,
+        "recaptures": 0,
+        "recapture_rate": 0.0,
+        "correct_over_all": 0.9877922615352783,
+        "raw_confusion_matrix": [
+          [
+            885,
+            15,
+            0
+          ],
+          [
+            44,
+            856,
+            0
+          ],
+          [
+            0,
+            0,
+            3033
+          ]
+        ],
+        "selective_confusion_matrix": [
+          [
+            885,
+            15,
+            0,
+            0
+          ],
+          [
+            44,
+            856,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3033,
+            0
+          ]
+        ],
+        "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+        "all_classes_represented": true,
+        "loss": 0.03499972075223923
+      },
+      "validation": {
+        "evaluated": 1170,
+        "raw_correct": 1144,
+        "raw_accuracy": 0.9777777777777777,
+        "balanced_accuracy": 0.971111111111111,
+        "macro_precision": 0.9712329376194923,
+        "macro_recall": 0.971111111111111,
+        "macro_f1": 0.9711082219333044,
+        "weighted_f1": 0.977775555333311,
+        "per_class": [
+          {
+            "class_index": 0,
+            "support": 300,
+            "TP": 284,
+            "FP": 10,
+            "FN": 16,
+            "TN": 860,
+            "precision": 0.9659863945578231,
+            "recall": 0.9466666666666667,
+            "f1": 0.9562289562289562
+          },
+          {
+            "class_index": 1,
+            "support": 300,
+            "TP": 290,
+            "FP": 16,
+            "FN": 10,
+            "TN": 854,
+            "precision": 0.9477124183006536,
+            "recall": 0.9666666666666667,
+            "f1": 0.9570957095709571
+          },
+          {
+            "class_index": 2,
+            "support": 570,
+            "TP": 570,
+            "FP": 0,
+            "FN": 0,
+            "TN": 600,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        ],
+        "accepted": 1170,
+        "correct_accepted": 1144,
+        "wrong_accepted": 26,
+        "accepted_accuracy": 0.9777777777777777,
+        "coverage": 1.0,
+        "recaptures": 0,
+        "recapture_rate": 0.0,
+        "correct_over_all": 0.9777777777777777,
+        "raw_confusion_matrix": [
+          [
+            284,
+            16,
+            0
+          ],
+          [
+            10,
+            290,
+            0
+          ],
+          [
+            0,
+            0,
+            570
+          ]
+        ],
+        "selective_confusion_matrix": [
+          [
+            284,
+            16,
+            0,
+            0
+          ],
+          [
+            10,
+            290,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            570,
+            0
+          ]
+        ],
+        "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+        "all_classes_represented": true,
+        "loss": 0.07300303876399994
+      },
+      "promoted": false,
+      "field_accuracy_established": false,
+      "elapsed_seconds": 245.36137380000218
+    },
+    "egg-roi": {
+      "architecture": "MobileNetV2",
+      "epochs_completed": 12,
+      "selected_epoch": 4,
+      "stop_reason": "validation_patience",
+      "training_images": 4833,
+      "validation_images": 1170,
+      "test_images_opened": 0,
+      "age_training_eggs": 18,
+      "age_validation_eggs": 6,
+      "train": {
+        "evaluated": 4833,
+        "raw_correct": 4731,
+        "raw_accuracy": 0.978895096213532,
+        "balanced_accuracy": 0.9622222222222222,
+        "macro_precision": 0.9644589733255713,
+        "macro_recall": 0.9622222222222222,
+        "macro_f1": 0.9621511504937049,
+        "weighted_f1": 0.9788553913372652,
+        "per_class": [
+          {
+            "class_index": 0,
+            "support": 900,
+            "TP": 888,
+            "FP": 90,
+            "FN": 12,
+            "TN": 3843,
+            "precision": 0.9079754601226994,
+            "recall": 0.9866666666666667,
+            "f1": 0.9456869009584664
+          },
+          {
+            "class_index": 1,
+            "support": 900,
+            "TP": 810,
+            "FP": 12,
+            "FN": 90,
+            "TN": 3921,
+            "precision": 0.9854014598540146,
+            "recall": 0.9,
+            "f1": 0.9407665505226481
+          },
+          {
+            "class_index": 2,
+            "support": 3033,
+            "TP": 3033,
+            "FP": 0,
+            "FN": 0,
+            "TN": 1800,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        ],
+        "accepted": 4833,
+        "correct_accepted": 4731,
+        "wrong_accepted": 102,
+        "accepted_accuracy": 0.978895096213532,
+        "coverage": 1.0,
+        "recaptures": 0,
+        "recapture_rate": 0.0,
+        "correct_over_all": 0.978895096213532,
+        "raw_confusion_matrix": [
+          [
+            888,
+            12,
+            0
+          ],
+          [
+            90,
+            810,
+            0
+          ],
+          [
+            0,
+            0,
+            3033
+          ]
+        ],
+        "selective_confusion_matrix": [
+          [
+            888,
+            12,
+            0,
+            0
+          ],
+          [
+            90,
+            810,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3033,
+            0
+          ]
+        ],
+        "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+        "all_classes_represented": true,
+        "loss": 0.057359516620635986
+      },
+      "validation": {
+        "evaluated": 1170,
+        "raw_correct": 1127,
+        "raw_accuracy": 0.9632478632478633,
+        "balanced_accuracy": 0.9522222222222222,
+        "macro_precision": 0.9523015652496064,
+        "macro_recall": 0.9522222222222222,
+        "macro_f1": 0.9522189040905619,
+        "weighted_f1": 0.9632453108388938,
+        "per_class": [
+          {
+            "class_index": 0,
+            "support": 300,
+            "TP": 276,
+            "FP": 19,
+            "FN": 24,
+            "TN": 851,
+            "precision": 0.9355932203389831,
+            "recall": 0.92,
+            "f1": 0.9277310924369748
+          },
+          {
+            "class_index": 1,
+            "support": 300,
+            "TP": 281,
+            "FP": 24,
+            "FN": 19,
+            "TN": 846,
+            "precision": 0.921311475409836,
+            "recall": 0.9366666666666666,
+            "f1": 0.9289256198347108
+          },
+          {
+            "class_index": 2,
+            "support": 570,
+            "TP": 570,
+            "FP": 0,
+            "FN": 0,
+            "TN": 600,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        ],
+        "accepted": 1170,
+        "correct_accepted": 1127,
+        "wrong_accepted": 43,
+        "accepted_accuracy": 0.9632478632478633,
+        "coverage": 1.0,
+        "recaptures": 0,
+        "recapture_rate": 0.0,
+        "correct_over_all": 0.9632478632478633,
+        "raw_confusion_matrix": [
+          [
+            276,
+            24,
+            0
+          ],
+          [
+            19,
+            281,
+            0
+          ],
+          [
+            0,
+            0,
+            570
+          ]
+        ],
+        "selective_confusion_matrix": [
+          [
+            276,
+            24,
+            0,
+            0
+          ],
+          [
+            19,
+            281,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            570,
+            0
+          ]
+        ],
+        "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+        "all_classes_represented": true,
+        "loss": 0.11594587564468384
+      },
+      "promoted": false,
+      "field_accuracy_established": false,
+      "elapsed_seconds": 308.5070022,
+      "input_representation": "egg-roi",
+      "prior_test_examined": true,
+      "fresh_independent_test": false
+    },
+    "egg-roi-gamma": {
+      "architecture": "MobileNetV2",
+      "epochs_completed": 11,
+      "selected_epoch": 2,
+      "stop_reason": "validation_patience",
+      "training_images": 4833,
+      "validation_images": 1170,
+      "test_images_opened": 0,
+      "age_training_eggs": 18,
+      "age_validation_eggs": 6,
+      "train": {
+        "evaluated": 4833,
+        "raw_correct": 4616,
+        "raw_accuracy": 0.9551003517483965,
+        "balanced_accuracy": 0.9196296296296297,
+        "macro_precision": 0.9221277870799925,
+        "macro_recall": 0.9196296296296297,
+        "macro_f1": 0.9194326623823242,
+        "weighted_f1": 0.9549903141800694,
+        "per_class": [
+          {
+            "class_index": 0,
+            "support": 900,
+            "TP": 836,
+            "FP": 153,
+            "FN": 64,
+            "TN": 3780,
+            "precision": 0.8452982810920121,
+            "recall": 0.9288888888888889,
+            "f1": 0.8851244044467973
+          },
+          {
+            "class_index": 1,
+            "support": 900,
+            "TP": 747,
+            "FP": 64,
+            "FN": 153,
+            "TN": 3869,
+            "precision": 0.9210850801479655,
+            "recall": 0.83,
+            "f1": 0.8731735827001753
+          },
+          {
+            "class_index": 2,
+            "support": 3033,
+            "TP": 3033,
+            "FP": 0,
+            "FN": 0,
+            "TN": 1800,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        ],
+        "accepted": 4833,
+        "correct_accepted": 4616,
+        "wrong_accepted": 217,
+        "accepted_accuracy": 0.9551003517483965,
+        "coverage": 1.0,
+        "recaptures": 0,
+        "recapture_rate": 0.0,
+        "correct_over_all": 0.9551003517483965,
+        "raw_confusion_matrix": [
+          [
+            836,
+            64,
+            0
+          ],
+          [
+            153,
+            747,
+            0
+          ],
+          [
+            0,
+            0,
+            3033
+          ]
+        ],
+        "selective_confusion_matrix": [
+          [
+            836,
+            64,
+            0,
+            0
+          ],
+          [
+            153,
+            747,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3033,
+            0
+          ]
+        ],
+        "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+        "all_classes_represented": true,
+        "loss": 0.18503189086914062
+      },
+      "validation": {
+        "evaluated": 1170,
+        "raw_correct": 1098,
+        "raw_accuracy": 0.9384615384615385,
+        "balanced_accuracy": 0.9199999999999999,
+        "macro_precision": 0.9199999999999999,
+        "macro_recall": 0.9199999999999999,
+        "macro_f1": 0.9199999999999999,
+        "weighted_f1": 0.9384615384615385,
+        "per_class": [
+          {
+            "class_index": 0,
+            "support": 300,
+            "TP": 264,
+            "FP": 36,
+            "FN": 36,
+            "TN": 834,
+            "precision": 0.88,
+            "recall": 0.88,
+            "f1": 0.88
+          },
+          {
+            "class_index": 1,
+            "support": 300,
+            "TP": 264,
+            "FP": 36,
+            "FN": 36,
+            "TN": 834,
+            "precision": 0.88,
+            "recall": 0.88,
+            "f1": 0.88
+          },
+          {
+            "class_index": 2,
+            "support": 570,
+            "TP": 570,
+            "FP": 0,
+            "FN": 0,
+            "TN": 600,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        ],
+        "accepted": 1170,
+        "correct_accepted": 1098,
+        "wrong_accepted": 72,
+        "accepted_accuracy": 0.9384615384615385,
+        "coverage": 1.0,
+        "recaptures": 0,
+        "recapture_rate": 0.0,
+        "correct_over_all": 0.9384615384615385,
+        "raw_confusion_matrix": [
+          [
+            264,
+            36,
+            0
+          ],
+          [
+            36,
+            264,
+            0
+          ],
+          [
+            0,
+            0,
+            570
+          ]
+        ],
+        "selective_confusion_matrix": [
+          [
+            264,
+            36,
+            0,
+            0
+          ],
+          [
+            36,
+            264,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            570,
+            0
+          ]
+        ],
+        "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+        "all_classes_represented": true,
+        "loss": 0.23346708714962006
+      },
+      "promoted": false,
+      "field_accuracy_established": false,
+      "elapsed_seconds": 273.5969447999996,
+      "input_representation": "egg-roi-gamma",
+      "prior_test_examined": true,
+      "fresh_independent_test": false
+    }
+  },
+  "selected_test": {
+    "class_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT"
+    ],
+    "overall": {
+      "evaluated": 811,
+      "raw_correct": 651,
+      "raw_accuracy": 0.8027127003699137,
+      "balanced_accuracy": 0.8222222222222223,
+      "macro_precision": 0.8687918687918689,
+      "macro_recall": 0.8222222222222223,
+      "macro_f1": 0.8113563478588945,
+      "weighted_f1": 0.7906543934315722,
+      "per_class": [
+        {
+          "class_index": 0,
+          "support": 300,
+          "TP": 292,
+          "FP": 152,
+          "FN": 8,
+          "TN": 359,
+          "precision": 0.6576576576576577,
+          "recall": 0.9733333333333334,
+          "f1": 0.7849462365591398
+        },
+        {
+          "class_index": 1,
+          "support": 300,
+          "TP": 148,
+          "FP": 8,
+          "FN": 152,
+          "TN": 503,
+          "precision": 0.9487179487179487,
+          "recall": 0.49333333333333335,
+          "f1": 0.6491228070175439
+        },
+        {
+          "class_index": 2,
+          "support": 211,
+          "TP": 211,
+          "FP": 0,
+          "FN": 0,
+          "TN": 600,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      ],
+      "accepted": 561,
+      "correct_accepted": 464,
+      "wrong_accepted": 97,
+      "accepted_accuracy": 0.8270944741532977,
+      "coverage": 0.6917385943279901,
+      "recaptures": 250,
+      "recapture_rate": 0.3082614056720099,
+      "correct_over_all": 0.5721331689272503,
+      "raw_confusion_matrix": [
+        [
+          292,
+          8,
+          0
+        ],
+        [
+          152,
+          148,
+          0
+        ],
+        [
+          0,
+          0,
+          211
+        ]
+      ],
+      "selective_confusion_matrix": [
+        [
+          285,
+          0,
+          0,
+          15
+        ],
+        [
+          97,
+          62,
+          0,
+          141
+        ],
+        [
+          0,
+          0,
+          117,
+          94
+        ]
+      ],
+      "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+      "all_classes_represented": true
+    },
+    "age_test_eggs": 6,
+    "age_test_frames": 600,
+    "historical_reject_test_frames": 211,
+    "controlled_age_pilot": {
+      "eggs": [
+        {
+          "egg_id": "D16-17",
+          "truth": "DAY_16",
+          "attempts": [
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            }
+          ],
+          "first_attempt_correct": true,
+          "bounded_retry_prediction": "DAY_16"
+        },
+        {
+          "egg_id": "D16-18",
+          "truth": "DAY_16",
+          "attempts": [
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            }
+          ],
+          "first_attempt_correct": true,
+          "bounded_retry_prediction": "DAY_16"
+        },
+        {
+          "egg_id": "D16-19",
+          "truth": "DAY_16",
+          "attempts": [
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            }
+          ],
+          "first_attempt_correct": true,
+          "bounded_retry_prediction": "DAY_16"
+        },
+        {
+          "egg_id": "D16-20",
+          "truth": "DAY_16",
+          "attempts": [
+            {
+              "sourcePrediction": null,
+              "reasons": [
+                "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+                "AMBIGUOUS_APPEARANCE"
+              ],
+              "accepted_views": 0,
+              "raw_prediction": "DAY_18"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 2,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": null,
+              "reasons": [
+                "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+                "AMBIGUOUS_APPEARANCE"
+              ],
+              "accepted_views": 0,
+              "raw_prediction": "DAY_18"
+            }
+          ],
+          "first_attempt_correct": false,
+          "bounded_retry_prediction": "DAY_16"
+        },
+        {
+          "egg_id": "D18-09",
+          "truth": "DAY_18",
+          "attempts": [
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            },
+            {
+              "sourcePrediction": "DAY_16",
+              "reasons": [],
+              "accepted_views": 3,
+              "raw_prediction": "DAY_16"
+            }
+          ],
+          "first_attempt_correct": false,
+          "bounded_retry_prediction": "DAY_16"
+        },
+        {
+          "egg_id": "D18-10",
+          "truth": "DAY_18",
+          "attempts": [
+            {
+              "sourcePrediction": null,
+              "reasons": [
+                "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+                "AMBIGUOUS_APPEARANCE"
+              ],
+              "accepted_views": 0,
+              "raw_prediction": "DAY_18"
+            },
+            {
+              "sourcePrediction": null,
+              "reasons": [
+                "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+                "AMBIGUOUS_APPEARANCE",
+                "UNFAMILIAR_APPEARANCE"
+              ],
+              "accepted_views": 1,
+              "raw_prediction": "DAY_18"
+            },
+            {
+              "sourcePrediction": null,
+              "reasons": [
+                "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+                "AMBIGUOUS_APPEARANCE"
+              ],
+              "accepted_views": 0,
+              "raw_prediction": "DAY_18"
+            }
+          ],
+          "first_attempt_correct": false,
+          "bounded_retry_prediction": null
+        }
+      ],
+      "first_attempt_correct": 3,
+      "total": 6,
+      "first_attempt_correct_over_all": 0.5,
+      "interval": {
+        "lower": 0.1876163064826506,
+        "upper": 0.8123836935173494,
+        "method": "95% Wilson interval over eggs; ignores unknown batch dependence"
+      },
+      "scope": "Reserved physical eggs, replayed three-frame groups from first video capture; not separate live scan repeats"
+    },
+    "image_metrics_uncertainty": {
+      "method": "Percentile bootstrap resampling complete known egg/source-family clusters",
+      "confidence": 0.95,
+      "resamples": 2000,
+      "seed": 42,
+      "clusters": 33,
+      "known_physical_eggs": 6,
+      "replicates_missing_a_class": 259,
+      "intervals": {
+        "raw_accuracy": {
+          "lower": 0.5374602529766382,
+          "upper": 1.0
+        },
+        "balanced_accuracy": {
+          "lower": 0.648888888888889,
+          "upper": 0.9755555555555556
+        },
+        "macro_f1": {
+          "lower": 0.5428126934732073,
+          "upper": 0.9793588482987938
+        },
+        "weighted_f1": {
+          "lower": 0.4700880076797917,
+          "upper": 1.0
+        },
+        "accepted_accuracy": {
+          "lower": 0.5382977608870333,
+          "upper": 1.0
+        },
+        "coverage": {
+          "lower": 0.5472336859645044,
+          "upper": 0.845243397263668
+        },
+        "recapture_rate": {
+          "lower": 0.1547566027363319,
+          "upper": 0.4527663140354956
+        },
+        "correct_over_all": {
+          "lower": 0.332605550583866,
+          "upper": 0.8378299689440992
+        }
+      },
+      "per_class_intervals": [
+        {
+          "class": "DAY_16",
+          "precision": {
+            "lower": 0.20380434782608695,
+            "upper": 1.0
+          },
+          "recall": {
+            "lower": 0.8933333333333333,
+            "upper": 1.0
+          },
+          "f1": {
+            "lower": 0.33860045146726864,
+            "upper": 1.0
+          }
+        },
+        {
+          "class": "DAY_18",
+          "precision": {
+            "lower": 0.0,
+            "upper": 1.0
+          },
+          "recall": {
+            "lower": 0.0,
+            "upper": 0.9266666666666666
+          },
+          "f1": {
+            "lower": 0.0,
+            "upper": 0.9619377162629758
+          }
+        },
+        {
+          "class": "REJECT",
+          "precision": {
+            "lower": 1.0,
+            "upper": 1.0
+          },
+          "recall": {
+            "lower": 1.0,
+            "upper": 1.0
+          },
+          "f1": {
+            "lower": 1.0,
+            "upper": 1.0
+          }
+        }
+      ],
+      "limitations": "Conditional on recorded groups and historical sampling. Unknown public egg/batch identities and prior test inspection are not repaired by this interval."
+    },
+    "field_accuracy_established": false,
+    "confirmed_physical_reject_test_eggs": 0,
+    "test_used_for_tuning": false,
+    "promoted": false
+  },
+  "new_images_captured": 0,
+  "unique_age_eggs": 30,
+  "physical_reject_eggs": 0,
+  "fresh_independent_test": false,
+  "field_accuracy_established": false,
+  "promoted": false
+}

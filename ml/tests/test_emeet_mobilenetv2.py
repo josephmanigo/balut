@@ -44,6 +44,23 @@ def test_mobilenet_is_trainable_and_returns_serving_contract():
     assert model.features[-1][0].weight.grad is not None
 
 
+def test_embedded_roi_removes_side_background_and_gamma_brightens_shadows():
+    torch.set_num_threads(2)
+    rgb = MobileNetEgg(representation="egg-roi").eval()
+    gamma = MobileNetEgg(representation="egg-roi-gamma").eval()
+    values = (torch.full((1, 3, 224, 224), .04) - rgb.input_mean) / rgb.input_std
+    changed = values.clone(); changed[:, :, :, :48] = 9.; changed[:, :, :, 176:] = -9.
+    torch.testing.assert_close(rgb.image_representation(values), rgb.image_representation(changed), rtol=0, atol=0)
+    plain = rgb.image_representation(values) * rgb.input_std + rgb.input_mean
+    bright = gamma.image_representation(values) * gamma.input_std + gamma.input_mean
+    assert float(plain[0, 0, 112, 112]) == pytest.approx(.04)
+    assert float(bright[0, 0, 112, 112]) == pytest.approx(.2)
+    assert float(bright[0, 0, 0, 0]) == pytest.approx(0)
+    logits, embedding = gamma(values)
+    assert logits.shape == (1, 3) and torch.isfinite(logits).all()
+    torch.testing.assert_close(embedding.norm(dim=1), torch.ones(1))
+
+
 def test_reject_retention_excludes_old_ages_and_preserves_source_labels(tmp_path):
     source, target = tmp_path / "source", tmp_path / "new-study"
     source.mkdir()

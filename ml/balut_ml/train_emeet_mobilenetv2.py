@@ -21,20 +21,39 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import models, transforms
 from balut_ml.emeet_development import development_rows, validate_rows
 from balut_ml.scientific_metrics import classification_metrics
-from scripts.capture_emeet_egg import sha, write
+from scripts.capture_emeet_egg import sha, verify_candidate, write
 
 CLASSES = ["DAY_16", "DAY_18", "REJECT"]
 MEAN, STD = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 
 
 class MobileNetEgg(nn.Module):
-    def __init__(self, pretrained=False):
+    def __init__(self, pretrained=False, representation="full"):
         super().__init__()
+        if representation not in {"full", "egg-roi", "egg-roi-gamma"}:
+            raise ValueError("Unknown image representation")
+        self.representation = representation
+        if representation != "full":
+            y, x = torch.meshgrid(torch.linspace(-1, 1, 224), torch.linspace(-1, 1, 224), indexing="ij")
+            self.register_buffer("roi_mask", ((x / .95) ** 2 + (y / .98) ** 2 <= 1).float()[None, None])
+            self.register_buffer("input_mean", torch.tensor(MEAN).view(1, 3, 1, 1))
+            self.register_buffer("input_std", torch.tensor(STD).view(1, 3, 1, 1))
         network = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V2 if pretrained else None)
         self.features = network.features
         self.classifier = nn.Sequential(nn.Dropout(.2), nn.Linear(1280, 3))
 
+    def image_representation(self, images):
+        if self.representation == "full":
+            return images
+        # Fixed geometry from development captures; no label or test-image-dependent crop.
+        values = F.interpolate(images[:, :, :, 48:176], (224, 224), mode="bilinear", align_corners=False)
+        values = (values * self.input_std + self.input_mean).clamp(0, 1)
+        if self.representation == "egg-roi-gamma":
+            values = values.sqrt()
+        return (values * self.roi_mask - self.input_mean) / self.input_std
+
     def forward(self, images):
+        images = self.image_representation(images)
         values = self.features(images).mean((2, 3))
         return self.classifier(values), F.normalize(values, p=2, dim=1)
 
@@ -133,15 +152,22 @@ def plot_history(output):
 
 def train(args):
     dataset, output = args.dataset.resolve(), args.output.resolve()
-    if output.exists() or (dataset / "candidate-lock.json").exists():
+    representation = getattr(args, "representation", "full")
+    refinement = representation != "full"
+    if output.exists() or ((dataset / "candidate-lock.json").exists() and not refinement):
         raise FileExistsError("Preserve previous runs and the locked test boundary")
+    if refinement:
+        verify_candidate(dataset)
     rows = load_development(dataset)
     if not torch.cuda.is_available():
         raise RuntimeError("This study's training recipe requires the available CUDA GPU")
     random.seed(42); np.random.seed(42); torch.manual_seed(42); torch.cuda.manual_seed_all(42)
     torch.set_num_threads(4); torch.use_deterministic_algorithms(True); torch.backends.cudnn.benchmark = False
+    if refinement:
+        torch.backends.cudnn.allow_tf32 = False
+        torch.backends.cuda.matmul.allow_tf32 = False
     output.mkdir(parents=True)
-    model = MobileNetEgg(pretrained=True).cuda()
+    model = MobileNetEgg(pretrained=True, representation=representation).cuda()
     write(output / "development-manifest.json", rows)
     recipe = {"architecture": "MobileNetV2", "pretrained_weights": "torchvision.IMAGENET1K_V2", "class_order": CLASSES,
               "maximum_epochs": args.epochs, "patience": args.patience, "minimum_f1_improvement": .001,
@@ -160,6 +186,12 @@ def train(args):
               "trainer_sha256": sha(Path(__file__)), "torch": str(torch.__version__), "device": torch.cuda.get_device_name(0),
               "pretrained_weights_sha256": sha(Path(torch.hub.get_dir()) / "checkpoints/mobilenet_v2-7ebf99e0.pth"),
               "model_parameters": sum(p.numel() for p in model.parameters())}
+    recipe.update(input_representation=representation, cudnn_tf32=torch.backends.cudnn.allow_tf32,
+                  scope="EXPLORATORY_REFINEMENT_AFTER_FIRST_TEST" if refinement else "INITIAL_LOCKED_STUDY",
+                  prior_test_examined=refinement, fresh_independent_test=not refinement,
+                  test_images_used_for_fitting=0,
+                  representation_note="Embedded in the ONNX graph; fixed central 48:176 crop and ellipse, gamma 0.5 only for egg-roi-gamma" if refinement else "Full frame",
+                  original_candidate_lock_sha256=sha(dataset / "candidate-lock.json") if refinement else None)
     write(output / "experiment-plan.json", recipe)
     images = []
     for row in rows:
@@ -232,6 +264,7 @@ def train(args):
                "age_validation_eggs": len({rows[i]["physical_egg_id"] for i in held if rows[i].get("physical_egg_id")}),
                "train": measured(scores[fit], truth[fit]), "validation": measured(scores[held], truth[held]),
                "promoted": False, "field_accuracy_established": False, "elapsed_seconds": time.perf_counter() - started}
+    summary.update(input_representation=representation, prior_test_examined=refinement, fresh_independent_test=not refinement)
     write(output / "metrics.json", summary)
     plot_history(output)
     model.cpu().eval()
@@ -249,6 +282,7 @@ if __name__ == "__main__":
     parser.add_argument("output", type=Path)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--patience", type=int, default=8)
+    parser.add_argument("--representation", choices=["full", "egg-roi", "egg-roi-gamma"], default="full")
     args = parser.parse_args()
     if args.epochs < 1 or args.patience < 1:
         parser.error("Epochs and patience must be positive")
