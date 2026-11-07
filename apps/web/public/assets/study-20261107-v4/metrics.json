@@ -1,0 +1,203 @@
+{
+  "architecture": "MobileNetV2",
+  "epochs_completed": 11,
+  "selected_epoch": 1,
+  "stop_reason": "validation_patience",
+  "training_images": 6633,
+  "validation_images": 1770,
+  "test_images_opened": 0,
+  "age_training_eggs": 12,
+  "age_validation_eggs": 4,
+  "train": {
+    "evaluated": 6633,
+    "raw_correct": 6358,
+    "raw_accuracy": 0.9585406301824212,
+    "balanced_accuracy": 0.9490740740740741,
+    "macro_precision": 0.9492206707657069,
+    "macro_recall": 0.9490740740740741,
+    "macro_f1": 0.9490674677788068,
+    "weighted_f1": 0.9585352519230448,
+    "per_class": [
+      {
+        "class_index": 0,
+        "support": 1800,
+        "TP": 1642,
+        "FP": 117,
+        "FN": 158,
+        "TN": 4716,
+        "precision": 0.9334849346219443,
+        "recall": 0.9122222222222223,
+        "f1": 0.9227311042427648
+      },
+      {
+        "class_index": 1,
+        "support": 1800,
+        "TP": 1683,
+        "FP": 158,
+        "FN": 117,
+        "TN": 4675,
+        "precision": 0.9141770776751765,
+        "recall": 0.935,
+        "f1": 0.9244712990936556
+      },
+      {
+        "class_index": 2,
+        "support": 3033,
+        "TP": 3033,
+        "FP": 0,
+        "FN": 0,
+        "TN": 3600,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "accepted": 6633,
+    "correct_accepted": 6358,
+    "wrong_accepted": 275,
+    "accepted_accuracy": 0.9585406301824212,
+    "coverage": 1.0,
+    "recaptures": 0,
+    "recapture_rate": 0.0,
+    "correct_over_all": 0.9585406301824212,
+    "raw_confusion_matrix": [
+      [
+        1642,
+        158,
+        0
+      ],
+      [
+        117,
+        1683,
+        0
+      ],
+      [
+        0,
+        0,
+        3033
+      ]
+    ],
+    "selective_confusion_matrix": [
+      [
+        1642,
+        158,
+        0,
+        0
+      ],
+      [
+        117,
+        1683,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        3033,
+        0
+      ]
+    ],
+    "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+    "all_classes_represented": true,
+    "loss": 0.22484272718429565
+  },
+  "validation": {
+    "evaluated": 1770,
+    "raw_correct": 1748,
+    "raw_accuracy": 0.9875706214689266,
+    "balanced_accuracy": 0.9877777777777778,
+    "macro_precision": 0.9881349647756767,
+    "macro_recall": 0.9877777777777778,
+    "macro_f1": 0.9877743817727147,
+    "weighted_f1": 0.9875671679044555,
+    "per_class": [
+      {
+        "class_index": 0,
+        "support": 600,
+        "TP": 599,
+        "FP": 21,
+        "FN": 1,
+        "TN": 1149,
+        "precision": 0.9661290322580646,
+        "recall": 0.9983333333333333,
+        "f1": 0.9819672131147541
+      },
+      {
+        "class_index": 1,
+        "support": 600,
+        "TP": 579,
+        "FP": 1,
+        "FN": 21,
+        "TN": 1169,
+        "precision": 0.9982758620689656,
+        "recall": 0.965,
+        "f1": 0.9813559322033898
+      },
+      {
+        "class_index": 2,
+        "support": 570,
+        "TP": 570,
+        "FP": 0,
+        "FN": 0,
+        "TN": 1200,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "accepted": 1770,
+    "correct_accepted": 1748,
+    "wrong_accepted": 22,
+    "accepted_accuracy": 0.9875706214689266,
+    "coverage": 1.0,
+    "recaptures": 0,
+    "recapture_rate": 0.0,
+    "correct_over_all": 0.9875706214689266,
+    "raw_confusion_matrix": [
+      [
+        599,
+        1,
+        0
+      ],
+      [
+        21,
+        579,
+        0
+      ],
+      [
+        0,
+        0,
+        570
+      ]
+    ],
+    "selective_confusion_matrix": [
+      [
+        599,
+        1,
+        0,
+        0
+      ],
+      [
+        21,
+        579,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        570,
+        0
+      ]
+    ],
+    "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+    "all_classes_represented": true,
+    "loss": 0.234408438205719
+  },
+  "promoted": false,
+  "field_accuracy_established": false,
+  "elapsed_seconds": 339.2416168999998,
+  "input_representation": "full",
+  "prior_test_examined": false,
+  "fresh_independent_test": false
+}

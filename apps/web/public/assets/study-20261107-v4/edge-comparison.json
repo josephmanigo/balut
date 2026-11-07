@@ -1,0 +1,1496 @@
+{
+  "registered_plan_sha256": "059cb7453d6d853d65f826e8f57e3b9c3a1ce3d27f15ada9484233c6c6664fad",
+  "selected_edge_floor": 15.0,
+  "changed": true,
+  "original_floor": 20.0,
+  "candidate_floor": 15.0,
+  "per_validation_age_egg_correct_gain": {
+    "D16-07": 170,
+    "D16-08": 48,
+    "D18-07": 121,
+    "D18-08": 173
+  },
+  "groups_with_increased_wrong_accepts": [],
+  "baseline": {
+    "metrics": {
+      "evaluated": 1770,
+      "raw_correct": 1748,
+      "raw_accuracy": 0.9875706214689266,
+      "balanced_accuracy": 0.9877777777777778,
+      "macro_precision": 0.9881349647756767,
+      "macro_recall": 0.9877777777777778,
+      "macro_f1": 0.9877743817727147,
+      "weighted_f1": 0.9875671679044555,
+      "per_class": [
+        {
+          "class_index": 0,
+          "support": 600,
+          "TP": 599,
+          "FP": 21,
+          "FN": 1,
+          "TN": 1149,
+          "precision": 0.9661290322580646,
+          "recall": 0.9983333333333333,
+          "f1": 0.9819672131147541
+        },
+        {
+          "class_index": 1,
+          "support": 600,
+          "TP": 579,
+          "FP": 1,
+          "FN": 21,
+          "TN": 1169,
+          "precision": 0.9982758620689656,
+          "recall": 0.965,
+          "f1": 0.9813559322033898
+        },
+        {
+          "class_index": 2,
+          "support": 570,
+          "TP": 570,
+          "FP": 0,
+          "FN": 0,
+          "TN": 1200,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      ],
+      "accepted": 826,
+      "correct_accepted": 826,
+      "wrong_accepted": 0,
+      "accepted_accuracy": 1.0,
+      "coverage": 0.4666666666666667,
+      "recaptures": 944,
+      "recapture_rate": 0.5333333333333333,
+      "correct_over_all": 0.4666666666666667,
+      "raw_confusion_matrix": [
+        [
+          599,
+          1,
+          0
+        ],
+        [
+          21,
+          579,
+          0
+        ],
+        [
+          0,
+          0,
+          570
+        ]
+      ],
+      "selective_confusion_matrix": [
+        [
+          316,
+          0,
+          0,
+          284
+        ],
+        [
+          0,
+          145,
+          0,
+          455
+        ],
+        [
+          0,
+          0,
+          365,
+          205
+        ]
+      ],
+      "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+      "all_classes_represented": true
+    },
+    "per_class": {
+      "DAY_16": {
+        "views": 600,
+        "raw": {
+          "class_index": 0,
+          "support": 600,
+          "TP": 599,
+          "FP": 21,
+          "FN": 1,
+          "TN": 1149,
+          "precision": 0.9661290322580646,
+          "recall": 0.9983333333333333,
+          "f1": 0.9819672131147541
+        },
+        "correct_accepted": 316,
+        "accepted": 316,
+        "wrong_accepted": 0,
+        "recaptures": 284,
+        "coverage": 0.5266666666666666,
+        "accuracy_among_accepted": 1.0,
+        "correct_over_all": 0.5266666666666666,
+        "gated_precision": 1.0,
+        "gated_recall": 0.5266666666666666,
+        "gated_f1": 0.6899563318777293,
+        "recapture_reasons": {
+          "AMBIGUOUS_APPEARANCE": 8,
+          "IMAGE_TOO_BLURRY": 270,
+          "UNFAMILIAR_APPEARANCE": 6
+        },
+        "reasons_on_raw_correct_views": {
+          "AMBIGUOUS_APPEARANCE": 7,
+          "IMAGE_TOO_BLURRY": 270,
+          "UNFAMILIAR_APPEARANCE": 6
+        }
+      },
+      "DAY_18": {
+        "views": 600,
+        "raw": {
+          "class_index": 1,
+          "support": 600,
+          "TP": 579,
+          "FP": 1,
+          "FN": 21,
+          "TN": 1169,
+          "precision": 0.9982758620689656,
+          "recall": 0.965,
+          "f1": 0.9813559322033898
+        },
+        "correct_accepted": 145,
+        "accepted": 145,
+        "wrong_accepted": 0,
+        "recaptures": 455,
+        "coverage": 0.24166666666666667,
+        "accuracy_among_accepted": 1.0,
+        "correct_over_all": 0.24166666666666667,
+        "gated_precision": 1.0,
+        "gated_recall": 0.24166666666666667,
+        "gated_f1": 0.38926174496644295,
+        "recapture_reasons": {
+          "IMAGE_TOO_BLURRY": 450,
+          "UNFAMILIAR_APPEARANCE": 5,
+          "AMBIGUOUS_APPEARANCE": 25
+        },
+        "reasons_on_raw_correct_views": {
+          "IMAGE_TOO_BLURRY": 429,
+          "UNFAMILIAR_APPEARANCE": 5,
+          "AMBIGUOUS_APPEARANCE": 4
+        }
+      },
+      "REJECT": {
+        "views": 570,
+        "raw": {
+          "class_index": 2,
+          "support": 570,
+          "TP": 570,
+          "FP": 0,
+          "FN": 0,
+          "TN": 1200,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "correct_accepted": 365,
+        "accepted": 365,
+        "wrong_accepted": 0,
+        "recaptures": 205,
+        "coverage": 0.6403508771929824,
+        "accuracy_among_accepted": 1.0,
+        "correct_over_all": 0.6403508771929824,
+        "gated_precision": 1.0,
+        "gated_recall": 0.6403508771929824,
+        "gated_f1": 0.7807486631016043,
+        "recapture_reasons": {
+          "IMAGE_TOO_SMALL": 25,
+          "IMAGE_TOO_BLURRY": 203,
+          "UNFAMILIAR_APPEARANCE": 6
+        },
+        "reasons_on_raw_correct_views": {
+          "IMAGE_TOO_SMALL": 25,
+          "IMAGE_TOO_BLURRY": 203,
+          "UNFAMILIAR_APPEARANCE": 6
+        }
+      }
+    },
+    "groups": {
+      "D16-07": {
+        "views": 300,
+        "raw_correct": 299,
+        "correct_accepted": 70,
+        "wrong_accepted": 0,
+        "recaptures": 230
+      },
+      "D16-08": {
+        "views": 300,
+        "raw_correct": 300,
+        "correct_accepted": 246,
+        "wrong_accepted": 0,
+        "recaptures": 54
+      },
+      "D18-07": {
+        "views": 300,
+        "raw_correct": 279,
+        "correct_accepted": 74,
+        "wrong_accepted": 0,
+        "recaptures": 226
+      },
+      "D18-08": {
+        "views": 300,
+        "raw_correct": 300,
+        "correct_accepted": 71,
+        "wrong_accepted": 0,
+        "recaptures": 229
+      },
+      "pat:image-group-000800": {
+        "views": 10,
+        "raw_correct": 10,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 10
+      },
+      "pat:image-group-000836": {
+        "views": 4,
+        "raw_correct": 4,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 3
+      },
+      "pat:image-group-003086": {
+        "views": 18,
+        "raw_correct": 18,
+        "correct_accepted": 11,
+        "wrong_accepted": 0,
+        "recaptures": 7
+      },
+      "pat:image-group-008132": {
+        "views": 36,
+        "raw_correct": 36,
+        "correct_accepted": 29,
+        "wrong_accepted": 0,
+        "recaptures": 7
+      },
+      "pat:image-group-008177": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 9
+      },
+      "pat:image-group-008447": {
+        "views": 56,
+        "raw_correct": 56,
+        "correct_accepted": 10,
+        "wrong_accepted": 0,
+        "recaptures": 46
+      },
+      "pat:image-group-008505": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008527": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 3
+      },
+      "pat:image-group-008568": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008582": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008577": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008611": {
+        "views": 5,
+        "raw_correct": 5,
+        "correct_accepted": 4,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-007839": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-007867": {
+        "views": 5,
+        "raw_correct": 5,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 5
+      },
+      "pat:image-group-007931": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008012": {
+        "views": 54,
+        "raw_correct": 54,
+        "correct_accepted": 45,
+        "wrong_accepted": 0,
+        "recaptures": 9
+      },
+      "pat:image-group-007954": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 6,
+        "wrong_accepted": 0,
+        "recaptures": 3
+      },
+      "pat:image-group-007975": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 7,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-007988": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-007996": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008004": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008027": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 8
+      },
+      "pat:image-group-008034": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 7,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-008125": {
+        "views": 27,
+        "raw_correct": 27,
+        "correct_accepted": 19,
+        "wrong_accepted": 0,
+        "recaptures": 8
+      },
+      "pat:image-group-008073": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008081": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 5,
+        "wrong_accepted": 0,
+        "recaptures": 4
+      },
+      "pat:image-group-008095": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008103": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008111": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008118": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008138": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 6,
+        "wrong_accepted": 0,
+        "recaptures": 3
+      },
+      "pat:image-group-008146": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008160": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008168": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008183": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 7
+      },
+      "pat:image-group-008208": {
+        "views": 18,
+        "raw_correct": 18,
+        "correct_accepted": 5,
+        "wrong_accepted": 0,
+        "recaptures": 13
+      },
+      "pat:image-group-008199": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 6,
+        "wrong_accepted": 0,
+        "recaptures": 3
+      },
+      "pat:image-group-008223": {
+        "views": 27,
+        "raw_correct": 27,
+        "correct_accepted": 12,
+        "wrong_accepted": 0,
+        "recaptures": 15
+      },
+      "pat:image-group-008232": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 9
+      },
+      "pat:image-group-008241": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 7
+      },
+      "pat:image-group-008451": {
+        "views": 4,
+        "raw_correct": 4,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 3
+      },
+      "pat:image-group-008507": {
+        "views": 1,
+        "raw_correct": 1,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008508": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008510": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008519": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008522": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008525": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008530": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008533": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008536": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008538": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008540": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008542": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008545": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008547": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008550": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008552": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008555": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008557": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008559": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008562": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008565": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008571": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008574": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008580": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008584": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008586": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008589": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008592": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008595": {
+        "views": 4,
+        "raw_correct": 4,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-008599": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-008605": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008608": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      }
+    },
+    "class_balanced_correct_over_all": 0.4695614035087719
+  },
+  "candidate": {
+    "metrics": {
+      "evaluated": 1770,
+      "raw_correct": 1748,
+      "raw_accuracy": 0.9875706214689266,
+      "balanced_accuracy": 0.9877777777777778,
+      "macro_precision": 0.9881349647756767,
+      "macro_recall": 0.9877777777777778,
+      "macro_f1": 0.9877743817727147,
+      "weighted_f1": 0.9875671679044555,
+      "per_class": [
+        {
+          "class_index": 0,
+          "support": 600,
+          "TP": 599,
+          "FP": 21,
+          "FN": 1,
+          "TN": 1149,
+          "precision": 0.9661290322580646,
+          "recall": 0.9983333333333333,
+          "f1": 0.9819672131147541
+        },
+        {
+          "class_index": 1,
+          "support": 600,
+          "TP": 579,
+          "FP": 1,
+          "FN": 21,
+          "TN": 1169,
+          "precision": 0.9982758620689656,
+          "recall": 0.965,
+          "f1": 0.9813559322033898
+        },
+        {
+          "class_index": 2,
+          "support": 570,
+          "TP": 570,
+          "FP": 0,
+          "FN": 0,
+          "TN": 1200,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      ],
+      "accepted": 1414,
+      "correct_accepted": 1414,
+      "wrong_accepted": 0,
+      "accepted_accuracy": 1.0,
+      "coverage": 0.7988700564971751,
+      "recaptures": 356,
+      "recapture_rate": 0.20112994350282487,
+      "correct_over_all": 0.7988700564971751,
+      "raw_confusion_matrix": [
+        [
+          599,
+          1,
+          0
+        ],
+        [
+          21,
+          579,
+          0
+        ],
+        [
+          0,
+          0,
+          570
+        ]
+      ],
+      "selective_confusion_matrix": [
+        [
+          534,
+          0,
+          0,
+          66
+        ],
+        [
+          0,
+          439,
+          0,
+          161
+        ],
+        [
+          0,
+          0,
+          441,
+          129
+        ]
+      ],
+      "zero_denominator_rule": "Per-class precision/recall/F1=0; accepted accuracy=null when no accepted predictions",
+      "all_classes_represented": true
+    },
+    "per_class": {
+      "DAY_16": {
+        "views": 600,
+        "raw": {
+          "class_index": 0,
+          "support": 600,
+          "TP": 599,
+          "FP": 21,
+          "FN": 1,
+          "TN": 1149,
+          "precision": 0.9661290322580646,
+          "recall": 0.9983333333333333,
+          "f1": 0.9819672131147541
+        },
+        "correct_accepted": 534,
+        "accepted": 534,
+        "wrong_accepted": 0,
+        "recaptures": 66,
+        "coverage": 0.89,
+        "accuracy_among_accepted": 1.0,
+        "correct_over_all": 0.89,
+        "gated_precision": 1.0,
+        "gated_recall": 0.89,
+        "gated_f1": 0.9417989417989417,
+        "recapture_reasons": {
+          "AMBIGUOUS_APPEARANCE": 8,
+          "IMAGE_TOO_BLURRY": 52,
+          "UNFAMILIAR_APPEARANCE": 6
+        },
+        "reasons_on_raw_correct_views": {
+          "AMBIGUOUS_APPEARANCE": 7,
+          "IMAGE_TOO_BLURRY": 52,
+          "UNFAMILIAR_APPEARANCE": 6
+        }
+      },
+      "DAY_18": {
+        "views": 600,
+        "raw": {
+          "class_index": 1,
+          "support": 600,
+          "TP": 579,
+          "FP": 1,
+          "FN": 21,
+          "TN": 1169,
+          "precision": 0.9982758620689656,
+          "recall": 0.965,
+          "f1": 0.9813559322033898
+        },
+        "correct_accepted": 439,
+        "accepted": 439,
+        "wrong_accepted": 0,
+        "recaptures": 161,
+        "coverage": 0.7316666666666667,
+        "accuracy_among_accepted": 1.0,
+        "correct_over_all": 0.7316666666666667,
+        "gated_precision": 1.0,
+        "gated_recall": 0.7316666666666667,
+        "gated_f1": 0.8450433108758422,
+        "recapture_reasons": {
+          "IMAGE_TOO_BLURRY": 154,
+          "UNFAMILIAR_APPEARANCE": 5,
+          "AMBIGUOUS_APPEARANCE": 25
+        },
+        "reasons_on_raw_correct_views": {
+          "IMAGE_TOO_BLURRY": 134,
+          "UNFAMILIAR_APPEARANCE": 5,
+          "AMBIGUOUS_APPEARANCE": 4
+        }
+      },
+      "REJECT": {
+        "views": 570,
+        "raw": {
+          "class_index": 2,
+          "support": 570,
+          "TP": 570,
+          "FP": 0,
+          "FN": 0,
+          "TN": 1200,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "correct_accepted": 441,
+        "accepted": 441,
+        "wrong_accepted": 0,
+        "recaptures": 129,
+        "coverage": 0.7736842105263158,
+        "accuracy_among_accepted": 1.0,
+        "correct_over_all": 0.7736842105263158,
+        "gated_precision": 1.0,
+        "gated_recall": 0.7736842105263158,
+        "gated_f1": 0.8724035608308606,
+        "recapture_reasons": {
+          "IMAGE_TOO_SMALL": 25,
+          "IMAGE_TOO_BLURRY": 125,
+          "UNFAMILIAR_APPEARANCE": 6
+        },
+        "reasons_on_raw_correct_views": {
+          "IMAGE_TOO_SMALL": 25,
+          "IMAGE_TOO_BLURRY": 125,
+          "UNFAMILIAR_APPEARANCE": 6
+        }
+      }
+    },
+    "groups": {
+      "D16-07": {
+        "views": 300,
+        "raw_correct": 299,
+        "correct_accepted": 240,
+        "wrong_accepted": 0,
+        "recaptures": 60
+      },
+      "D16-08": {
+        "views": 300,
+        "raw_correct": 300,
+        "correct_accepted": 294,
+        "wrong_accepted": 0,
+        "recaptures": 6
+      },
+      "D18-07": {
+        "views": 300,
+        "raw_correct": 279,
+        "correct_accepted": 195,
+        "wrong_accepted": 0,
+        "recaptures": 105
+      },
+      "D18-08": {
+        "views": 300,
+        "raw_correct": 300,
+        "correct_accepted": 244,
+        "wrong_accepted": 0,
+        "recaptures": 56
+      },
+      "pat:image-group-000800": {
+        "views": 10,
+        "raw_correct": 10,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 10
+      },
+      "pat:image-group-000836": {
+        "views": 4,
+        "raw_correct": 4,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-003086": {
+        "views": 18,
+        "raw_correct": 18,
+        "correct_accepted": 18,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008132": {
+        "views": 36,
+        "raw_correct": 36,
+        "correct_accepted": 36,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008177": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 9
+      },
+      "pat:image-group-008447": {
+        "views": 56,
+        "raw_correct": 56,
+        "correct_accepted": 12,
+        "wrong_accepted": 0,
+        "recaptures": 44
+      },
+      "pat:image-group-008505": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008527": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-008568": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008582": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008577": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008611": {
+        "views": 5,
+        "raw_correct": 5,
+        "correct_accepted": 5,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-007839": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-007867": {
+        "views": 5,
+        "raw_correct": 5,
+        "correct_accepted": 0,
+        "wrong_accepted": 0,
+        "recaptures": 5
+      },
+      "pat:image-group-007931": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008012": {
+        "views": 54,
+        "raw_correct": 54,
+        "correct_accepted": 54,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-007954": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 7,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-007975": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-007988": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-007996": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008004": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008027": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 4,
+        "wrong_accepted": 0,
+        "recaptures": 5
+      },
+      "pat:image-group-008034": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008125": {
+        "views": 27,
+        "raw_correct": 27,
+        "correct_accepted": 25,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-008073": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008081": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 7,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-008095": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008103": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008111": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008118": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008138": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008146": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008160": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008168": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 9,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008183": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 7
+      },
+      "pat:image-group-008208": {
+        "views": 18,
+        "raw_correct": 18,
+        "correct_accepted": 11,
+        "wrong_accepted": 0,
+        "recaptures": 7
+      },
+      "pat:image-group-008199": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 8,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008223": {
+        "views": 27,
+        "raw_correct": 27,
+        "correct_accepted": 21,
+        "wrong_accepted": 0,
+        "recaptures": 6
+      },
+      "pat:image-group-008232": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 7
+      },
+      "pat:image-group-008241": {
+        "views": 9,
+        "raw_correct": 9,
+        "correct_accepted": 5,
+        "wrong_accepted": 0,
+        "recaptures": 4
+      },
+      "pat:image-group-008451": {
+        "views": 4,
+        "raw_correct": 4,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 3
+      },
+      "pat:image-group-008507": {
+        "views": 1,
+        "raw_correct": 1,
+        "correct_accepted": 1,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008508": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008510": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008519": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008522": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008525": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008530": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008533": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008536": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008538": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008540": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008542": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008545": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008547": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008550": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008552": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008555": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008557": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008559": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008562": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008565": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008571": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008574": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008580": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008584": {
+        "views": 2,
+        "raw_correct": 2,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008586": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008589": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008592": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008595": {
+        "views": 4,
+        "raw_correct": 4,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 2
+      },
+      "pat:image-group-008599": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 2,
+        "wrong_accepted": 0,
+        "recaptures": 1
+      },
+      "pat:image-group-008605": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      },
+      "pat:image-group-008608": {
+        "views": 3,
+        "raw_correct": 3,
+        "correct_accepted": 3,
+        "wrong_accepted": 0,
+        "recaptures": 0
+      }
+    },
+    "class_balanced_correct_over_all": 0.7984502923976607
+  },
+  "test_images_opened": 0,
+  "scope": "View-level development calibration. The same four age validation eggs selected the checkpoint and gate. Correlated views do not estimate field accuracy."
+}

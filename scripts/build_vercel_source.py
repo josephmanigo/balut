@@ -15,7 +15,8 @@ def main():
     release = active_registry(ROOT).parent.relative_to(ROOT).as_posix()
     # Immutable evidence snapshot; publish later results under a new study version.
     for directory in ("apps/edge_api/balut_api", "apps/web/src", "apps/web/public/assets/study-20261107-v1",
-                      "apps/web/public/assets/study-20261107-v2", "apps/web/public/assets/study-20261107-v3", "deployment/model-parts",
+                      "apps/web/public/assets/study-20261107-v2", "apps/web/public/assets/study-20261107-v3",
+                      "apps/web/public/assets/study-20261107-v4", "deployment/model-parts",
                       release):
         tree(files, directory, directory)
     files.pop(release + "/egg-grade/best.onnx")

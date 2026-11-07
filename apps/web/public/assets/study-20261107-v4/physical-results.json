@@ -1,0 +1,624 @@
+{
+  "protocol_sha256": "7f783b5cea6453e383d4dc21d1df4ffedb6b150e44c2c2661f01b3a2783c3ad1",
+  "candidate_lock_sha256": "3f9b1ee9a6223328055b38167fc2077fba227034762931975d3e96f3db08c35d",
+  "record_sha256": {
+    "D16-09": "0d781472e8c284a9f44950a7f5ae2162efbaae9eccd6b65d455f824207ec3ea0",
+    "D16-10": "6954d3f0b854130beaf5af6eebea7f2466f9aeee548ee7f4cd1832bb18de9957",
+    "D18-09": "902c44dbb42adb690233b11ff02ab28b4aee21b69cbe908661d017b0aaa1fa09",
+    "D18-10": "19e972a3cedeae8dad65ede9da428833fc355a508502c68a5e075c8d0a858c56"
+  },
+  "scope": "Fresh EMEET scans of the four reserved physical eggs in this cohort; no saved images scored as tests.",
+  "planned_eggs": 4,
+  "eggs_tested": 4,
+  "planned_attempts": 40,
+  "completed_eggs": 4,
+  "primary_first_attempt_per_egg": {
+    "attempts": 4,
+    "correct": 3,
+    "wrong_classified": 0,
+    "unclassified": 1,
+    "acquisition_failures": 0,
+    "accuracy": 0.75,
+    "classified": 3,
+    "coverage": 0.75,
+    "accuracy_among_classified": 1.0,
+    "class_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT"
+    ],
+    "outcome_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT",
+      "UNCLASSIFIED",
+      "ACQUISITION_FAILURE"
+    ],
+    "confusion_matrix": [
+      [
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "per_class": [
+      {
+        "class": "DAY_16",
+        "support": 2,
+        "TP": 2,
+        "FP": 0,
+        "FN": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      {
+        "class": "DAY_18",
+        "support": 2,
+        "TP": 1,
+        "FP": 0,
+        "FN": 1,
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6666666666666666
+      },
+      {
+        "class": "REJECT",
+        "support": 0,
+        "TP": 0,
+        "FP": 0,
+        "FN": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    ],
+    "macro_f1_represented_classes": 0.8333333333333333,
+    "unrepresented_classes": [
+      "REJECT"
+    ],
+    "counting": "Unclassified and acquisition failures count as incorrect and as FN for the known class; unsupported classes are not scored"
+  },
+  "repeated_attempts": {
+    "attempts": 40,
+    "correct": 28,
+    "wrong_classified": 3,
+    "unclassified": 9,
+    "acquisition_failures": 0,
+    "accuracy": 0.7,
+    "classified": 31,
+    "coverage": 0.775,
+    "accuracy_among_classified": 0.9032258064516129,
+    "class_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT"
+    ],
+    "outcome_order": [
+      "DAY_16",
+      "DAY_18",
+      "REJECT",
+      "UNCLASSIFIED",
+      "ACQUISITION_FAILURE"
+    ],
+    "confusion_matrix": [
+      [
+        15,
+        1,
+        0,
+        4,
+        0
+      ],
+      [
+        2,
+        13,
+        0,
+        5,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "per_class": [
+      {
+        "class": "DAY_16",
+        "support": 20,
+        "TP": 15,
+        "FP": 2,
+        "FN": 5,
+        "precision": 0.8823529411764706,
+        "recall": 0.75,
+        "f1": 0.8108108108108109
+      },
+      {
+        "class": "DAY_18",
+        "support": 20,
+        "TP": 13,
+        "FP": 1,
+        "FN": 7,
+        "precision": 0.9285714285714286,
+        "recall": 0.65,
+        "f1": 0.7647058823529411
+      },
+      {
+        "class": "REJECT",
+        "support": 0,
+        "TP": 0,
+        "FP": 0,
+        "FN": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    ],
+    "macro_f1_represented_classes": 0.787758346581876,
+    "unrepresented_classes": [
+      "REJECT"
+    ],
+    "counting": "Unclassified and acquisition failures count as incorrect and as FN for the known class; unsupported classes are not scored"
+  },
+  "unique_scored_camera_views": 120,
+  "scan_log": [
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 1,
+      "outcome": "DAY_16",
+      "seconds": 6.196866300000693,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 2,
+      "outcome": "DAY_16",
+      "seconds": 6.119421800000055,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 3,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.133463099999972,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "IMAGE_TOO_BLURRY"
+      ]
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 4,
+      "outcome": "DAY_16",
+      "seconds": 6.12708240000029,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 5,
+      "outcome": "DAY_16",
+      "seconds": 6.054441599999336,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 6,
+      "outcome": "DAY_16",
+      "seconds": 6.098393999999644,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 7,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.015821099999812,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "IMAGE_TOO_BLURRY"
+      ]
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 8,
+      "outcome": "DAY_16",
+      "seconds": 6.099928399999953,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 9,
+      "outcome": "DAY_16",
+      "seconds": 6.045190599999842,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "attempt": 10,
+      "outcome": "DAY_16",
+      "seconds": 6.053587100000186,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 1,
+      "outcome": "DAY_16",
+      "seconds": 6.068068399999902,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 2,
+      "outcome": "DAY_16",
+      "seconds": 6.090636800000539,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 3,
+      "outcome": "DAY_16",
+      "seconds": 6.046366999999918,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 4,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.047781500000383,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "AMBIGUOUS_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 5,
+      "outcome": "DAY_16",
+      "seconds": 6.040053400000033,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 6,
+      "outcome": "DAY_16",
+      "seconds": 6.073105499999656,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 7,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.085271700000703,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "IMAGE_TOO_BLURRY"
+      ]
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 8,
+      "outcome": "DAY_18",
+      "seconds": 6.069204000000354,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 9,
+      "outcome": "DAY_16",
+      "seconds": 6.0535648000004585,
+      "reasons": []
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "attempt": 10,
+      "outcome": "DAY_16",
+      "seconds": 6.035917700000027,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 1,
+      "outcome": "DAY_18",
+      "seconds": 6.064507400000366,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 2,
+      "outcome": "DAY_18",
+      "seconds": 6.027051799999754,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 3,
+      "outcome": "DAY_18",
+      "seconds": 6.030692700000145,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 4,
+      "outcome": "DAY_18",
+      "seconds": 6.034939799999847,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 5,
+      "outcome": "DAY_18",
+      "seconds": 6.015734599999632,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 6,
+      "outcome": "DAY_18",
+      "seconds": 6.02213060000031,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 7,
+      "outcome": "DAY_18",
+      "seconds": 6.038510500000484,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 8,
+      "outcome": "DAY_18",
+      "seconds": 6.026848399999835,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 9,
+      "outcome": "DAY_18",
+      "seconds": 6.01559559999987,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "attempt": 10,
+      "outcome": "DAY_18",
+      "seconds": 6.025257199999942,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 1,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.094380800000181,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "IMAGE_TOO_BLURRY"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 2,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.087535799999387,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "AMBIGUOUS_APPEARANCE",
+        "IMAGE_TOO_BLURRY"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 3,
+      "outcome": "DAY_18",
+      "seconds": 6.052161499999784,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 4,
+      "outcome": "DAY_16",
+      "seconds": 6.054478499999277,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 5,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.061278700000003,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "IMAGE_TOO_BLURRY"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 6,
+      "outcome": "DAY_18",
+      "seconds": 6.085952800000086,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 7,
+      "outcome": "DAY_18",
+      "seconds": 6.0544864000003145,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 8,
+      "outcome": "DAY_16",
+      "seconds": 6.024897999999666,
+      "reasons": []
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 9,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.043079899999611,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "IMAGE_TOO_BLURRY",
+        "UNFAMILIAR_APPEARANCE"
+      ]
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "attempt": 10,
+      "outcome": "UNCLASSIFIED",
+      "seconds": 6.039552599999297,
+      "reasons": [
+        "MULTIVIEW_INSUFFICIENT_ACCEPTED_VIEWS",
+        "AMBIGUOUS_APPEARANCE"
+      ]
+    }
+  ],
+  "per_egg": [
+    {
+      "egg_id": "D16-09",
+      "truth": "DAY_16",
+      "imported_original_session": false,
+      "first_outcome": "DAY_16",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 0.8,
+      "decision_agreement": 0.8,
+      "maximum_score_difference": 0.993344783782959,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 8,
+      "correct_over_attempts": 0.8,
+      "class_counts": {
+        "DAY_16": 8,
+        "UNCLASSIFIED": 2
+      },
+      "median_attempt_seconds": 6.0991611999997986,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D16-10",
+      "truth": "DAY_16",
+      "imported_original_session": false,
+      "first_outcome": "DAY_16",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 0.7,
+      "decision_agreement": 0.8,
+      "maximum_score_difference": 0.8868912607431412,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 7,
+      "correct_over_attempts": 0.7,
+      "class_counts": {
+        "DAY_16": 7,
+        "UNCLASSIFIED": 2,
+        "DAY_18": 1
+      },
+      "median_attempt_seconds": 6.06081660000018,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D18-09",
+      "truth": "DAY_18",
+      "imported_original_session": false,
+      "first_outcome": "DAY_18",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 1.0,
+      "decision_agreement": 1.0,
+      "maximum_score_difference": 0.5929229855537415,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 10,
+      "correct_over_attempts": 1.0,
+      "class_counts": {
+        "DAY_18": 10
+      },
+      "median_attempt_seconds": 6.0269500999997945,
+      "expected_repeats": 10
+    },
+    {
+      "egg_id": "D18-10",
+      "truth": "DAY_18",
+      "imported_original_session": false,
+      "first_outcome": "UNCLASSIFIED",
+      "attempts": 10,
+      "valid": 10,
+      "failures": 0,
+      "class_agreement": 0.5,
+      "decision_agreement": 0.5,
+      "maximum_score_difference": 1.0674060583114624,
+      "strict_zero_gap_passed": false,
+      "correct_attempts": 3,
+      "correct_over_attempts": 0.3,
+      "class_counts": {
+        "UNCLASSIFIED": 5,
+        "DAY_18": 3,
+        "DAY_16": 2
+      },
+      "median_attempt_seconds": 6.054482449999796,
+      "expected_repeats": 10
+    }
+  ],
+  "physical_reject_eggs": 0,
+  "new_independent_eggs": 0,
+  "field_accuracy_established": false,
+  "measurement_scope": "Physical EMEET camera + local locked MobileNetV2 + production decision rules; no saved-dataset replay, deployed-browser, verified repositioning, or production-field test"
+}

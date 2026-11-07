@@ -1,0 +1,53 @@
+{
+  "architecture": "MobileNetV2",
+  "pretrained_weights": "torchvision.IMAGENET1K_V2",
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "REJECT"
+  ],
+  "maximum_epochs": 50,
+  "patience": 8,
+  "minimum_f1_improvement": 0.001,
+  "warmup_epochs": 3,
+  "batch_size": 32,
+  "seed": 42,
+  "optimizer": "AdamW",
+  "head_lr": 0.0003,
+  "encoder_lr": 1e-05,
+  "weight_decay": 0.0001,
+  "input_size": 224,
+  "normalization_mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "normalization_std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "trainable_encoder": "features[14:] after three head-only warmup epochs; batch-normalization statistics frozen",
+  "selection": "Validation macro F1 improvement greater than .001; lower loss breaks equal-F1 checkpoint ties without resetting patience",
+  "early_stop": "Eight stale epochs after warmup, or maximum epoch cap; restore best validation checkpoint",
+  "training_weights": "Equal weight per egg/source family within each class; equal total weight per class",
+  "augmentation": "Training only: affine +/-7deg, translation +/-2%, scale97-103%, brightness/contrast +/-15%; never counted as new photos",
+  "metrics": "Clean train and validation inference after each epoch; full confusion counts, per-class precision/recall/F1, macro and weighted averages",
+  "test_images_opened": 0,
+  "field_accuracy_established": false,
+  "collection_plan_sha256": "6f98a271386658a5368ced7b0ac0d7d264f5b4f42603ca4ccf6971ba4d40de2e",
+  "development_manifest_sha256": "6134206e5ee2ab651a39716ad12fa81b0961904cb0aac1a0f793c03aa2cbe56c",
+  "trainer_sha256": "ea49696d012d7cbac2b26aa9cae5a0113202769b1901ecfa00c0b8565e07b3e4",
+  "torch": "2.11.0+cu128",
+  "device": "NVIDIA GeForce RTX 3080",
+  "pretrained_weights_sha256": "7ebf99e03e254b273379b23edca7ec0da9f48273b23a332b93c1c99d49e86e8f",
+  "model_parameters": 2227715,
+  "input_representation": "full",
+  "cudnn_tf32": true,
+  "scope": "INITIAL_LOCKED_STUDY",
+  "prior_test_examined": false,
+  "fresh_independent_test": false,
+  "test_images_used_for_fitting": 0,
+  "representation_note": "Full frame",
+  "original_candidate_lock_sha256": null
+}
