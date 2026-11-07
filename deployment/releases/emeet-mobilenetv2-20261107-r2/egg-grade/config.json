@@ -1,0 +1,28 @@
+{
+  "status": "EXPLORATORY_EPOCH_FINETUNED_CLASSIFIER",
+  "task": "THREE_CLASS_EGG_APPEARANCE",
+  "architecture": "MobileNetV2",
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "REJECT"
+  ],
+  "selective_inference": true,
+  "operational_use_authorized": false,
+  "experimental": true,
+  "display_name": "EMEET MobileNetV2 \u00b7 research classifier",
+  "input_size": 224,
+  "normalization_mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "normalization_std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "gate_policy_sha256": "d2d11c4ffbf8fad116863e6b8c2cb13d292881c8f6f2ff6a4187d8e5194f8227",
+  "references_sha256": "600a43b241d5b202b2806b4ad40850a15c37d34c875074d854dc7bff133c88ad",
+  "parent_candidate_lock_sha256": "3f9b1ee9a6223328055b38167fc2077fba227034762931975d3e96f3db08c35d"
+}

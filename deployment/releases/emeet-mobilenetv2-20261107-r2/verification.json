@@ -1,0 +1,24 @@
+{
+  "release": "emeet-mobilenetv2-20261107-r2",
+  "parent_release": "emeet-mobilenetv2-20261107",
+  "registry_sha256": "c7bcc4fbe2778c830e85813aeb42afac93f6b51197dee5829543697c48b4bcbd",
+  "model_sha256": "9c338ae8745057c8ef8625beb28e9f5d24c1cfe689672ab0e640c643854e15a7",
+  "parent_gate_sha256": "31db1ba5365449983fcd755071ddfffafc61a536748567f97cb5bad7f428b272",
+  "gate_sha256": "d2d11c4ffbf8fad116863e6b8c2cb13d292881c8f6f2ff6a4187d8e5194f8227",
+  "previous_day16_margin": 0.33528841829299927,
+  "day16_margin": 0.33,
+  "selection": "Training-only 0.01 grid, maximize additional correct views with zero additional wrong views; stricter margin breaks ties.",
+  "additional_correct_train_views": 3,
+  "additional_wrong_train_views": 0,
+  "train_views": 6633,
+  "validation_views": 1770,
+  "changed_validation_views": 0,
+  "three_view_software_checks": {
+    "DAY_16": 3,
+    "DAY_18": 3,
+    "REJECT": 3
+  },
+  "dark_input_requests_recapture": true,
+  "field_accuracy_established": false,
+  "operational_use_authorized": false
+}
