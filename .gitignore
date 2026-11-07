@@ -30,6 +30,7 @@ deployment/runtime/
 deployment/wheelhouse/
 data/public/
 data/local/
+data/archive/
 ml/runs/
 artifacts/*.zip
 .env

@@ -1,0 +1,45 @@
+{
+  "architecture": "MobileNetV2",
+  "pretrained_weights": "torchvision.IMAGENET1K_V2",
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "REJECT"
+  ],
+  "maximum_epochs": 50,
+  "patience": 8,
+  "minimum_f1_improvement": 0.001,
+  "warmup_epochs": 3,
+  "batch_size": 32,
+  "seed": 42,
+  "optimizer": "AdamW",
+  "head_lr": 0.0003,
+  "encoder_lr": 1e-05,
+  "weight_decay": 0.0001,
+  "input_size": 224,
+  "normalization_mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "normalization_std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "trainable_encoder": "features[14:] after three head-only warmup epochs; batch-normalization statistics frozen",
+  "selection": "Validation macro F1 improvement greater than .001; lower loss breaks equal-F1 checkpoint ties without resetting patience",
+  "early_stop": "Eight stale epochs after warmup, or maximum epoch cap; restore best validation checkpoint",
+  "training_weights": "Equal weight per egg/source family within each class; equal total weight per class",
+  "augmentation": "Training only: affine +/-7deg, translation +/-2%, scale97-103%, brightness/contrast +/-15%; never counted as new photos",
+  "metrics": "Clean train and validation inference after each epoch; full confusion counts, per-class precision/recall/F1, macro and weighted averages",
+  "test_images_opened": 0,
+  "field_accuracy_established": false,
+  "collection_plan_sha256": "51d2e019133eede7caddbbc05469e73ed0f0cc2b94364e856c50e138764cbf1c",
+  "development_manifest_sha256": "8a5b1146553bb770589111ea4dbdad58ac73edd542f0cd37a8422f123aa94726",
+  "trainer_sha256": "6df4d4840d69b9baee38b7b14312917008fcd922de53ba24784695df59d2c1f0",
+  "torch": "2.11.0+cu128",
+  "device": "NVIDIA GeForce RTX 3080",
+  "pretrained_weights_sha256": "7ebf99e03e254b273379b23edca7ec0da9f48273b23a332b93c1c99d49e86e8f",
+  "model_parameters": 2227715
+}
