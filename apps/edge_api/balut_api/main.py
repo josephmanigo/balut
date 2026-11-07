@@ -210,7 +210,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ready = storage_ready and model_ready
         except (sqlite3.Error, OSError, CloudStorageError):
             ready = False
+        default_model = models.models.get(models.analysis_model_id)
         return JSONResponse({"serviceReady": ready, "automaticGradingReady": False,
+                             "modelReleaseId": models.release_id, "modelRegistrySha256": models.registry_sha256,
+                             "modelSha256": default_model["entry"]["model"]["sha256"] if default_model else None,
                              "mode": "SOURCE_LABEL_SHADOW_ONLY", "loadedModels": len(models.models)}, status_code=200 if ready else 503)
 
     @application.get("/api/v1/models")

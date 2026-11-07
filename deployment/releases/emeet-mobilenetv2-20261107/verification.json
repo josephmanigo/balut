@@ -1,0 +1,18 @@
+{
+  "release": "emeet-mobilenetv2-20261107",
+  "registry_sha256": "f5a91be0b26e3cb16fec3d383339001ed44e6039097e014ab95771368eedf912",
+  "candidate_lock_sha256": "3f9b1ee9a6223328055b38167fc2077fba227034762931975d3e96f3db08c35d",
+  "model_sha256": "9c338ae8745057c8ef8625beb28e9f5d24c1cfe689672ab0e640c643854e15a7",
+  "three_view_software_checks": {
+    "DAY_16": 3,
+    "DAY_18": 3,
+    "REJECT": 3
+  },
+  "dark_input_requests_recapture": true,
+  "physical_first_correct": 3,
+  "physical_first_attempts": 4,
+  "physical_repeat_correct": 28,
+  "physical_repeat_attempts": 40,
+  "physical_reject_eggs": 0,
+  "operational_use_authorized": false
+}

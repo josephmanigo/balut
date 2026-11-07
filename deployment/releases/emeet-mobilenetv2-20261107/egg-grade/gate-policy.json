@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "REJECT"
+  ],
+  "review_required": false,
+  "on_uncertain": "RECAPTURE_REQUIRED",
+  "minimum_margin": {
+    "DAY_16": 0.33528841829299927,
+    "DAY_18": 0.02811796760559082,
+    "REJECT": 0.0
+  },
+  "minimum_training_cosine": {
+    "DAY_16": 0.8422966599464417,
+    "DAY_18": 0.8245820999145508,
+    "REJECT": 0.8121204972267151
+  },
+  "quality": {
+    "minimum_short_side": 64,
+    "minimum_grayscale_std": 8.0,
+    "minimum_edge_variance": 15.0,
+    "maximum_clipped_fraction": 0.85
+  },
+  "calibration_scope": "Development validation only; test excluded. Scores are not probabilities."
+}

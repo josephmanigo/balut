@@ -1,0 +1,11 @@
+{
+  "sha256": "9c338ae8745057c8ef8625beb28e9f5d24c1cfe689672ab0e640c643854e15a7",
+  "bytes": 8884064,
+  "parts": [
+    {
+      "name": "best.onnx.part00",
+      "bytes": 8884064,
+      "sha256": "9c338ae8745057c8ef8625beb28e9f5d24c1cfe689672ab0e640c643854e15a7"
+    }
+  ]
+}

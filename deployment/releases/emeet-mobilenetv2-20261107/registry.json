@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "scope": "SOURCE_LABEL_SHADOW_ONLY",
+  "release_id": "emeet-mobilenetv2-20261107",
+  "default_analysis_model": "egg-grade",
+  "models": [
+    {
+      "id": "egg-grade",
+      "model": {
+        "path": "egg-grade/best.onnx",
+        "sha256": "9c338ae8745057c8ef8625beb28e9f5d24c1cfe689672ab0e640c643854e15a7",
+        "parts_revision": "emeet-mobilenetv2-20261107"
+      },
+      "config": {
+        "path": "egg-grade/config.json",
+        "sha256": "8e480af7ce5d0a85b6028ed5878bab983c06eb2c25d1dffe50eedd690686460b"
+      },
+      "gate_policy": {
+        "path": "egg-grade/gate-policy.json",
+        "sha256": "31db1ba5365449983fcd755071ddfffafc61a536748567f97cb5bad7f428b272"
+      },
+      "training_references": {
+        "path": "egg-grade/training-references.npz",
+        "sha256": "600a43b241d5b202b2806b4ad40850a15c37d34c875074d854dc7bff133c88ad"
+      },
+      "known_answer": {
+        "path": "egg-grade/startup-fixture.jpg",
+        "sha256": "a6a8f2a73201fcaa955e38629fbc8cb31247273340195aca458b54a3a934c6f8"
+      },
+      "expected_scores": [
+        -2.4679291248321533,
+        -2.292340040206909,
+        2.3265578746795654
+      ],
+      "expected_prediction": "REJECT",
+      "input_description": "Three distinct candling views from the rotating EMEET holder for a Day 16, Day 18 or Reject appearance estimate."
+    }
+  ],
+  "software_test_examples": []
+}

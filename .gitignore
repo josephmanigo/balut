@@ -24,6 +24,8 @@ deployment/releases/camera-retrained-trial-20261019/egg-grade/best.onnx
 !deployment/releases/unfertilized-trial-20261019/
 
 deployment/releases/unfertilized-trial-20261019/egg-grade/best.onnx
+!deployment/releases/emeet-mobilenetv2-20261107/
+deployment/releases/emeet-mobilenetv2-20261107/egg-grade/best.onnx
 deployment/backups/
 deployment/logs/
 deployment/runtime/
