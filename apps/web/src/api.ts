@@ -47,6 +47,7 @@ export interface SourcePrediction {
 
 export interface BoxStatus {
   cloudCapture?: boolean;
+  eggPresence?: "empty" | "present" | "unknown";
   cameraUrl: string;
   enabled: boolean;
   connected: boolean;

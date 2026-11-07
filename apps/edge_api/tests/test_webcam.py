@@ -20,6 +20,64 @@ from test_supabase_store import provider, URL, SECRET
 SESSION = "12345678-1234-4234-8234-123456789012"
 
 
+def lit_holder_frame(occupied=False, angle=0):
+    image = Image.new("RGB", (640, 480), (28, 23, 23))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 308, 640, 480), fill=(215, 211, 208))
+    draw.ellipse((205, 350, 435, 504), fill=(45, 46, 47))
+    draw.ellipse((227, 363, 413, 476), fill=(253, 253, 251))
+    if occupied:
+        draw.ellipse((210, 115, 425, 434), fill=(57 + angle % 50, 11, 20))
+    output = io.BytesIO()
+    image.save(output, "JPEG", quality=90)
+    return output.getvalue()
+
+
+def test_lit_webcam_automatically_detects_empty_egg_and_removal(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+    cloud = Supabase(URL, SECRET)
+    def worker():
+        return ServerlessBox(local.database, local.evidence, local.predict, cloud)
+    def send(occupied, session=SESSION):
+        now[0] += 1
+        n = round(now[0])
+        worker().receive_frame(lit_holder_frame(occupied, n), f"webcam-{session}-{n}", "browser-" + session, owner="operator")
+        return worker().status()
+    for _ in range(5): status = send(False)
+    assert status["state"] == "waiting" and status["enabled"] and status["eggPresence"] == "empty"
+    for _ in range(12): status = send(True)
+    assert status["state"] == "remove_egg" and status["eggPresence"] == "present" and len(predictions) == 1
+    for _ in range(4): status = send(False)
+    assert status["state"] == "waiting" and status["result"] is None
+    for _ in range(12): status = send(True, "87654321-1234-4234-8234-123456789012")
+    assert status["state"] == "remove_egg" and len(predictions) == 2
+
+
+def test_webcam_startup_with_egg_and_pause_across_camera_reconnect(tmp_path, shared, monkeypatch):
+    local, predictions = make_box(tmp_path)
+    worker = ServerlessBox(local.database, local.evidence, local.predict, Supabase(URL, SECRET))
+    now = [time.time()]
+    monkeypatch.setattr("balut_api.serverless_box.time.time", lambda: now[0])
+
+    def send(body, session=SESSION):
+        now[0] += 1
+        worker.receive_frame(body, f"webcam-{session}-{round(now[0])}", "browser-" + session)
+
+    for _ in range(4):
+        send(webcam_frame())
+    assert worker.status()["eggPresence"] == "unknown" and not worker.status()["enabled"]
+    for angle in range(10):
+        send(lit_holder_frame(True, angle))
+    assert worker.status()["eggPresence"] == "present" and len(predictions) == 1
+    assert not shared["camera"]["config"].get("reference")
+    worker.mutate(lambda box: box.enable(False))
+    for _ in range(5):
+        send(lit_holder_frame(), "87654321-1234-4234-8234-123456789012")
+    assert worker.status()["state"] == "paused" and len(predictions) == 1
+
+
 def webcam_frame(occupied=False, variation=0, size=(1920, 1080)):
     image = Image.new("RGB", size, (40, 40, 40))
     if occupied:

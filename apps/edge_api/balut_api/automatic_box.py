@@ -88,6 +88,29 @@ def empty_view_matches(samples, reference, *, strict=False):
     return statistics.correlation(holder, empty_holder) >= .85
 
 
+def emeet_holder_presence(samples):
+    # Coordinates are in frame_data's 48 x 48 center crop of the fixed, bottom-lit holder.
+    def region(rows, columns):
+        return [samples[y * 48 + x] for y in rows for x in columns]
+
+    aperture = region(range(40, 48), range(18, 30))
+    open_fraction = sum(value > 205 for value in aperture) / len(aperture)
+    body = statistics.median(region(range(17, 34), range(21, 27)))
+    flank_columns = (*range(8, 14), *range(34, 40))
+    sides = statistics.median(region(range(35, 40), flank_columns))
+    if sides >= 145 and open_fraction >= .70 and statistics.median(aperture) >= max(222, body + 48, sides + 12):
+        return "empty"
+    neck = statistics.median(region(range(36, 40), range(21, 27)))
+    rim = sorted(region(range(40, 48), range(12, 36)))[-7]
+    background = statistics.median(region(range(17, 34), flank_columns))
+    glowing_shell = body >= background + 12 and neck >= sides + 15 and rim >= body + 32
+    silhouette = neck + 20 <= sides and rim >= max(60, neck + 32)
+    covered_lamp = open_fraction <= .50 and neck < 150 and rim >= max(body + 32, sides + 12)
+    if glowing_shell or silhouette or covered_lamp:
+        return "present"
+    return "unknown"
+
+
 class AutomaticBox:
     def __init__(self, database, evidence, predict):
         self.database, self.evidence, self.predict = database, evidence, predict
@@ -131,7 +154,7 @@ class AutomaticBox:
 
     def status(self):
         return {"cameraUrl": self.config.get("cameraUrl", ""), "enabled": bool(self.config.get("enabled")),
-                "connected": self.connected, "calibrated": bool(self.config.get("reference")),
+                "connected": self.connected, "calibrated": bool(self.config.get("reference") or self.config.get("emeetHolder")),
                 "state": self.state, "error": self.error, "preview": self.preview, "result": self.result,
                 "capturedViews": 0, "targetViews": 1,
                 "detection": "camera_scene_change", "controlsMotion": False}
@@ -195,7 +218,7 @@ class AutomaticBox:
         self.save()
 
     def enable(self, enabled):
-        if enabled and not self.config.get("reference"):
+        if enabled and not (self.config.get("reference") or self.config.get("emeetHolder")):
             raise ValueError("Save the empty-box view first.")
         self.config["enabled"] = enabled
         if self.config.pop("collection", None):
@@ -207,6 +230,8 @@ class AutomaticBox:
 
     def require_new_reference(self):
         self.config.pop("collection", None)
+        self.config.pop("emeetHolder", None)
+        self.config.pop("eggPresence", None)
         self.config.pop("reference", None)
         self.config.pop("awaitingEmpty", None)
         self.config["enabled"] = False
@@ -249,7 +274,7 @@ class AutomaticBox:
         if not self.config.get("enabled"):
             if self.config.get("cameraUrl"):
                 await self.read_frame(self.config["cameraUrl"])
-                self.state = "paused" if self.config.get("reference") else "needs_reference"
+                self.state = "paused" if self.config.get("reference") or self.config.get("emeetHolder") else "needs_reference"
                 self.error = None
             return
         self.error = None
@@ -261,12 +286,23 @@ class AutomaticBox:
             self.config["awaitingEmpty"] = True
             self.save()
         body, samples = await self.read_frame(self.config["cameraUrl"])
-        changed = difference(samples, self.config["reference"])
         motion = difference(samples, self.previous) if self.previous else 1.0
         self.previous = samples
-        full_empty = empty_view_matches(samples, self.config["reference"], strict=True)
-        empty = full_empty or empty_view_matches(samples, self.config["reference"])
+        if self.config.get("emeetHolder"):
+            presence = emeet_holder_presence(samples)
+            empty, occupied = presence == "empty", presence == "present"
+            full_empty = False  # Require two exposed-lamp views before releasing the egg.
+        else:
+            reference = self.config["reference"]
+            full_empty = empty_view_matches(samples, reference, strict=True)
+            empty = full_empty or empty_view_matches(samples, reference)
+            occupied = not empty and difference(samples, reference) >= .08
         self.empty_frames = self.empty_frames + 1 if empty else 0
+        if self.config.get("cameraKind") == "webcam":
+            self.config["eggPresence"] = "empty" if self.empty_frames >= 2 else "present" if occupied else "unknown"
+            if self.empty_frames >= 2:
+                self.result = None
+                self.config.pop("resultId", None)
         if self.config.get("latched") or self.config.get("awaitingEmpty"):
             self.state = ("checking_empty" if self.config.get("awaitingEmpty") else
                           "recapture" if self.result and self.result["recaptureRequested"] else "remove_egg")
@@ -277,9 +313,10 @@ class AutomaticBox:
                 self.state = "waiting"
                 self.save()
             return
-        # shortcut: scene change is not a trained egg detector; replace with a validated presence sensor when wiring is known.
-        occupied = not empty and changed >= .08
         self.occupied_frames = self.occupied_frames + 1 if occupied else 0
+        if self.config.get("emeetHolder") and self.empty_frames == 1:
+            self.state = "checking_empty"
+            return
         self.state = "settling" if occupied else "waiting" if empty else "checking_empty"
         # A rotating holder may never stop; prefer a steady pair, otherwise capture the third occupied frame.
         if self.occupied_frames >= 2 and (motion <= .015 or self.occupied_frames >= 3):
@@ -326,6 +363,8 @@ def claim_camera(box, username):
         if box.config.get("pending"):
             raise ValueError("Finish the pending analysis before switching accounts.")
         box.require_new_reference()
+        box.config.pop("webcamPaused", None)
+        box.config["latched"] = False
         box.config.pop("resultId", None)
         box.result, box.preview = None, None
     box.config["owner"] = username
@@ -337,6 +376,7 @@ def private_camera_status(box, username, value=None):
     if owner and owner != username:
         value.update(preview=None, result=None, calibrated=False, enabled=False, error=None,
                      state="needs_reference" if value["connected"] else "not_connected")
+        value.pop("eggPresence", None)
     return value
 
 

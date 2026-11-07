@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
 from .automatic_box import AutomaticBox, CameraConnection, EmptyReference, BoxEnabled, empty_view_matches, prepare_camera_frame, CAMERA_FRAMING_VERSION
-from .automatic_box import camera_owner, claim_camera, private_camera_status
+from .automatic_box import camera_owner, claim_camera, emeet_holder_presence, private_camera_status
 from .model_service import decode_jpeg
 from .remote_camera import USB_ORIGIN
 from .box_display import box_display_code
@@ -84,7 +84,22 @@ class SavedBox(AutomaticBox):
 
     async def tick(self):
         previous_error = self.error
+        # Existing webcam calibrations can adopt the lit-holder detector after an upgrade.
+        if (self.config.get("cameraKind") == "webcam" and self.config.get("reference")
+                and self.config.get("enabled") and "emeetHolder" not in self.config):
+            if emeet_holder_presence(self.config["reference"]) == "empty":
+                self.config["emeetHolder"] = True
         await super().tick()
+        if (self.config.get("cameraKind") == "webcam" and "emeetHolder" not in self.config
+                and (self.state == "needs_reference" or self.config.get("enabled"))
+                and not self.config.get("referenceDeadline") and len(self.frames) == 3):
+            observations = {emeet_holder_presence(frame) for frame in self.frames}
+            if observations in ({"empty"}, {"present"}):
+                presence = observations.pop()
+                self.config.update(emeetHolder=True, enabled=not self.config.get("webcamPaused"), eggPresence=presence)
+                if self.state == "needs_reference":
+                    self.state = ("paused" if not self.config["enabled"] else
+                                  "waiting" if presence == "empty" else "settling")
         if self.state == "waiting":
             self.config.pop("webcamScanAttempts", None)
             self.config.pop("webcamRetryAfter", None)
@@ -139,6 +154,8 @@ class SavedBox(AutomaticBox):
     def status(self):
         result = super().status()
         result["cloudCapture"] = True
+        if self.config.get("cameraKind") == "webcam" and self.connected:
+            result["eggPresence"] = self.config.get("eggPresence", "unknown") if self.config.get("enabled") else "unknown"
         if self.config.get("stationaryCapture") or self.config.get("cameraKind") == "webcam":
             result["targetViews"] = 3
         if self.config.get("webcamViews") and self.connected and self.config.get("enabled"):
@@ -155,6 +172,8 @@ class SavedBox(AutomaticBox):
         self.config.pop("webcamViews", None)
         self.config.pop("webcamScanAttempts", None)
         self.config.pop("webcamRetryAfter", None)
+        if self.config.get("cameraKind") == "webcam":
+            self.config["webcamPaused"] = not enabled
         super().enable(enabled)
 
     async def finish_pending(self):
@@ -185,6 +204,10 @@ class SavedBox(AutomaticBox):
         if not self.reference_ready():
             raise ValueError("The view is moving. Leave the box empty and try again.")
         self.config.update(reference=self.frames[-1], enabled=True, latched=False, framingVersion=CAMERA_FRAMING_VERSION)
+        if self.config.get("cameraKind") == "webcam":
+            self.config.pop("webcamPaused", None)
+            self.config["emeetHolder"] = emeet_holder_presence(self.frames[-1]) == "empty"
+            self.config["eggPresence"] = "empty"
         self.config.pop("webcamViews", None)
         self.config.pop("webcamScanAttempts", None)
         self.config.pop("webcamRetryAfter", None)
@@ -306,9 +329,10 @@ class ServerlessBox:
             reconnect_seconds = 45 if motor_frame else 12
             if framing_changed or box.config.get("cameraSession") != camera_session or box.received and now - box.received > reconnect_seconds and not expected_views:
                 box.config.pop("webcamViews", None)
-                if not framing_changed and box.config.get("reference"):
-                    # Reuse only a confirmed view, and require fresh empty matches before capturing again.
-                    box.config["awaitingEmpty"] = True
+                if not framing_changed and (box.config.get("reference") or box.config.get("emeetHolder")):
+                    # The lit holder can recognize an egg at startup. A finished egg must leave first.
+                    box.config["awaitingEmpty"] = bool(not box.config.get("emeetHolder")
+                                                       or box.config.get("latched") or box.config.get("resultId"))
                     box.enable(bool(box.config.get("enabled")))
                 else:
                     box.require_new_reference()

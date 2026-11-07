@@ -109,13 +109,19 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
   }
   const copy = webcamStream && status?.state === "offline"
     ? ["Live camera connected.", "Konektado ang live camera.", "Waiting for the scan service. Video continues while uploads reconnect.", "Hinihintay ang scan service. Tuloy ang video habang kumokonekta muli."]
+    : status?.eggPresence === "unknown" && ["checking_empty", "needs_reference", "waiting"].includes(status.state)
+    ? ["Checking the holder.", "Sinusuri ang lalagyan.", "Center the holder in the camera and keep the candling light on.", "Igitna ang lalagyan sa kamera at panatilihing bukas ang ilaw."]
+    : status?.eggPresence === "empty" && status.state === "waiting"
+    ? ["No egg detected.", "Walang nakitang itlog.", "Place one egg in the lit holder. Scanning starts automatically.", "Maglagay ng isang itlog sa lalagyang may ilaw. Awtomatikong magsisimula ang pag-scan."]
+    : status?.eggPresence === "present" && status.state === "checking_empty"
+    ? ["Egg detected.", "May nakitang itlog.", "Remove this egg to reset the holder for the next scan.", "Alisin ang itlog upang maihanda ang lalagyan para sa susunod na pag-scan."]
     : status?.cloudCapture && status.state === "needs_reference"
     ? ["Camera calibration needed.", "Kailangang i-calibrate ang camera.", "Remove the egg, turn on the candling light, then save a fresh empty view below.", "Alisin ang itlog, buksan ang ilaw, at mag-save ng bagong bakanteng kuha sa ibaba."]
     : status?.state === "settling" && status.result?.recaptureRequested ? states.rescanning
     : states[status?.state ?? "not_connected"] ?? states.offline;
   const calibrating = status?.state === "calibrating";
   const setupError = notice || (status?.state === "needs_reference" ? status.error : null);
-  const result = status?.result;
+  const result = status?.state === "waiting" || status?.eggPresence === "empty" ? null : status?.result;
   const scanning = ["settling", "capturing_views", "analyzing"].includes(status?.state ?? "");
   const unfamiliar = result?.recaptureReasons.includes("UNFAMILIAR_APPEARANCE");
   const blurry = result?.recaptureReasons.includes("IMAGE_TOO_BLURRY");
@@ -141,6 +147,7 @@ export function AutomaticBox({ locale, onSaved, active = true }: { locale: "en" 
         </div>
       </figure>
       <div ref={livePanel} className="box-live" role="status" aria-live="polite" aria-atomic="true">
+        {!unreachable && status?.eggPresence === "present" && status.state !== "checking_empty" && <span>{t("Egg detected", "May nakitang itlog")}</span>}
         <h2>{unreachable ? t("Connection interrupted.", "Naputol ang koneksyon.") : copy[locale === "en" ? 0 : 1]}</h2>
         <p>{unreachable ? t("Check the EggGrade IoT server. Reconnecting automatically.", "Suriin ang EggGrade IoT server. Kokonekta muli.") : copy[locale === "en" ? 2 : 3]}</p>
         {(scanning || calibrating) && <LoaderCircle className="spin" size={24} />}

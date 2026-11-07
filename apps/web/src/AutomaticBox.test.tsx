@@ -276,6 +276,22 @@ describe("automatic camera capture", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Connection interrupted." })).toBeInTheDocument());
     expect(screen.queryByText("Ready for an egg.")).not.toBeInTheDocument();
   });
+  it("reports webcam presence and clears the previous grade when the egg leaves", async () => {
+    vi.useFakeTimers();
+    try {
+      const current: BoxStatus = { ...blank, enabled: true, connected: true, calibrated: true,
+        cloudCapture: true, state: "remove_egg", eggPresence: "present", result: prediction };
+      vi.mocked(boxRequest).mockResolvedValue(current);
+      render(<AutomaticBox locale="en" onSaved={() => {}} />);
+      await act(async () => { await Promise.resolve(); });
+      expect(screen.getByText("Egg detected")).toBeInTheDocument();
+      expect(screen.getByText("Latest saved result")).toBeInTheDocument();
+      vi.mocked(boxRequest).mockResolvedValue({ ...current, state: "waiting", eggPresence: "empty" });
+      await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+      expect(screen.getByRole("heading", { name: "No egg detected." })).toBeInTheDocument();
+      expect(screen.queryByText("Latest saved result")).not.toBeInTheDocument();
+    } finally { vi.useRealTimers(); }
+  });
   it.each(["checking_empty", "needs_reference"])("recovers %s only after the operator confirms an empty box", async state => {
     const user = userEvent.setup();
     vi.mocked(boxRequest).mockResolvedValue({ ...blank, cloudCapture: true, connected: true, state });
