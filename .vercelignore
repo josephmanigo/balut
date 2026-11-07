@@ -27,6 +27,7 @@ supabase
 pyproject.toml
 apps/mobile
 *.zip
+!apps/web/public/assets/study-20261107-v5/EggGrade-Charts.zip
 *.db
 *.pem
 .env*
