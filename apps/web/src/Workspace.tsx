@@ -33,7 +33,7 @@ export function Workspace({ locale, setLocale, onSignOut, signingOut, notice, cl
         <AutomaticBox locale={locale} active={view === "analyze"} onSaved={() => setHistoryVersion(value => value + 1)} />
       </div>
       {historyOpened && <div hidden={view !== "history"}><PredictionHistory locale={locale} version={historyVersion} onAnalyze={() => setView("analyze")} /></div>}
-      <footer className="workspace-footer"><p>{t("Appearance only · Not a food-safety assessment", "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain")}</p><a href="/assets/study-20261107-v4/index.html" target="_blank" rel="noopener noreferrer">{t("Training and physical test results", "Resulta ng pagsasanay at pagsubok sa aktuwal na itlog")}</a></footer>
+      <footer className="workspace-footer"><p>{t("Appearance only · Not a food-safety assessment", "Batay sa hitsura · Hindi pagsusuri ng kaligtasan ng pagkain")}</p><a href="/assets/study-20261107-v5/index.html" target="_blank" rel="noopener noreferrer">{t("Panel guide and study charts", "Gabay para sa panel at mga tsart ng pag-aaral")}</a></footer>
     </main>
   </div>;
 }

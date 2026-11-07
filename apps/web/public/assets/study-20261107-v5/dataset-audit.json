@@ -1,0 +1,38 @@
+{
+  "manifest_sha256": "ebfe74e1e1c264b617b8eac4820c4aa4054647f197b3f1e3140ff46d56f8ffc8",
+  "class_order": [
+    "DAY_16",
+    "DAY_18",
+    "REJECT"
+  ],
+  "images": 9814,
+  "class_counts": {
+    "DAY_16": 3000,
+    "DAY_18": 3000,
+    "REJECT": 3814
+  },
+  "partition_counts": {
+    "train": {
+      "DAY_16": 1800,
+      "DAY_18": 1800,
+      "REJECT": 3033
+    },
+    "validation": {
+      "DAY_16": 600,
+      "DAY_18": 600,
+      "REJECT": 570
+    },
+    "test": {
+      "DAY_16": 600,
+      "DAY_18": 600,
+      "REJECT": 211
+    }
+  },
+  "physical_age_eggs": 20,
+  "confirmed_physical_reject_eggs": 0,
+  "old_age_images_used": 0,
+  "augmentation_counted_as_new_photos": false,
+  "warmup_frames_included": false,
+  "known_cross_partition_group_or_exact_image_overlap": false,
+  "unknown_public_egg_or_batch_overlap_ruled_out": false
+}
