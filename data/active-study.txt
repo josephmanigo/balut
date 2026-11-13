@@ -1,1 +1,1 @@
-local/emeet-mobilenetv2-20261107
+local/emeet-20-rotation-20261107

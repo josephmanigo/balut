@@ -26,12 +26,22 @@ def write(path, value):
     temporary.replace(path)
 
 
-def verify_candidate(dataset):
-    lock_path = dataset / "candidate-lock.json"
+def verify_candidate(dataset, lock_path=None):
+    original = dataset / 'candidate-lock.json'
+    lock_path = lock_path or original
     if not lock_path.is_file():
         raise ValueError("Keep test eggs unscanned until the candidate is locked")
     try:
         lock = json.loads(lock_path.read_text())
+        if lock_path.resolve() != original.resolve():
+            verify_candidate(dataset)
+            run = Path(lock['run']).resolve()
+            files = {Path(a['path']).resolve() for a in lock['artifacts']}
+            required = {run / n for n in ('best.onnx', 'calibration/gate-policy.json', 'calibration/training-references.npz', 'protocol.json')}
+            if (lock['original_candidate_sha256'] != sha(original)
+                    or lock_path.resolve() != run / 'candidate-lock.json' or not required <= files
+                    or any(not path.is_relative_to(run) for path in files)):
+                raise ValueError('Research candidate must preserve its original study and run identity')
         if lock["schema_version"] != 1 or lock["collection_plan_sha256"] != sha(dataset / "collection-plan.json") or not lock["artifacts"]:
             raise ValueError("Invalid candidate lock")
         for artifact in lock["artifacts"]:
@@ -64,6 +74,15 @@ def finish(dataset, folder):
     sampled_frames = assignment.get("sampled_frames", plan["sampled_frames"])
     if len(paths) != sampled_frames + plan["warmup_frames"]:
         raise ValueError("Incomplete video sample; preserve it and capture a new session")
+    angle_views = {}
+    if plan.get("rotation_poses"):
+        for pose, expected in zip(plan["rotation_poses"], [sampled_frames // 2, sampled_frames - sampled_frames // 2], strict=True):
+            group = record.get("rotation", {}).get(pose, [])
+            if len(group) != expected or {v["sector"] for v in group} != set(range(12)):
+                raise ValueError("Two confirmed placements with full holder rotation are required")
+            angle_views.update({v["image"]: {**v, "pose": pose} for v in group})
+        if set(angle_views) != {p.name for p in paths[plan["warmup_frames"]:]}:
+            raise ValueError("Rotation evidence does not match captured files")
     quality = json.loads((ROOT / "deployment/releases/unfertilized-trial-20261019/egg-grade/gate-policy.json").read_text())
     views = []
     for index, path in enumerate(paths[plan["warmup_frames"]:]):
@@ -75,6 +94,7 @@ def finish(dataset, folder):
             h, w = gray.shape
             interior = gray[int(h * .2):int(h * .75), int(w * .35):int(w * .65)]
             views.append({"image": path.name, "view_index": index, "sha256": sha(path),
+                          **angle_views.get(path.name, {}),
                           "pixel_sha256": hashlib.sha256(image.tobytes()).hexdigest(),
                           "quality_measurements": measurements, "quality_flags": flags,
                           "interior_median": float(np.median(interior)),
@@ -99,6 +119,8 @@ def capture(dataset, egg_id):
     plan_path = dataset / "collection-plan.json"
     plan = json.loads(plan_path.read_text(encoding="utf-8-sig"))
     assignment = plan["eggs"][egg_id]
+    if plan.get("rotation_poses"):
+        raise ValueError("Use capture_rotating_emeet.py for this study's two physical placements")
     if assignment["partition"] == "test":
         verify_candidate(dataset)
     if assignment["partition"] != "test" and (dataset / "candidate-lock.json").exists():

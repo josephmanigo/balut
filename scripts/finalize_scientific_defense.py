@@ -138,7 +138,7 @@ def main(reviewed):
             target = OUT / "repeat-logs" / source.relative_to(repeat_source)
             target.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(source, target)
     paths = sorted(p for p in OUT.rglob("*") if p.is_file() and p.name != "packet-sha256.json")
-    write(OUT / "packet-sha256.json", {path.relative_to(OUT).as_posix(): sha256_file(path) for path in paths})
+    write(OUT / "packet-sha256.json", {str(path.relative_to(OUT)): sha256_file(path) for path in paths})
     target = OUT.with_suffix(".zip")
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for source in sorted(OUT.rglob("*")):

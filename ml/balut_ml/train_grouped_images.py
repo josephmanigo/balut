@@ -4,7 +4,6 @@ import json
 import os
 from pathlib import Path
 import random
-import shutil
 import time
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG",":4096:8")
 
@@ -17,19 +16,13 @@ from PIL import Image,ImageOps
 from sklearn.linear_model import LogisticRegression
 from threadpoolctl import threadpool_limits
 
-from .train_grouped_camera import ROOT,DATA,CLASSES,sha,metrics,fit_weights
+from .train_grouped_camera import ROOT,DATA,CLASSES,sha,write,metrics,fit_weights
 from .train_grouped_kernel import fit_models,scores_for
 from .camera_representation import load_representation,unfreeze_tail,patch_state,restore_patch
 from .feature_models import MEAN,STD
 
 CACHE=ROOT/"ml/runs/grouped-camera-20261019"
 SEARCH=ROOT/"ml/runs/representation-search-20261019"
-
-
-def write(path,value):
-    pending=path.with_name(path.name+".pending")
-    pending.write_text(json.dumps(value,indent=2,allow_nan=False)+"\n",encoding="utf-8")
-    pending.replace(path)
 
 
 class EggImages(Dataset):
@@ -96,17 +89,6 @@ def main(args):
         "validation_caveat":"Held folds select checkpoints; development estimates are not an independent final field test",
         "test_images_opened":0,"final_fit_policy":"Only after passing grouped target; final epoch count from fold-selected epochs, never historical test labels",
         "protected_files":protected}
-    if args.resume_from:
-        args.resume_from=args.resume_from.resolve()
-        previous=json.loads((args.resume_from/"experiment-plan.json").read_text())
-        for key in ["profile","batch_size","max_epochs","patience","encoder_lr","head_lr","weight_decay","seed","label_smoothing","brightness_jitter"]:
-            if previous[key]!=recipe[key]:raise ValueError("Resume training recipe differs: "+key)
-        source_key=str(Path(__file__).relative_to(ROOT))
-        assert sha(args.resume_from/"training-source-original.py")==previous["protected_files"][source_key]
-        for name,digest in previous["protected_files"].items():
-            if name!=source_key:assert sha(ROOT/name)==digest
-        recipe.update(resume_from=str(args.resume_from),resume_protocol="Copy completed folds unchanged; rerun only interrupted folds from their original seed and recipe",
-                      original_training_source_sha256=previous["protected_files"][source_key])
     write(output/"experiment-plan.json",recipe)
     linear_oof=np.full((len(rows),3),np.nan,dtype=np.float32);kernel_oof=linear_oof.copy();nearest=np.zeros((len(rows),3),dtype=np.float32)
     summaries=[];started=time.perf_counter()
@@ -114,31 +96,7 @@ def main(args):
         seed=42+fold;random.seed(seed);np.random.seed(seed);torch.manual_seed(seed);torch.cuda.manual_seed_all(seed)
         fit,held=np.flatnonzero(folds!=fold),np.flatnonzero(folds==fold)
         assert not set(groups[fit])&set(groups[held])
-        folder=output/f"fold-{fold+1}"
-        previous_folder=args.resume_from/f"fold-{fold+1}" if args.resume_from else None
-        if previous_folder and (previous_folder/"summary.json").exists():
-            required=["summary.json","selected.json","best-patch.pt","development.npz","history.jsonl"]
-            assert all((previous_folder/name).is_file() for name in required)
-            shutil.copytree(previous_folder,folder)
-            summary=json.loads((folder/"summary.json").read_text())
-            payload=torch.load(folder/"best-patch.pt",weights_only=True,map_location="cpu")
-            assert summary["fold"]==fold+1 and payload["epoch"]==summary["selected_epoch"]
-            with np.load(folder/"development.npz",allow_pickle=False) as bank:
-                features=bank["features"]
-                np.testing.assert_array_equal(bank["truth"],truth);np.testing.assert_array_equal(bank["fit"],fit);np.testing.assert_array_equal(bank["held"],held)
-            scores=features@payload["patch"]["head.weight"].numpy().T+payload["patch"]["head.bias"].numpy()
-            expected=json.loads((folder/"selected.json").read_text())["validation"]["confusion_matrix"]
-            assert metrics(scores[held],truth[held])["confusion_matrix"]==expected
-            linear_oof[held]=scores[held]
-            kernel=fit_models(features[fit],truth[fit],[rows[i] for i in fit],{"C":100.,"gamma":1.,"camera_weight":20})
-            kernel_oof[held]=scores_for(kernel,features[held])
-            for label in range(3):nearest[held,label]=(features[held]@features[fit[truth[fit]==label]].T).max(1)
-            write(folder/"resume-verification.json",{"completed_fold_reused":True,"source":str(previous_folder),
-                  "original_files":{name:sha(previous_folder/name) for name in required},"cached_feature_head_classifications_match":True})
-            summaries.append(summary)
-            print(json.dumps({"completed_fold_reused":fold+1,"selected_epoch":summary["selected_epoch"]}),flush=True)
-            continue
-        folder.mkdir()
+        folder=output/f"fold-{fold+1}";folder.mkdir()
         weights=fit_weights([rows[i] for i in fit],20)*2256/len(fit)
         initializer=LogisticRegression(C=10,max_iter=3000,random_state=42).fit(initial_features[fit],truth[fit],sample_weight=weights)
         encoder=load_representation(args.profile);unfreeze_tail(encoder)
@@ -170,9 +128,7 @@ def main(args):
             with (folder/"history.jsonl").open("a") as stream:stream.write(json.dumps(record,allow_nan=False)+"\n")
             if best is None or key>best:
                 best=key;stale=0;chosen=record
-                pending=folder/"best-patch.pending.pt"
-                torch.save({"patch":patch_state(model),"profile":args.profile,"epoch":epoch,"fold":fold+1,"recipe":recipe},pending)
-                pending.replace(folder/"best-patch.pt")
+                torch.save({"patch":patch_state(model),"profile":args.profile,"epoch":epoch,"fold":fold+1,"recipe":recipe},folder/"best-patch.pt")
                 write(folder/"selected.json",record)
             else:stale+=1
             print(json.dumps({"fold":fold+1,"completed_epoch":epoch,"camera_age_recall":age,"validation_accuracy":measured["accuracy"],
@@ -209,7 +165,6 @@ def main(args):
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--profile",required=True);parser.add_argument("--output",type=Path,required=True)
-    parser.add_argument("--resume-from",type=Path)
     parser.add_argument("--max-epochs",type=int,default=25);parser.add_argument("--patience",type=int,default=6)
     parser.add_argument("--encoder-lr",type=float,default=3e-5);parser.add_argument("--head-lr",type=float,default=7e-4)
     parser.add_argument("--brightness",type=float,default=.25);parser.add_argument("--smoothing",type=float,default=.03)

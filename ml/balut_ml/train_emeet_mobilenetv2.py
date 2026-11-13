@@ -86,11 +86,17 @@ def training_weights(rows):
 def load_development(dataset):
     rows = development_rows(dataset, require_complete=True)
     age_counts = Counter((r["partition"], r["source_label"]) for r in rows)
-    expected = {(part, label): count for part, count in [("train", 900), ("validation", 300)] for label in CLASSES[:2]}
+    plan = json.loads((dataset / "collection-plan.json").read_text(encoding="utf-8-sig"))
+    expected = Counter()
+    for egg in plan["eggs"].values():
+        if egg["partition"] != "test":
+            expected[egg["partition"], egg["label"]] += egg.get("sampled_frames", plan["sampled_frames"])
     if age_counts != expected:
-        raise ValueError("Require exactly 2400 new age development images under the frozen split")
+        raise ValueError("Age development counts differ from the frozen egg assignments")
     reject = dataset / "reject"
     audit = json.loads((reject / "audit.json").read_text())
+    if plan.get("reject_manifest_sha256", audit["manifest_sha256"]) != audit["manifest_sha256"]:
+        raise ValueError("The frozen plan identifies a different Reject dataset")
     if sha(reject / "manifest.jsonl") != audit["manifest_sha256"]:
         raise ValueError("Reject manifest changed")
     rows += [r for r in map(json.loads, (reject / "manifest.jsonl").read_text().splitlines()) if r["partition"] != "test"]
@@ -188,7 +194,7 @@ def train(args):
               "model_parameters": sum(p.numel() for p in model.parameters())}
     recipe.update(input_representation=representation, cudnn_tf32=torch.backends.cudnn.allow_tf32,
                   scope="EXPLORATORY_REFINEMENT_AFTER_FIRST_TEST" if refinement else "INITIAL_LOCKED_STUDY",
-                  prior_test_examined=refinement, fresh_independent_test=not refinement,
+                  prior_test_examined=refinement, fresh_independent_test=not refinement and not json.loads((dataset / "collection-plan.json").read_text()).get("prior_cohort_overlap_possible", False),
                   test_images_used_for_fitting=0,
                   representation_note="Embedded in the ONNX graph; fixed central 48:176 crop and ellipse, gamma 0.5 only for egg-roi-gamma" if refinement else "Full frame",
                   original_candidate_lock_sha256=sha(dataset / "candidate-lock.json") if refinement else None)
@@ -264,7 +270,7 @@ def train(args):
                "age_validation_eggs": len({rows[i]["physical_egg_id"] for i in held if rows[i].get("physical_egg_id")}),
                "train": measured(scores[fit], truth[fit]), "validation": measured(scores[held], truth[held]),
                "promoted": False, "field_accuracy_established": False, "elapsed_seconds": time.perf_counter() - started}
-    summary.update(input_representation=representation, prior_test_examined=refinement, fresh_independent_test=not refinement)
+    summary.update(input_representation=representation, prior_test_examined=refinement, fresh_independent_test=recipe["fresh_independent_test"])
     write(output / "metrics.json", summary)
     plot_history(output)
     model.cpu().eval()

@@ -59,20 +59,35 @@ class Spinner:
         self.port = port
 
     def command(self, verb):
-        nonce = uuid4().hex[:16]
         self.port.reset_input_buffer()
-        self.port.write(f"{verb} {nonce}".encode() + (b" 12000\n" if verb == "HOLD" else b"\n"))
-        self.port.flush()
+        sent = {}
+        partial = bytearray()
         deadline = time.monotonic() + 2
+        next_probe = 0.
         while time.monotonic() < deadline:
-            line = self.port.readline(180).decode("ascii", errors="replace").strip()
-            match = re.fullmatch(rf"BALUT_MOTOR_V1 {nonce} (HELD|RUNNING) steps=(\d+) mac=([0-9a-f:]{{17}})", line)
-            if match:
-                if match[3] != MOTOR_MAC:
+            if not sent or (verb == "STATUS" and time.monotonic() >= next_probe):
+                nonce = uuid4().hex[:16]
+                prefix = b"\n" if sent else b""
+                sent[nonce] = time.time_ns()
+                self.port.write(prefix + f"{verb} {nonce}".encode() + (b" 12000\n" if verb == "HOLD" else b"\n"))
+                self.port.flush()
+                next_probe = time.monotonic() + .35
+            partial.extend(self.port.readline(180))
+            if not partial.endswith(b"\n"):
+                if len(partial) > 360:
+                    partial.clear()
+                continue
+            line = partial.decode("ascii", errors="replace").strip()
+            partial.clear()
+            match = re.fullmatch(r"BALUT_MOTOR_V1 ([0-9a-f]{16}) (HELD|RUNNING) steps=(\d+) mac=([0-9a-f:]{17})", line)
+            if match and match[1] in sent:
+                if match[4] != MOTOR_MAC:
                     raise ValueError("Spinner controller identity changed")
-                state, steps = match[1], int(match[2])
+                state, steps = match[2], int(match[3])
                 if verb == "HOLD" and state != "HELD" or verb == "RUN" and state != "RUNNING":
                     raise ValueError("Spinner did not acknowledge its capture state")
+                if verb == "STATUS":
+                    self.status_timestamp_ns = (sent[match[1]] + time.time_ns()) // 2
                 return state, steps
         raise ValueError("Spinner did not answer the capture protocol")
 

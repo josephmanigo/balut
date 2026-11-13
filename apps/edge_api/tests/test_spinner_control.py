@@ -38,6 +38,26 @@ def test_capture_holds_until_camera_finishes_and_resumes(monkeypatch):
     assert port.state == "RUNNING"
 
 
+def test_status_recovers_lost_probe_and_split_serial_reply(monkeypatch):
+    class FlakyPort(Port):
+        def readline(self, limit):
+            if len(self.commands) == 1:
+                return b""
+            if not hasattr(self, "remaining"):
+                line = super().readline(limit)
+                self.remaining = line[12:]
+                return line[:12]
+            return self.remaining
+
+    ticks = iter(i * .05 for i in range(50))
+    monkeypatch.setattr(spinner_control.time, "monotonic", lambda: next(ticks))
+    port = FlakyPort()
+    spinner = spinner_control.Spinner(port)
+    assert spinner.command("STATUS") == ("RUNNING", 12)
+    assert port.commands == ["STATUS", "STATUS"]
+    assert spinner.status_timestamp_ns > 0
+
+
 def test_capture_failure_still_resumes(monkeypatch):
     monkeypatch.setattr(spinner_control.time, "sleep", lambda _: None)
     port = Port()

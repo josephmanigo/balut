@@ -42,7 +42,7 @@ def calibrate(scores, truth, nearest, quality):
     return policy
 
 
-def seal(dataset, run):
+def seal(dataset, run, compare_rotation_edge=False):
     import torch
     from balut_ml.train_emeet_mobilenetv2 import MobileNetEgg, measured
 
@@ -105,18 +105,29 @@ def seal(dataset, run):
     quality["maximum_clipped_fraction"] = min(.99, max(.85, float(np.quantile(clipping, .99)) + .005))
     policy = calibrate(scores[val], truth[val], nearest, quality)
     validate_policy(policy, features[train], truth[train])
-    write(folder / "gate-policy.json", policy)
     np.savez_compressed(folder / "training-references.npz", features=features[train], labels=truth[train])
     np.savez_compressed(folder / "development-cpu.npz", scores=scores, features=features, truth=truth, train=train)
     write(folder / "serving-inputs.json", provenance)
     with np.load(run / "development.npz", allow_pickle=False) as trained:
         parity = float(np.max(np.abs(trained["scores"] - scores)))
         gpu_prediction_changes = int((trained["scores"].argmax(1) != scores.argmax(1)).sum())
-    outcomes = []
-    for index in np.flatnonzero(val):
-        with decode_jpeg(Path(provenance[index]["path"]).read_bytes()) as image:
-            result = decide(scores[index], features[index], image, policy, features[train], truth[train])
-        outcomes.append({"row_index": int(index), "truth": CLASSES[truth[index]], **result})
+    references, reference_labels = features[train], truth[train]
+    def evaluate(candidate):
+        outcomes = []
+        for index in np.flatnonzero(val):
+            with decode_jpeg(Path(provenance[index]["path"]).read_bytes()) as image:
+                result = decide(scores[index], features[index], image, candidate, references, reference_labels)
+            outcomes.append({"row_index": int(index), "truth": CLASSES[truth[index]], **result})
+        return outcomes
+
+    outcomes = evaluate(policy)
+    quality_note = "Only clipping fraction adapted using validation eggs; blur, contrast and size limits unchanged"
+    if compare_rotation_edge:
+        from scripts.emeet_rotation_calibration import compare_rotation_floor
+        policy, outcomes = compare_rotation_floor(dataset, run, policy, outcomes, evaluate, rows, scores, CLASSES)
+        validate_policy(policy, references, reference_labels)
+        quality_note = "Clipping calibrated on validation age eggs; edge floor selected under the registered development-only comparison. See edge-comparison.json."
+    write(folder / "gate-policy.json", policy)
     write(folder / "validation-outcomes.json", outcomes)
     write(folder / "verification.json", {"cpu_gpu_max_score_difference": parity, "gpu_cpu_raw_prediction_changes": gpu_prediction_changes,
           "cpu_pytorch_onnx_max_score_difference": score_error, "cpu_pytorch_onnx_max_embedding_difference": feature_error,
@@ -124,11 +135,15 @@ def seal(dataset, run):
           "export_verification": "Full development set: CPU PyTorch versus CPU ONNX, identical input tensors; strict numeric and argmax checks passed",
           "training_backend_difference": "Epoch logs used GPU cuDNN with TF32 enabled; serving uses CPU float32. Both measurements are retained, not substituted",
           "serving_train": measured(scores[train], truth[train]), "serving_validation": measured(scores[val], truth[val]), "test_images_opened": 0,
-          "quality_calibration": "Only clipping fraction adapted using validation eggs; blur, contrast and size limits unchanged",
+          "quality_calibration": quality_note,
           "maximum_clipped_fraction": quality["maximum_clipped_fraction"], "field_accuracy_established": False})
     artifacts = [run / "training-lock.json", run / "best.onnx", run / "development-manifest.json",
                  folder / "gate-policy.json", folder / "training-references.npz", folder / "development-cpu.npz",
                  folder / "validation-outcomes.json", folder / "verification.json"]
+    if compare_rotation_edge:
+        artifacts.extend([run / "edge-calibration-plan.json", folder / "edge-comparison.json",
+                          folder / "original-gate-policy.json", folder / "original-validation-outcomes.json",
+                          folder / "candidate-edge-policy.json", folder / "candidate-edge-validation-outcomes.json"])
     write(lock_path, {"schema_version": 1, "architecture": "MobileNetV2", "run": str(run),
           "collection_plan_sha256": sha(dataset / "collection-plan.json"), "test_images_opened": 0,
           "artifacts": [{"path": str(path), "sha256": sha(path)} for path in artifacts],
@@ -139,5 +154,7 @@ def seal(dataset, run):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("dataset", type=Path); parser.add_argument("run", type=Path)
+    parser.add_argument("--compare-rotation-edge", action="store_true",
+                        help="Compare the original edge floor to the preregistered rotation study floor before locking")
     args = parser.parse_args()
-    seal(args.dataset.resolve(), args.run.resolve())
+    seal(args.dataset.resolve(), args.run.resolve(), args.compare_rotation_edge)

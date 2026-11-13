@@ -5,6 +5,33 @@ from scripts.emeet_physical_metrics import count_attempts, load_physical_study
 from scripts.repeat_emeet_candidate import run_repeats
 
 
+def test_physical_protocol_counts_all_ten_when_camera_is_unavailable(tmp_path, monkeypatch):
+    from scripts import repeat_emeet_candidate as repeat
+    dataset, study = tmp_path / "dataset", tmp_path / "study"
+    folder = dataset / "captures/D18-09/test"
+    folder.mkdir(parents=True)
+    study.mkdir()
+    plan = {"eggs": {"D18-09": {"partition": "test", "label": "DAY_18"}}, "camera": "software-test-only"}
+    write(dataset / "collection-plan.json", plan)
+    artifact = tmp_path / "software-test-only"
+    artifact.write_text("dummy")
+    write(dataset / "candidate-lock.json", {"schema_version": 1, "run": str(tmp_path),
+          "collection_plan_sha256": sha(dataset / "collection-plan.json"), "artifacts": [{"path": str(artifact), "sha256": sha(artifact)}]})
+    write(folder / "record.json", {"status":"complete"})
+    write(study / "protocol.json", {"candidate_lock_sha256":sha(dataset / "candidate-lock.json"), "selected_eggs":["D18-09"],
+          "attempts_per_egg":10, "count_all_scheduled_attempts":True, "imported_original_physical_records":[], "scope":"unit test"})
+    monkeypatch.setattr(repeat, "finish", lambda *args: {"physical_egg_id":"dataset:D18-09","source_label":"DAY_18"})
+    monkeypatch.setattr(repeat, "load_engine", lambda *args: None)
+    def unavailable(*args, **kwargs):
+        raise OSError("simulated disconnected camera")
+    monkeypatch.setattr(repeat.subprocess, "run", unavailable)
+    run_repeats(dataset, "D18-09", study)
+    result = load_physical_study(study, dataset)
+    assert result["repeated_attempts"]["acquisition_failures"] == 10
+    assert result["primary_first_attempt_per_egg"]["attempts"] == 1
+    assert result["repeated_attempts"]["accuracy"] == 0
+
+
 def test_count_first_scans_separately_and_keep_failed_and_unclassified_attempts():
     def attempt(label):
         return {"result": None if label == "FAILED" else {"sourcePrediction": label}}

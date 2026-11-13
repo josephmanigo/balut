@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from scripts.capture_emeet_egg import sha, verify_candidate, write
-from scripts.repeat_emeet_candidate import REPEATS, summarize
+from scripts.repeat_emeet_candidate import REPEATS, summarize, combine_views
 from balut_api.model_service import decode_jpeg
 
 CLASSES = ("DAY_16", "DAY_18", "REJECT")
@@ -46,15 +46,18 @@ def count_attempts(records, first_only=False):
             "counting": "Unclassified and acquisition failures count as incorrect and as FN for the known class; unsupported classes are not scored"}
 
 
-def load_physical_study(study, dataset):
-    verify_candidate(dataset)
-    candidate_hash = sha(dataset / "candidate-lock.json")
+def load_physical_study(study, dataset, candidate_path=None):
+    verify_candidate(dataset,candidate_path)
+    candidate_hash = sha(candidate_path or dataset / "candidate-lock.json")
     collection = json.loads((dataset / "collection-plan.json").read_text())
     protocol_path = study / "protocol.json"
     protocol = json.loads(protocol_path.read_text())
     if protocol["candidate_lock_sha256"] != candidate_hash or protocol["attempts_per_egg"] != REPEATS:
         raise ValueError("Physical study candidate or attempt count changed")
     imported = {r["egg_id"]: r["record_sha256"] for r in protocol["imported_original_physical_records"]}
+    baseline_hash = sha(dataset/'candidate-lock.json') if candidate_path else None
+    if candidate_path and (imported or protocol.get('baseline_candidate_lock_sha256') != baseline_hash):
+        raise ValueError('Paired physical study must use only fresh scans and the original comparator')
     heldout = {egg for egg, item in collection["eggs"].items() if item["partition"] == "test"}
     if len(protocol["selected_eggs"]) != len(heldout) or set(protocol["selected_eggs"]) != heldout:
         raise ValueError("Physical study must include the complete reserved cohort")
@@ -77,6 +80,12 @@ def load_physical_study(study, dataset):
         for index, attempt in enumerate(record["attempts"], start=1):
             if attempt["number"] != index or (attempt.get("result") is not None and len(attempt.get("views", [])) != 3):
                 raise ValueError("Unexpected attempt order or camera view count")
+            if candidate_path and attempt.get('result') is not None:
+                controls = attempt.get('baseline_views',[]); main = attempt['views']
+                if (record.get('baseline_candidate_lock_sha256') != baseline_hash
+                        or [v['sha256'] for v in controls] != [v['sha256'] for v in main]
+                        or attempt.get('baseline_result') != combine_views(controls) or attempt['result'] != combine_views(main)):
+                    raise ValueError('Physical comparison does not match the same three views and locked decision rule')
             for view in attempt.get("views", []):
                 body = Path(view["path"]).read_bytes()
                 with decode_jpeg(body) as image:
@@ -112,4 +121,11 @@ def load_physical_study(study, dataset):
                "physical_reject_eggs": sum(r["truth"] == "REJECT" for r in records),
                "new_independent_eggs": 0, "field_accuracy_established": False,
                "measurement_scope": "Physical EMEET camera + local locked MobileNetV2 + production decision rules; no saved-dataset replay, deployed-browser, verified repositioning, or production-field test"}
+    if candidate_path:
+        controls = [{'truth':r['truth'],'attempts':[{'result':a.get('baseline_result')} for a in r['attempts']]} for r in records]
+        summary['paired_baseline'] = {'candidate_lock_sha256':baseline_hash,
+            'primary_first_attempt_per_egg':count_attempts(controls,first_only=True),'repeated_attempts':count_attempts(controls),
+            'per_egg':{r['egg_id']:count_attempts([c]) for r,c in zip(records,controls,strict=True)}}
+        for log,control in zip(summary['scan_log'],(a for r in controls for a in r['attempts']),strict=True):
+            log['baseline_outcome']=outcome(control)
     return summary

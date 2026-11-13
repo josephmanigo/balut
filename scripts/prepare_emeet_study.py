@@ -64,8 +64,10 @@ def finalize(dataset):
     from ml.balut_ml.emeet_development import development_rows, validate_rows
 
     rows = development_rows(dataset, require_complete=True, include_test=True)
-    if Counter(r["source_label"] for r in rows) != {"DAY_16": 1500, "DAY_18": 1500}:
-        raise ValueError("Require exactly 1500 real captured images for each age")
+    plan = json.loads((dataset / "collection-plan.json").read_text(encoding="utf-8-sig"))
+    target = plan.get("age_image_targets", {"DAY_16": 1500, "DAY_18": 1500})
+    if Counter(r["source_label"] for r in rows) != target:
+        raise ValueError("Real age image counts do not match the frozen collection targets")
     reject = dataset / "reject/manifest.jsonl"
     if sha(reject) != json.loads((dataset / "reject/audit.json").read_text())["manifest_sha256"]:
         raise ValueError("Retained Reject manifest changed")
